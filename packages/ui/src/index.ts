@@ -22,4 +22,5 @@ export { Switch, type SwitchProps } from './components/switch';
 export { TextArea, type TextAreaProps } from './components/text-area';
 export { TextField, type TextFieldProps } from './components/text-field';
 export { Toast, type ToastProps } from './components/toast';
+export { type ToastOptions, ToastProvider, useToast } from './components/toast-provider';
 export { cn } from './lib/cn';
