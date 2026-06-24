@@ -30,7 +30,7 @@ export function AttachmentCard({ name, meta, icon, onRemove, className }: Attach
           type="button"
           onClick={onRemove}
           aria-label="첨부 삭제"
-          className="text-on-surface-variant hover:bg-surface-variant hover:text-on-surface shrink-0 rounded-md p-1"
+          className="text-on-surface-variant hover:bg-surface-variant hover:text-on-surface shrink-0 cursor-pointer rounded-md p-1"
         >
           <CloseIcon />
         </button>

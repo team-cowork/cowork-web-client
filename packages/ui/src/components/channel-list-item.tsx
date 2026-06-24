@@ -25,7 +25,7 @@ export function ChannelListItem({
       onClick={onClick}
       aria-current={active ? 'true' : undefined}
       className={cn(
-        'flex h-11 w-full items-center gap-2 rounded-lg px-3 text-left transition-colors',
+        'flex h-11 w-full cursor-pointer items-center gap-2 rounded-lg px-3 text-left transition-colors',
         active
           ? 'bg-surface-variant text-on-surface'
           : 'text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface',
