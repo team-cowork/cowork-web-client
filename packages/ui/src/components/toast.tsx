@@ -14,7 +14,7 @@ export function Toast({ message, icon, action, className }: ToastProps) {
     <div
       role="status"
       className={cn(
-        'inline-flex items-center gap-3 rounded-xl bg-inverse-surface px-4 py-3 text-inverse-on-surface shadow-lg',
+        'bg-inverse-surface text-inverse-on-surface inline-flex items-center gap-3 rounded-xl px-4 py-3 shadow-lg',
         className,
       )}
     >

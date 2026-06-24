@@ -19,6 +19,7 @@ import {
   TextField,
   Toast,
 } from '@cowork/ui';
+
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/example')({
@@ -30,7 +31,7 @@ const colors = ['brand', 'neutral', 'danger'] as const;
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-4 border-b border-outline-variant pb-8">
+    <section className="border-outline-variant flex flex-col gap-4 border-b pb-8">
       <h2 className="typography-title-small text-on-background">{title}</h2>
       {children}
     </section>
@@ -46,7 +47,7 @@ function ComponentGallery() {
   const [message, setMessage] = useState('');
 
   return (
-    <div className="min-h-screen bg-background p-10">
+    <div className="bg-background min-h-screen p-10">
       <div className="mx-auto flex max-w-4xl flex-col gap-10">
         <h1 className="typography-display-small text-on-background">Common Components</h1>
 
@@ -266,7 +267,10 @@ function CheckIcon() {
 function ChatIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinejoin="round" />
+      <path
+        d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

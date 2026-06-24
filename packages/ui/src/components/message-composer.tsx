@@ -1,7 +1,7 @@
 import { type KeyboardEvent, type ReactNode } from 'react';
 
-import { IconButton } from './icon-button';
 import { cn } from '../lib/cn';
+import { IconButton } from './icon-button';
 
 export interface MessageComposerProps {
   value: string;
@@ -32,7 +32,7 @@ export function MessageComposer({
   return (
     <div
       className={cn(
-        'flex items-end gap-2 rounded-xl border border-outline bg-surface p-2 focus-within:border-primary',
+        'border-outline bg-surface focus-within:border-primary flex items-end gap-2 rounded-xl border p-2',
         className,
       )}
     >
@@ -43,15 +43,9 @@ export function MessageComposer({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="typography-body-medium max-h-32 flex-1 resize-none bg-transparent px-2 py-2 text-on-surface placeholder:text-on-surface-variant focus:outline-none"
+        className="typography-body-medium text-on-surface placeholder:text-on-surface-variant max-h-32 flex-1 resize-none bg-transparent px-2 py-2 focus:outline-none"
       />
-      <IconButton
-        size="M"
-        variant="fill"
-        aria-label="전송"
-        disabled={!canSend}
-        onClick={onSend}
-      >
+      <IconButton size="M" variant="fill" aria-label="전송" disabled={!canSend} onClick={onSend}>
         <SendIcon />
       </IconButton>
     </div>

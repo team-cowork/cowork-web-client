@@ -29,13 +29,13 @@ export function Dialog({ open, onClose, title, description, children, className 
         if (e.target === ref.current) onClose();
       }}
       className={cn(
-        'm-auto w-[420px] max-w-[calc(100vw-2rem)] rounded-2xl bg-surface p-6 text-on-surface backdrop:bg-black/50',
+        'bg-surface text-on-surface m-auto w-[420px] max-w-[calc(100vw-2rem)] rounded-2xl p-6 backdrop:bg-black/50',
         className,
       )}
     >
       <h2 className="typography-title-small text-on-surface">{title}</h2>
       {description && (
-        <p className="typography-body-medium mt-2 text-on-surface-variant">{description}</p>
+        <p className="typography-body-medium text-on-surface-variant mt-2">{description}</p>
       )}
       {children && <div className="mt-6 flex justify-end gap-2">{children}</div>}
     </dialog>

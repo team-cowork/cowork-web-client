@@ -14,7 +14,7 @@ export function ErrorState({ title, description, action, className }: ErrorState
     <div
       role="alert"
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-2xl bg-error-container px-6 py-10 text-center text-on-error-container',
+        'bg-error-container text-on-error-container flex flex-col items-center justify-center gap-3 rounded-2xl px-6 py-10 text-center',
         className,
       )}
     >

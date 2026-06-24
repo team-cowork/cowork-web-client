@@ -32,10 +32,10 @@ export function ChannelListItem({
         className,
       )}
     >
-      <span className="shrink-0 text-on-surface-variant">{prefix}</span>
+      <span className="text-on-surface-variant shrink-0">{prefix}</span>
       <span className="typography-label-small flex-1 truncate">{name}</span>
       {unreadCount != null && unreadCount > 0 && (
-        <span className="typography-subtext-small inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-on-primary">
+        <span className="typography-subtext-small bg-primary text-on-primary inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5">
           {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}
