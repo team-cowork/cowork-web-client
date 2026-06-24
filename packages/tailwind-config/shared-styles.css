@@ -83,6 +83,8 @@
   --cowork-semantic-on-error: #ffffff;
   --cowork-semantic-error-container: var(--cowork-primitive-red-50);
   --cowork-semantic-on-error-container: var(--cowork-primitive-red-900);
+  --cowork-semantic-success: var(--cowork-primitive-green-500);
+  --cowork-semantic-on-success: #ffffff;
   --cowork-semantic-inverse-surface: var(--cowork-primitive-neutral-800);
   --cowork-semantic-inverse-on-surface: var(--cowork-primitive-neutral-100);
   --cowork-semantic-inverse-primary: var(--cowork-primitive-red-300);
@@ -116,6 +118,8 @@
   --cowork-semantic-on-error: #ffffff;
   --cowork-semantic-error-container: var(--cowork-primitive-red-900);
   --cowork-semantic-on-error-container: var(--cowork-primitive-red-100);
+  --cowork-semantic-success: var(--cowork-primitive-green-400);
+  --cowork-semantic-on-success: #ffffff;
   --cowork-semantic-inverse-surface: var(--cowork-primitive-neutral-100);
   --cowork-semantic-inverse-on-surface: var(--cowork-primitive-neutral-800);
   --cowork-semantic-inverse-primary: var(--cowork-primitive-red-600);
@@ -237,6 +241,8 @@
   --color-on-error: var(--cowork-semantic-on-error);
   --color-error-container: var(--cowork-semantic-error-container);
   --color-on-error-container: var(--cowork-semantic-on-error-container);
+  --color-success: var(--cowork-semantic-success);
+  --color-on-success: var(--cowork-semantic-on-success);
   --color-inverse-surface: var(--cowork-semantic-inverse-surface);
   --color-inverse-on-surface: var(--cowork-semantic-inverse-on-surface);
   --color-inverse-primary: var(--cowork-semantic-inverse-primary);

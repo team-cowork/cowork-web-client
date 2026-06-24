@@ -22,7 +22,7 @@ export function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   return (
     <div
-      role="tablist"
+      role="group"
       className={cn(
         'bg-surface-container inline-flex items-center gap-1 rounded-[14px] p-1',
         size === 'M' ? 'h-11' : 'h-[52px]',
@@ -35,8 +35,7 @@ export function SegmentedControl<T extends string>({
           <button
             key={option.value}
             type="button"
-            role="tab"
-            aria-selected={selected}
+            aria-pressed={selected}
             onClick={() => onChange(option.value)}
             className={cn(
               'typography-label-small focus-visible:ring-primary/50 flex h-full flex-1 cursor-pointer items-center justify-center rounded-[10px] px-3 transition-colors focus-visible:ring-2 focus-visible:outline-none',

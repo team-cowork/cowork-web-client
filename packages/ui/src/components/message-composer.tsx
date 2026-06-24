@@ -24,6 +24,7 @@ export function MessageComposer({
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
+      if (e.nativeEvent.isComposing) return;
       e.preventDefault();
       if (canSend) onSend();
     }

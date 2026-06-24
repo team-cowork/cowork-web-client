@@ -25,6 +25,7 @@ export function FileUploadProgress({ name, progress, className }: FileUploadProg
       <div className="bg-surface-variant h-2 w-full overflow-hidden rounded-full">
         <div
           role="progressbar"
+          aria-label={`${name} 업로드 진행률`}
           aria-valuenow={clamped}
           aria-valuemin={0}
           aria-valuemax={100}
