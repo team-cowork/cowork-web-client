@@ -18,6 +18,8 @@ import {
   TextArea,
   TextField,
   Toast,
+  ToastProvider,
+  useToast,
 } from '@cowork/ui';
 
 import { createFileRoute } from '@tanstack/react-router';
@@ -158,6 +160,12 @@ function ComponentGallery() {
           <Toast icon={<CheckIcon />} message="파일 업로드가 완료되었습니다" />
         </Section>
 
+        <Section title="Toast Provider">
+          <ToastProvider>
+            <ToastDemo />
+          </ToastProvider>
+        </Section>
+
         <Section title="Channel List Item">
           <div className="flex max-w-xs flex-col gap-1">
             <ChannelListItem
@@ -248,6 +256,15 @@ function ComponentGallery() {
         </Section>
       </div>
     </div>
+  );
+}
+
+function ToastDemo() {
+  const { toast } = useToast();
+  return (
+    <Button onClick={() => toast('파일 업로드가 완료되었습니다', { icon: <CheckIcon /> })}>
+      토스트 띄우기
+    </Button>
   );
 }
 
