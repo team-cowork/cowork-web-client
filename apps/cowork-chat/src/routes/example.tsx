@@ -149,9 +149,7 @@ function ComponentGallery() {
               <Button variant="weak" color="neutral" onClick={() => setDialogOpen(false)}>
                 취소
               </Button>
-              <Button color="danger" onClick={() => setDialogOpen(false)}>
-                아카이브
-              </Button>
+              <Button onClick={() => setDialogOpen(false)}>아카이브</Button>
             </Dialog>
           </div>
         </Section>
@@ -199,7 +197,12 @@ function ComponentGallery() {
 
         <Section title="Message Composer">
           <div className="max-w-xl">
-            <MessageComposer value={message} onChange={setMessage} onSend={() => setMessage('')} />
+            <MessageComposer
+              value={message}
+              onChange={setMessage}
+              onSend={() => setMessage('')}
+              leading={<PaperclipIcon />}
+            />
           </div>
         </Section>
 
@@ -269,6 +272,25 @@ function ChatIcon() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
       <path
         d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function PaperclipIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      aria-hidden
+      className="text-on-surface-variant size-5"
+    >
+      <path
+        d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
+        strokeLinecap="round"
         strokeLinejoin="round"
       />
     </svg>
