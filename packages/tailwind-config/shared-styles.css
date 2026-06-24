@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* @cowork/ui lives in node_modules (symlink) and is skipped by default content
+   detection — register it so its utility classes aren't purged. */
+@source '../ui/src';
+
 @font-face {
   font-family: 'Pretendard';
   src: url('./fonts/PretendardVariable.woff2') format('woff2');
