@@ -19,6 +19,10 @@ export function Dialog({ open, onClose, title, description, children, className 
     if (!dialog) return;
     if (open && !dialog.open) dialog.showModal();
     if (!open && dialog.open) dialog.close();
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [open]);
 
   return (
