@@ -5,6 +5,9 @@ import { routeTree } from './routeTree.gen';
 
 import './globals.css';
 
+// 다크 테마 기준
+document.documentElement.classList.add('dark');
+
 const router = createRouter({ routeTree });
 
 declare module '@tanstack/react-router' {
