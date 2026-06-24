@@ -14,19 +14,19 @@ export function EmptyState({ icon, title, description, action, className }: Empt
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-3 px-6 py-12 text-center',
+        'border-outline-variant bg-surface flex flex-col items-center justify-center gap-3.5 rounded-[24px] border px-4 py-8 text-center',
         className,
       )}
     >
       {icon && (
-        <span className="bg-surface-variant text-on-surface-variant flex size-12 items-center justify-center rounded-full [&_svg]:size-6">
+        <span className="bg-surface-variant text-on-surface-variant flex size-16 items-center justify-center rounded-[20px] [&_svg]:size-8">
           {icon}
         </span>
       )}
       <div className="flex flex-col gap-1">
         <h3 className="typography-title-small text-on-surface">{title}</h3>
         {description && (
-          <p className="typography-body-medium text-on-surface-variant">{description}</p>
+          <p className="typography-subtext-large text-on-surface-variant">{description}</p>
         )}
       </div>
       {action && <div className="mt-2">{action}</div>}

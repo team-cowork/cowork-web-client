@@ -10,14 +10,19 @@ export function FileUploadProgress({ name, progress, className }: FileUploadProg
   const clamped = Math.max(0, Math.min(100, Math.round(progress)));
 
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
-      <div className="flex items-center justify-between gap-2">
+    <div
+      className={cn(
+        'border-outline-variant bg-surface flex flex-col gap-3 rounded-[16px] border p-4',
+        className,
+      )}
+    >
+      <div className="flex items-center gap-2">
         <p className="typography-label-small text-on-surface truncate">{name}</p>
-        <span className="typography-subtext-small text-on-surface-variant shrink-0">
+        <span className="typography-subtext-medium text-on-surface-variant shrink-0">
           {clamped}%
         </span>
       </div>
-      <div className="bg-surface-variant h-1.5 w-full overflow-hidden rounded-full">
+      <div className="bg-surface-variant h-2 w-full overflow-hidden rounded-full">
         <div
           role="progressbar"
           aria-valuenow={clamped}

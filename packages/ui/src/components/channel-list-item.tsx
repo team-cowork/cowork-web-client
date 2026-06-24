@@ -25,17 +25,17 @@ export function ChannelListItem({
       onClick={onClick}
       aria-current={active ? 'true' : undefined}
       className={cn(
-        'flex h-11 w-full cursor-pointer items-center gap-2 rounded-lg px-3 text-left transition-colors',
+        'flex h-[52px] w-full cursor-pointer items-center gap-3 rounded-xl px-3 text-left transition-colors',
         active
-          ? 'bg-surface-variant text-on-surface'
-          : 'text-on-surface-variant hover:bg-surface-variant/60 hover:text-on-surface',
+          ? 'bg-surface-container text-on-surface'
+          : 'text-on-surface-variant hover:bg-surface-container/60 hover:text-on-surface',
         className,
       )}
     >
       <span className="text-on-surface-variant shrink-0">{prefix}</span>
       <span className="typography-label-small flex-1 truncate">{name}</span>
       {unreadCount != null && unreadCount > 0 && (
-        <span className="typography-subtext-small bg-primary text-on-primary inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5">
+        <span className="typography-subtext-small bg-primary text-on-primary inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full px-[7px]">
           {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}

@@ -9,9 +9,9 @@ const iconButton = cva(
   {
     variants: {
       size: {
-        S: 'size-9 rounded-[10px] [&_svg]:size-4',
-        M: 'size-11 rounded-xl [&_svg]:size-5',
-        L: 'size-[52px] rounded-[14px] [&_svg]:size-6',
+        S: 'size-9 rounded-full [&_svg]:size-4',
+        M: 'size-11 rounded-full [&_svg]:size-[18px]',
+        L: 'size-[52px] rounded-full [&_svg]:size-6',
       },
       variant: {
         fill: 'bg-primary text-on-primary hover:opacity-90',

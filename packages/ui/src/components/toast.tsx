@@ -14,12 +14,12 @@ export function Toast({ message, icon, action, className }: ToastProps) {
     <div
       role="status"
       className={cn(
-        'bg-inverse-surface text-inverse-on-surface inline-flex items-center gap-3 rounded-xl px-4 py-3 shadow-lg',
+        'bg-inverse-surface text-inverse-on-surface inline-flex items-center gap-3 rounded-[16px] px-[18px] py-[14px] shadow-lg',
         className,
       )}
     >
-      {icon && <span className="shrink-0 [&_svg]:size-5">{icon}</span>}
-      <span className="typography-body-medium">{message}</span>
+      {icon && <span className="shrink-0 [&_svg]:size-[18px]">{icon}</span>}
+      <span className="typography-label-small">{message}</span>
       {action && <span className="ml-2 shrink-0">{action}</span>}
     </div>
   );

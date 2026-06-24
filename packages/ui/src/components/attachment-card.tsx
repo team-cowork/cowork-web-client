@@ -14,16 +14,16 @@ export function AttachmentCard({ name, meta, icon, onRemove, className }: Attach
   return (
     <div
       className={cn(
-        'border-outline bg-surface flex items-center gap-3 rounded-xl border px-3 py-2',
+        'border-outline-variant bg-surface flex items-center gap-[14px] rounded-[16px] border p-[14px]',
         className,
       )}
     >
-      <span className="bg-surface-variant text-on-surface-variant flex size-9 shrink-0 items-center justify-center rounded-lg [&_svg]:size-5">
+      <span className="bg-tertiary-container text-on-tertiary-container flex size-12 shrink-0 items-center justify-center rounded-xl [&_svg]:size-6">
         {icon ?? <FileIcon />}
       </span>
       <div className="min-w-0 flex-1">
         <p className="typography-label-small text-on-surface truncate">{name}</p>
-        {meta && <p className="typography-subtext-small text-on-surface-variant">{meta}</p>}
+        {meta && <p className="typography-subtext-medium text-on-surface-variant">{meta}</p>}
       </div>
       {onRemove && (
         <button

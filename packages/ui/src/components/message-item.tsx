@@ -19,14 +19,13 @@ export function MessageItem({
   className,
 }: MessageItemProps) {
   return (
-    <div className={cn('flex gap-3', className)}>
-      <Avatar src={avatarSrc} name={author} size={40} className="mt-0.5" />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline gap-2">
-          <span className="typography-label-small text-on-surface">{author}</span>
-          <span className="typography-subtext-small text-on-surface-variant">{timestamp}</span>
-        </div>
-        <div className="typography-body-medium text-on-surface mt-0.5 break-words">{content}</div>
+    <div className={cn('bg-surface flex gap-4 rounded-[14px] px-4 pt-4 pb-[14px]', className)}>
+      <Avatar src={avatarSrc} name={author} size={44} className="shrink-0" />
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <p className="typography-label-x-small text-on-surface-variant">
+          {author} · {timestamp}
+        </p>
+        <div className="typography-subtext-large text-on-surface break-words">{content}</div>
       </div>
     </div>
   );

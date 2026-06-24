@@ -32,7 +32,7 @@ export function MessageComposer({
   return (
     <div
       className={cn(
-        'border-outline bg-surface focus-within:border-primary flex items-end gap-2 rounded-xl border p-2',
+        'border-outline-variant bg-surface focus-within:border-primary flex items-end gap-3 rounded-[20px] border p-4',
         className,
       )}
     >
@@ -43,9 +43,16 @@ export function MessageComposer({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="typography-body-medium text-on-surface placeholder:text-on-surface-variant max-h-32 flex-1 resize-none bg-transparent px-2 py-2 focus:outline-none"
+        className="typography-subtext-large text-on-surface placeholder:text-on-surface-variant max-h-32 flex-1 resize-none bg-transparent py-2.5 focus:outline-none"
       />
-      <IconButton size="M" variant="fill" aria-label="전송" disabled={!canSend} onClick={onSend}>
+      <IconButton
+        size="M"
+        variant="fill"
+        aria-label="전송"
+        disabled={!canSend}
+        onClick={onSend}
+        className="rounded-[14px]"
+      >
         <SendIcon />
       </IconButton>
     </div>

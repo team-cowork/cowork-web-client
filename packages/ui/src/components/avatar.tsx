@@ -12,9 +12,14 @@ export function Avatar({ src, name, size = 40, className }: AvatarProps) {
 
   return (
     <span
-      style={{ width: size, height: size }}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size * 0.28,
+        fontSize: Math.round(size * 0.33),
+      }}
       className={cn(
-        'bg-surface-variant text-on-surface-variant typography-label-medium inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full',
+        'bg-tertiary-container text-on-tertiary-container inline-flex shrink-0 items-center justify-center overflow-hidden font-bold',
         className,
       )}
     >

@@ -11,7 +11,7 @@ const button = cva(
       size: {
         S: 'h-9 px-3.5 rounded-[10px] typography-label-small',
         M: 'h-11 px-[18px] rounded-xl typography-label-medium',
-        L: 'h-[52px] px-[22px] rounded-[14px] typography-label-large',
+        L: 'h-[52px] px-[22px] rounded-[14px] typography-label-medium',
       },
       variant: { fill: '', weak: '' },
       color: { brand: '', neutral: '', danger: '' },

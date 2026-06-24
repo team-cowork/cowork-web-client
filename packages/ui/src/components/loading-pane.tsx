@@ -10,10 +10,13 @@ export function LoadingPane({ label = '불러오는 중…', className }: Loadin
     <div
       role="status"
       aria-live="polite"
-      className={cn('flex flex-col items-center justify-center gap-3 px-6 py-12', className)}
+      className={cn(
+        'border-outline-variant bg-surface flex flex-col items-center justify-center gap-4 rounded-[24px] border px-4 py-3',
+        className,
+      )}
     >
-      <span className="border-outline border-t-primary size-6 animate-spin rounded-full border-2" />
-      <p className="typography-subtext-large text-on-surface-variant">{label}</p>
+      <span className="border-outline border-t-primary size-11 animate-spin rounded-full border-[3px]" />
+      <p className="typography-label-small text-on-surface-variant">{label}</p>
     </div>
   );
 }
