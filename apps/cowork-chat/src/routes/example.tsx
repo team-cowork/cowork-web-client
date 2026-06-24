@@ -1,15 +1,24 @@
 import { useState } from 'react';
 
 import {
+  AttachmentCard,
   Avatar,
   Button,
+  ChannelListItem,
+  Dialog,
+  EmptyState,
+  ErrorState,
+  FileUploadProgress,
   IconButton,
+  LoadingPane,
+  MessageComposer,
+  MessageItem,
   SegmentedControl,
   Switch,
   TextArea,
   TextField,
+  Toast,
 } from '@cowork/ui';
-
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/example')({
@@ -21,7 +30,7 @@ const colors = ['brand', 'neutral', 'danger'] as const;
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="border-outline-variant flex flex-col gap-4 border-b pb-8">
+    <section className="flex flex-col gap-4 border-b border-outline-variant pb-8">
       <h2 className="typography-title-small text-on-background">{title}</h2>
       {children}
     </section>
@@ -32,9 +41,12 @@ function ComponentGallery() {
   const [checked, setChecked] = useState(true);
   const [seg2, setSeg2] = useState('list');
   const [seg3, setSeg3] = useState('all');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [channel, setChannel] = useState('general');
+  const [message, setMessage] = useState('');
 
   return (
-    <div className="bg-background min-h-screen p-10">
+    <div className="min-h-screen bg-background p-10">
       <div className="mx-auto flex max-w-4xl flex-col gap-10">
         <h1 className="typography-display-small text-on-background">Common Components</h1>
 
@@ -121,6 +133,115 @@ function ComponentGallery() {
             <Avatar name="CW" size={72} />
           </div>
         </Section>
+
+        <Section title="Dialog">
+          <div>
+            <Button variant="weak" color="neutral" onClick={() => setDialogOpen(true)}>
+              다이얼로그 열기
+            </Button>
+            <Dialog
+              open={dialogOpen}
+              onClose={() => setDialogOpen(false)}
+              title="채널을 아카이브할까요?"
+              description="아카이브한 채널은 언제든 목록에서 복구할 수 있습니다."
+            >
+              <Button variant="weak" color="neutral" onClick={() => setDialogOpen(false)}>
+                취소
+              </Button>
+              <Button color="danger" onClick={() => setDialogOpen(false)}>
+                아카이브
+              </Button>
+            </Dialog>
+          </div>
+        </Section>
+
+        <Section title="Toast">
+          <Toast icon={<CheckIcon />} message="파일 업로드가 완료되었습니다" />
+        </Section>
+
+        <Section title="Channel List Item">
+          <div className="flex max-w-xs flex-col gap-1">
+            <ChannelListItem
+              name="일반 채팅"
+              active={channel === 'general'}
+              unreadCount={3}
+              onClick={() => setChannel('general')}
+            />
+            <ChannelListItem
+              name="공지사항"
+              active={channel === 'notice'}
+              onClick={() => setChannel('notice')}
+            />
+            <ChannelListItem
+              name="개발팀"
+              active={channel === 'dev'}
+              unreadCount={128}
+              onClick={() => setChannel('dev')}
+            />
+          </div>
+        </Section>
+
+        <Section title="Message Item">
+          <div className="flex max-w-xl flex-col gap-4">
+            <MessageItem
+              author="전준연"
+              timestamp="오후 14:20"
+              content="PR 리뷰 부탁해요. 변경된 상세 설명은 노션 문서에 정리했습니다."
+            />
+            <MessageItem
+              author="Cowork Bot"
+              timestamp="오후 14:22"
+              content="배포가 성공적으로 완료되었습니다 🎉"
+            />
+          </div>
+        </Section>
+
+        <Section title="Message Composer">
+          <div className="max-w-xl">
+            <MessageComposer value={message} onChange={setMessage} onSend={() => setMessage('')} />
+          </div>
+        </Section>
+
+        <Section title="Attachment Card">
+          <div className="flex max-w-xs flex-col gap-2">
+            <AttachmentCard name="sprint-demo.mov" meta="MOV · 12MB" onRemove={() => {}} />
+            <AttachmentCard name="설계-문서-최종-v2-진짜최종.pdf" meta="PDF · 2.4MB" />
+          </div>
+        </Section>
+
+        <Section title="File Upload Progress">
+          <div className="flex max-w-md flex-col gap-4">
+            <FileUploadProgress name="leave-log.png" progress={73} />
+            <FileUploadProgress name="db-dump.sql" progress={100} />
+          </div>
+        </Section>
+
+        <Section title="Empty State">
+          <EmptyState
+            icon={<ChatIcon />}
+            title="아직 메시지가 없습니다"
+            description="첫 메시지를 보내 팀과 시작하세요"
+            action={<Button size="S">메시지 보내기</Button>}
+          />
+        </Section>
+
+        <Section title="Loading Pane">
+          <LoadingPane />
+        </Section>
+
+        <Section title="Error State">
+          <div className="max-w-md">
+            <ErrorState
+              title="불러오기에 실패했습니다"
+              description="네트워크 상태를 확인한 뒤 다시 시도하세요"
+              action={
+                <Button color="danger" size="S">
+                  다시 시도
+                </Button>
+              }
+            />
+          </div>
+        </Section>
       </div>
     </div>
   );
@@ -130,6 +251,22 @@ function PlusIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
       <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path d="m20 6-11 11-5-5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ChatIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinejoin="round" />
     </svg>
   );
 }
