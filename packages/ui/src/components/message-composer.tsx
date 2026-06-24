@@ -32,7 +32,7 @@ export function MessageComposer({
   return (
     <div
       className={cn(
-        'border-outline-variant bg-surface focus-within:border-primary flex items-end gap-3 rounded-[20px] border p-4',
+        'border-outline-variant bg-surface focus-within:border-primary flex items-center gap-3 rounded-[20px] border p-4',
         className,
       )}
     >
