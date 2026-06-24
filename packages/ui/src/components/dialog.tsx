@@ -29,15 +29,17 @@ export function Dialog({ open, onClose, title, description, children, className 
         if (e.target === ref.current) onClose();
       }}
       className={cn(
-        'bg-surface text-on-surface border-outline-variant m-auto flex w-[420px] max-w-[calc(100vw-2rem)] flex-col gap-[18px] rounded-[24px] border p-7 backdrop:bg-black/50',
+        'bg-surface text-on-surface border-outline-variant m-auto w-[420px] max-w-[calc(100vw-2rem)] rounded-[24px] border p-7 backdrop:bg-black/50',
         className,
       )}
     >
-      <h2 className="typography-title-medium text-on-surface">{title}</h2>
-      {description && (
-        <p className="typography-subtext-large text-on-surface-variant">{description}</p>
-      )}
-      {children && <div className="flex justify-end gap-2.5">{children}</div>}
+      <div className="flex flex-col gap-[18px]">
+        <h2 className="typography-title-medium text-on-surface">{title}</h2>
+        {description && (
+          <p className="typography-subtext-large text-on-surface-variant">{description}</p>
+        )}
+        {children && <div className="flex justify-end gap-2.5">{children}</div>}
+      </div>
     </dialog>
   );
 }
