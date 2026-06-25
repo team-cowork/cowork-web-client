@@ -81,7 +81,7 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           port: ${{ secrets.VM_PORT }}
           username: ${{ secrets.VM_USER }}
-          password: ${{ secrets.VM_PASSWORD }}
+          key: ${{ secrets.VM_SSH_KEY }}
           source: "compose.yaml,nginx/"
           target: "cowork"
           overwrite: true
@@ -93,7 +93,7 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           port: ${{ secrets.VM_PORT }}
           username: ${{ secrets.VM_USER }}
-          password: ${{ secrets.VM_PASSWORD }}
+          key: ${{ secrets.VM_SSH_KEY }}
           envs: GHCR_USER,GHCR_TOKEN
           script: |
             set -e
