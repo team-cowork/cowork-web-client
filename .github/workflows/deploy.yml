@@ -52,6 +52,8 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          # 캐시된 잘못된 레이어 방지 — 깨끗한 빌드 (안정화 후 캐시 재도입 가능)
+          no-cache: true
           build-args: |
             APP=${{ matrix.app }}
             ASSET_PREFIX=${{ matrix.asset_prefix }}
@@ -110,7 +112,7 @@ jobs:
             EOF
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             docker compose pull
-            docker compose up -d
+            docker compose up -d --force-recreate --remove-orphans
             docker logout ghcr.io || true
             docker image prune -f
         env:
