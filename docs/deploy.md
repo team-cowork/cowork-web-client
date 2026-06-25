@@ -24,10 +24,18 @@ Module Federation 으로 통합한다. 런타임 Node 서버는 없고 **nginx �
   `mf-runtime-plugin.ts` 의 `beforeRequest` 훅이 매니페스트 fetch 직전에 remote URL 을 교체한다. 재빌드 없이 환경·URL 전환이 가능하다.
 - **remote 에셋은 `/_mf/<app>/` 네임스페이스**로 분리해 shell 의 SPA 라우트(`/chat` 등)와 충돌하지 않는다.
 
-## 이미지 빌드 / Push (CI)
+## 이미지 빌드 / Push / 배포 (CI)
 
-`develop` 브랜치 push 시 `.github/workflows/deploy.yml` 이 4개 이미지를 빌드해 ghcr 에 push 한다.
-태그: `:develop`, `:<commit-sha>`.
+`.github/workflows/deploy.yml` 이 push 브랜치에 따라 환경을 나눠 빌드·배포한다.
+
+| 브랜치    | 환경         | 이미지 태그   | 배포 대상 VM |
+| --------- | ------------ | ------------- | ------------ |
+| `develop` | `develop`    | `:develop`    | develop VM   |
+| `main`    | `production` | `:production` | production VM |
+
+- 두 환경 모두 4개 이미지를 빌드해 ghcr 에 push(`:<env-tag>`, `:<commit-sha>`)하고,
+  해당 GitHub 환경 시크릿(`VM_HOST`/`VM_PORT`/`VM_USER`/`VM_SSH_KEY`)으로 각 VM 에 배포한다.
+- production 배포에 승인 게이트가 필요하면 `production` 환경에 Required reviewers 보호 규칙을 추가한다.
 
 수동 빌드도 가능하다(앱별 `APP`/`ASSET_PREFIX`/`SUBPATH` 인자):
 
