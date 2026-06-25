@@ -1,6 +1,5 @@
 name: Build, Push & Deploy
 
-# develop push → develop 환경 / main push → production 환경 으로 빌드·배포한다.
 on:
   push:
     branches: [develop, main]
@@ -10,7 +9,6 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  # 브랜치에 따라 이미지 태그·배포 환경을 결정한다.
   setup:
     runs-on: ubuntu-latest
     outputs:
@@ -69,7 +67,6 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          # 캐시된 잘못된 레이어 방지 — 깨끗한 빌드 (안정화 후 캐시 재도입 가능)
           no-cache: true
           build-args: |
             APP=${{ matrix.app }}
@@ -81,8 +78,6 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.app }}-${{ needs.setup.outputs.tag }}
           cache-to: type=gha,scope=${{ matrix.app }}-${{ needs.setup.outputs.tag }},mode=max
 
-  # 빌드된 이미지를 VM 에 배포 (Flooding 패턴: scp 로 파일 전송 → ssh 로 compose 기동)
-  # environment 에 따라 해당 환경의 시크릿(VM_HOST/VM_PORT/VM_USER/VM_SSH_KEY)이 주입된다.
   deploy:
     needs: [setup, build-push]
     runs-on: ubuntu-latest
@@ -95,7 +90,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # compose.yaml 과 nginx 설정을 VM 의 ~/cowork 로 복사
       - name: Copy deploy files to VM
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -107,7 +101,6 @@ jobs:
           target: "cowork"
           overwrite: true
 
-      # VM 에서 .env 생성 → ghcr 로그인(워크플로우 토큰) → pull → up
       - name: Deploy on VM
         uses: appleboy/ssh-action@v1
         with:
@@ -118,7 +111,6 @@ jobs:
           envs: GHCR_USER,GHCR_TOKEN,IMAGE_TAG
           script: |
             set -e
-            # Docker 미설치 시 1회 설치 (passwordless sudo 가정)
             docker --version >/dev/null 2>&1 || curl -fsSL https://get.docker.com | sudo sh
             cd ~/cowork
             cat > .env <<EOF
@@ -138,7 +130,6 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE_TAG: ${{ needs.setup.outputs.tag }}
 
-      # 배포 결과를 Actions Summary 에 ASCII 배너로 출력
       - name: Deployment summary
         if: success()
         env:
@@ -160,7 +151,6 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # push 이벤트이므로 브랜치의 PR 번호를 해석
       - name: Resolve PR number
         id: pr
         if: success()
@@ -168,7 +158,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: echo "number=$(gh pr list --head "$GITHUB_REF_NAME" --json number -q '.[0].number // empty')" >> "$GITHUB_OUTPUT"
 
-      # PR 에 배포 결과를 스티키 코멘트(환경별 1개 유지)로 남김
       - name: Sticky PR comment
         if: success() && steps.pr.outputs.number != ''
         uses: marocchino/sticky-pull-request-comment@v2
