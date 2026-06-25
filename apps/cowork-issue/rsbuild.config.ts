@@ -4,6 +4,9 @@ import { pluginBabel } from '@rsbuild/plugin-babel';
 import { pluginReact } from '@rsbuild/plugin-react';
 import { tanstackRouter } from '@tanstack/router-plugin/rspack';
 
+// 프로덕션 빌드 시 ASSET_PREFIX(예: '/issue/')를 주입한다. 미지정 시 로컬 dev 값 사용.
+const assetPrefix = process.env.ASSET_PREFIX || 'http://127.0.0.1:3002';
+
 // Docs: https://rsbuild.rs/config/
 export default defineConfig({
   source: {
@@ -16,7 +19,7 @@ export default defineConfig({
     lazyCompilation: false,
   },
   output: {
-    assetPrefix: 'http://127.0.0.1:3002',
+    assetPrefix,
   },
   server: {
     host: '127.0.0.1',

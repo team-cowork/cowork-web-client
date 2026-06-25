@@ -17,6 +17,12 @@ export default defineConfig({
       description: 'cowork shell application',
       viewport: 'width=device-width, initial-scale=1.0',
     },
+    // 런타임 env로 치환되는 /config.js 를 번들보다 먼저 로드해 window.__MF_REMOTES__ 를 주입한다.
+    // 프로덕션 빌드에만 주입해 dev 에서는 불필요한 /config.js 요청이 발생하지 않는다.
+    tags:
+      process.env.NODE_ENV === 'production'
+        ? [{ tag: 'script', attrs: { src: '/config.js' }, head: true, append: false }]
+        : [],
   },
   dev: {
     assetPrefix: true,
