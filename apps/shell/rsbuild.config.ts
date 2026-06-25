@@ -58,6 +58,8 @@ export default defineConfig({
         cowork_issue: 'cowork_issue@http://127.0.0.1:3002/mf-manifest.json',
         cowork_profile: 'cowork_profile@http://127.0.0.1:3003/mf-manifest.json',
       },
+      // 배포 시 window.__MF_REMOTES__(/config.js)로 remote entry URL 을 런타임 교체
+      runtimePlugins: ['./src/mf-runtime-plugin.ts'],
       experiments: {
         asyncStartup: true,
       },
