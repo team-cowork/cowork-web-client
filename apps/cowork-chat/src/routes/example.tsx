@@ -4,12 +4,17 @@ import {
   AttachmentCard,
   Avatar,
   Badge,
+  BellIcon,
   Button,
   ChannelListItem,
+  ChatIcon,
+  CheckIcon,
   Dialog,
   EmptyState,
   ErrorState,
+  EyeIcon,
   FileUploadProgress,
+  HashIcon,
   IconButton,
   LoadingPane,
   Menu,
@@ -19,14 +24,18 @@ import {
   MessageItem,
   Modal,
   OptionCard,
+  PaperclipIcon,
+  PlusIcon,
   SegmentedControl,
   SettingRow,
+  SettingsIcon,
   StatusBadge,
   Switch,
   TextArea,
   TextField,
   Toast,
   ToastProvider,
+  TrashIcon,
   useToast,
 } from '@cowork/ui';
 
@@ -220,7 +229,7 @@ function ComponentGallery() {
               value={message}
               onChange={setMessage}
               onSend={() => setMessage('')}
-              leading={<PaperclipIcon />}
+              leading={<PaperclipIcon className="text-on-surface-variant size-5" />}
             />
           </div>
         </Section>
@@ -290,14 +299,14 @@ function ComponentGallery() {
         <Section title="Option Card">
           <div className="grid max-w-xl grid-cols-2 gap-3">
             <OptionCard
-              icon={<HashIcon />}
+              icon={<HashIcon className="size-5" />}
               label="일반 채팅"
               description="텍스트·음성 대화"
               selected={plan === 'general'}
               onClick={() => setPlan('general')}
             />
             <OptionCard
-              icon={<ChatIcon />}
+              icon={<ChatIcon className="size-5" />}
               label="개발 프로젝트"
               description="채널 5개 자동 구성"
               selected={plan === 'dev'}
@@ -321,13 +330,13 @@ function ComponentGallery() {
 
         <Section title="Menu">
           <Menu className="max-w-[240px]">
-            <MenuItem icon={<EyeIcon />}>읽음 표시</MenuItem>
-            <MenuItem icon={<BellIcon />} hasSubmenu>
+            <MenuItem icon={<EyeIcon className="size-4" />}>읽음 표시</MenuItem>
+            <MenuItem icon={<BellIcon className="size-4" />} hasSubmenu>
               알림 설정
             </MenuItem>
             <MenuSeparator />
-            <MenuItem icon={<GearIcon />}>채널 설정</MenuItem>
-            <MenuItem icon={<TrashIcon />} danger>
+            <MenuItem icon={<SettingsIcon className="size-4" />}>채널 설정</MenuItem>
+            <MenuItem icon={<TrashIcon className="size-4" />} danger>
               채널 삭제
             </MenuItem>
           </Menu>
@@ -369,97 +378,5 @@ function ToastDemo() {
     <Button onClick={() => toast('파일 업로드가 완료되었습니다', { icon: <CheckIcon /> })}>
       토스트 띄우기
     </Button>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-      <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-      <path d="m20 6-11 11-5-5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ChatIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-      <path
-        d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function PaperclipIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      aria-hidden
-      className="text-on-surface-variant size-5"
-    >
-      <path
-        d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function HashIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-      <path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function EyeIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
-function BellIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-      <path
-        d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function GearIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8 2 2 0 1 1-2.8 2.8 1.6 1.6 0 0 0-2.7 1.1 2 2 0 0 1-4 0 1.6 1.6 0 0 0-2.7-1.1 2 2 0 1 1-2.8-2.8A1.6 1.6 0 0 0 4.6 15a2 2 0 0 1 0-4 1.6 1.6 0 0 0 1.1-2.7 2 2 0 1 1 2.8-2.8A1.6 1.6 0 0 0 11 4.6a2 2 0 0 1 4 0 1.6 1.6 0 0 0 2.7 1.1 2 2 0 1 1 2.8 2.8A1.6 1.6 0 0 0 19.4 11a2 2 0 0 1 0 4z" />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
   );
 }
