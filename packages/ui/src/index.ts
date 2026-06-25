@@ -34,4 +34,5 @@ export { TextArea, type TextAreaProps } from './components/text-area';
 export { TextField, type TextFieldProps } from './components/text-field';
 export { Toast, type ToastProps } from './components/toast';
 export { type ToastOptions, ToastProvider, useToast } from './components/toast-provider';
+export * from './icons';
 export { cn } from './lib/cn';
