@@ -1,10 +1,9 @@
 name: Build, Push & Deploy
 
-# develop push 시 앱별 정적 이미지를 빌드해 ghcr 에 push 한다.
-# NOTE: VM 테스트 동안 임시로 기능 브랜치 트리거. 머지 전 [develop] 으로 되돌릴 것.
+# develop push 시 앱별 정적 이미지를 빌드해 ghcr 에 push 하고 VM 에 배포한다.
 on:
   push:
-    branches: [feat/global-docker-deploy]
+    branches: [develop]
   workflow_dispatch:
 
 env:
