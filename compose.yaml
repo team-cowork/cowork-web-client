@@ -70,6 +70,4 @@ services:
       PROFILE_REMOTE_URL: ${PROFILE_REMOTE_URL:-/_mf/profile/mf-manifest.json}
     volumes:
       - ./nginx/templates:/etc/nginx/templates:ro
-      - ./nginx/config.js.template:/etc/nginx/config.js.template:ro
-      - ./nginx/docker-entrypoint.d/40-config-js.sh:/docker-entrypoint.d/40-config-js.sh:ro
     restart: unless-stopped

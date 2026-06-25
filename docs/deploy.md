@@ -14,14 +14,14 @@ Module Federation 으로 통합한다. 런타임 Node 서버는 없고 **nginx �
                          │   /_mf/chat/         ──▶  chat      (정적 remote)              │
                          │   /_mf/issue/        ──▶  issue     (정적 remote)              │
                          │   /_mf/profile/      ──▶  profile   (정적 remote)              │
-                         │   /config.js         ──▶  envsubst 로 생성된 remote 매핑       │
+                         │   /config.js         ──▶  nginx 가 envsubst 로 인라인 반환     │
                          └──────────────────────────────────────────────────────────────┘
 ```
 
 - **단일 오리진**: 외부엔 nginx 80 포트 하나만 노출 → CORS 없음.
 - **앱별 독립 이미지**: 앱마다 ghcr 이미지(`ghcr.io/team-cowork/cowork-web-client/<app>`)로 분리 → 한 앱만 재배포 가능.
-- **런타임 remote 등록**: shell 이 부팅 시 `/config.js`(`window.__MF_REMOTES__`)를 읽어 `registerRemotes` 로 remote URL 을
-  런타임에 주입한다. 재빌드 없이 환경·URL 전환이 가능하다.
+- **런타임 remote 등록**: nginx 가 env 로 인라인 반환하는 `/config.js`(`window.__MF_REMOTES__`)를 shell 이 읽고,
+  `mf-runtime-plugin.ts` 의 `beforeRequest` 훅이 매니페스트 fetch 직전에 remote URL 을 교체한다. 재빌드 없이 환경·URL 전환이 가능하다.
 - **remote 에셋은 `/_mf/<app>/` 네임스페이스**로 분리해 shell 의 SPA 라우트(`/chat` 등)와 충돌하지 않는다.
 
 ## 이미지 빌드 / Push (CI)

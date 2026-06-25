@@ -1,5 +1,0 @@
-window.__MF_REMOTES__ = {
-  cowork_chat: "${CHAT_REMOTE_URL}",
-  cowork_issue: "${ISSUE_REMOTE_URL}",
-  cowork_profile: "${PROFILE_REMOTE_URL}"
-};

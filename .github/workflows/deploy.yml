@@ -102,7 +102,6 @@ jobs:
             # Docker 미설치 시 1회 설치 (passwordless sudo 가정)
             docker --version >/dev/null 2>&1 || curl -fsSL https://get.docker.com | sudo sh
             cd ~/cowork
-            chmod +x nginx/docker-entrypoint.d/*.sh || true
             cat > .env <<EOF
             IMAGE_TAG=develop
             SERVER_NAME=_
