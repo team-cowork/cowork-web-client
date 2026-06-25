@@ -1,11 +1,7 @@
-# 앞단 라우팅 nginx. 단일 오리진에서 shell 과 remote 정적 컨테이너로 프록시한다.
-# nginx 이미지가 envsubst 로 ${SERVER_NAME} 를 치환해 /etc/nginx/conf.d/default.conf 로 전개한다.
-# ($host 등 nginx 변수는 환경변수가 아니므로 그대로 보존된다.)
 server {
   listen 80;
   server_name ${SERVER_NAME};
 
-  # 이미지 업로드 등 대비 (Flooding 참고)
   client_max_body_size 10m;
 
   proxy_set_header Host $host;
@@ -13,21 +9,16 @@ server {
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   proxy_set_header X-Forwarded-Proto $scheme;
 
-  # 런타임 env(envsubst)로 MF remote 매핑을 인라인 반환한다.
-  # 별도 파일/entrypoint 스크립트 없이 nginx 설정만으로 처리해 chmod 유실 등 위험을 제거한다.
   location = /config.js {
     default_type application/javascript;
     add_header Cache-Control "no-store";
     return 200 "window.__MF_REMOTES__ = { cowork_chat: '${CHAT_REMOTE_URL}', cowork_issue: '${ISSUE_REMOTE_URL}', cowork_profile: '${PROFILE_REMOTE_URL}' };";
   }
 
-  # remote 에셋·매니페스트는 /_mf/<app>/ 네임스페이스로 분리해
-  # shell 의 SPA 라우트(/chat, /issue, /profile)와 충돌하지 않게 한다.
   location /_mf/chat/    { proxy_pass http://chat:80; }
   location /_mf/issue/   { proxy_pass http://issue:80; }
   location /_mf/profile/ { proxy_pass http://profile:80; }
 
-  # 그 외 모든 경로는 shell(host SPA)로
   location / {
     proxy_pass http://shell:80;
   }

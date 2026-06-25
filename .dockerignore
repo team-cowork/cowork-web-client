@@ -1,4 +1,4 @@
-# 의존성·빌드 산출물은 컨테이너 내부에서 생성하므로 컨텍스트에서 제외
+# 의존성·빌드 산출물
 node_modules
 **/node_modules
 **/dist
@@ -23,7 +23,7 @@ out
 **/.DS_Store
 *.log
 
-# 배포 산출물 자체
+# 배포 산출물
 .env
 .env.*
 !.env.example

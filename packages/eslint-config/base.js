@@ -32,7 +32,6 @@ export const config = [
     },
   },
   {
-    // Module Federation 자동 생성물은 린트 대상에서 제외
     ignores: ['dist/**', '@mf-types/**', '**/.__mf__temp/**', '**/.mf/**'],
   },
 ];
