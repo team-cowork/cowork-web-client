@@ -7,7 +7,7 @@
 
 services:
   shell:
-    image: ghcr.io/team-cowork/cowork-client/shell:${IMAGE_TAG:-develop}
+    image: ghcr.io/team-cowork/cowork-web-client/shell:${IMAGE_TAG:-develop}
     build:
       context: .
       args:
@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
 
   chat:
-    image: ghcr.io/team-cowork/cowork-client/cowork-chat:${IMAGE_TAG:-develop}
+    image: ghcr.io/team-cowork/cowork-web-client/cowork-chat:${IMAGE_TAG:-develop}
     build:
       context: .
       args:
@@ -31,7 +31,7 @@ services:
     restart: unless-stopped
 
   issue:
-    image: ghcr.io/team-cowork/cowork-client/cowork-issue:${IMAGE_TAG:-develop}
+    image: ghcr.io/team-cowork/cowork-web-client/cowork-issue:${IMAGE_TAG:-develop}
     build:
       context: .
       args:
@@ -43,7 +43,7 @@ services:
     restart: unless-stopped
 
   profile:
-    image: ghcr.io/team-cowork/cowork-client/cowork-profile:${IMAGE_TAG:-develop}
+    image: ghcr.io/team-cowork/cowork-web-client/cowork-profile:${IMAGE_TAG:-develop}
     build:
       context: .
       args:

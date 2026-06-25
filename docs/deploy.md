@@ -19,7 +19,7 @@ Module Federation 으로 통합한다. 런타임 Node 서버는 없고 **nginx �
 ```
 
 - **단일 오리진**: 외부엔 nginx 80 포트 하나만 노출 → CORS 없음.
-- **앱별 독립 이미지**: 앱마다 ghcr 이미지(`ghcr.io/team-cowork/cowork-client/<app>`)로 분리 → 한 앱만 재배포 가능.
+- **앱별 독립 이미지**: 앱마다 ghcr 이미지(`ghcr.io/team-cowork/cowork-web-client/<app>`)로 분리 → 한 앱만 재배포 가능.
 - **런타임 remote 등록**: shell 이 부팅 시 `/config.js`(`window.__MF_REMOTES__`)를 읽어 `registerRemotes` 로 remote URL 을
   런타임에 주입한다. 재빌드 없이 환경·URL 전환이 가능하다.
 - **remote 에셋은 `/_mf/<app>/` 네임스페이스**로 분리해 shell 의 SPA 라우트(`/chat` 등)와 충돌하지 않는다.
@@ -36,7 +36,7 @@ docker build \
   --build-arg APP=cowork-chat \
   --build-arg ASSET_PREFIX=/_mf/chat/ \
   --build-arg SUBPATH=_mf/chat/ \
-  -t ghcr.io/team-cowork/cowork-client/cowork-chat:develop .
+  -t ghcr.io/team-cowork/cowork-web-client/cowork-chat:develop .
 ```
 
 | APP             | ASSET_PREFIX   | SUBPATH      |
