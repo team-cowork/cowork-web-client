@@ -1,4 +1,4 @@
-name: Build & Push Images
+name: Build, Push & Deploy
 
 # develop push 시 앱별 정적 이미지를 빌드해 ghcr 에 push 한다.
 # NOTE: VM 테스트 동안 임시로 기능 브랜치 트리거. 머지 전 [develop] 으로 되돌릴 것.
@@ -61,3 +61,57 @@ jobs:
             ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.app }}:${{ github.sha }}
           cache-from: type=gha,scope=${{ matrix.app }}
           cache-to: type=gha,scope=${{ matrix.app }},mode=max
+
+  # 빌드된 이미지를 VM 에 배포 (Flooding 패턴: scp 로 파일 전송 → ssh 로 compose 기동)
+  deploy:
+    needs: build-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # compose.yaml 과 nginx 설정을 VM 의 ~/cowork 로 복사
+      - name: Copy deploy files to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          port: ${{ secrets.VM_PORT }}
+          username: ${{ secrets.VM_USER }}
+          password: ${{ secrets.VM_PASSWORD }}
+          source: "compose.yaml,nginx/"
+          target: "cowork"
+          overwrite: true
+
+      # VM 에서 .env 생성 → ghcr 로그인(워크플로우 토큰) → pull → up
+      - name: Deploy on VM
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VM_HOST }}
+          port: ${{ secrets.VM_PORT }}
+          username: ${{ secrets.VM_USER }}
+          password: ${{ secrets.VM_PASSWORD }}
+          envs: GHCR_USER,GHCR_TOKEN
+          script: |
+            set -e
+            # Docker 미설치 시 1회 설치 (passwordless sudo 가정)
+            docker --version >/dev/null 2>&1 || curl -fsSL https://get.docker.com | sudo sh
+            cd ~/cowork
+            chmod +x nginx/docker-entrypoint.d/*.sh || true
+            cat > .env <<EOF
+            IMAGE_TAG=develop
+            SERVER_NAME=_
+            CHAT_REMOTE_URL=/_mf/chat/mf-manifest.json
+            ISSUE_REMOTE_URL=/_mf/issue/mf-manifest.json
+            PROFILE_REMOTE_URL=/_mf/profile/mf-manifest.json
+            EOF
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            docker compose pull
+            docker compose up -d
+            docker logout ghcr.io || true
+            docker image prune -f
+        env:
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
