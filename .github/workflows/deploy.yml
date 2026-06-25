@@ -66,6 +66,7 @@ jobs:
   deploy:
     needs: build-push
     runs-on: ubuntu-latest
+    environment: develop
     permissions:
       contents: read
       packages: read
