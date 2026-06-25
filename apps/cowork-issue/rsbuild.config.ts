@@ -49,6 +49,9 @@ export default defineConfig({
       exposes: {
         './App': './src/App.tsx',
       },
+      experiments: {
+        asyncStartup: true,
+      },
       shared: ['react', 'react-dom'],
     }),
   ],
