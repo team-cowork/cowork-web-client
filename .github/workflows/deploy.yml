@@ -72,6 +72,7 @@ jobs:
     permissions:
       contents: read
       packages: read
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -118,3 +119,47 @@ jobs:
         env:
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 배포 결과를 Actions Summary 에 ASCII 배너로 출력
+      - name: Deployment summary
+        if: success()
+        run: |
+          SHORT=${GITHUB_SHA::7}
+          {
+            echo '```'
+            echo '=================================================='
+            echo '   DEPLOY SUCCESS  -  develop'
+            echo '=================================================='
+            echo "   ENV       : develop"
+            echo "   IMAGE TAG : develop (${SHORT})"
+            echo "   BRANCH    : ${GITHUB_REF_NAME}"
+            echo "   SERVICES  : shell  chat  issue  profile  nginx"
+            echo "   ROUTES    : /  /_mf/chat/  /_mf/issue/  /_mf/profile/"
+            echo '=================================================='
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # push 이벤트이므로 브랜치의 PR 번호를 해석
+      - name: Resolve PR number
+        id: pr
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "number=$(gh pr list --head "$GITHUB_REF_NAME" --json number -q '.[0].number // empty')" >> "$GITHUB_OUTPUT"
+
+      # PR 에 배포 결과를 스티키 코멘트(1개 유지)로 남김
+      - name: Sticky PR comment
+        if: success() && steps.pr.outputs.number != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          number: ${{ steps.pr.outputs.number }}
+          header: deploy-develop
+          message: |
+            ```
+            ==================================================
+               DEPLOY SUCCESS  -  develop
+            ==================================================
+               IMAGE TAG : develop (${{ github.sha }})
+               SERVICES  : shell  chat  issue  profile  nginx
+            ==================================================
+            ```
