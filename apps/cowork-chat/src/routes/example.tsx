@@ -3,6 +3,7 @@ import { useState } from 'react';
 import {
   AttachmentCard,
   Avatar,
+  Badge,
   Button,
   ChannelListItem,
   Dialog,
@@ -11,9 +12,16 @@ import {
   FileUploadProgress,
   IconButton,
   LoadingPane,
+  Menu,
+  MenuItem,
+  MenuSeparator,
   MessageComposer,
   MessageItem,
+  Modal,
+  OptionCard,
   SegmentedControl,
+  SettingRow,
+  StatusBadge,
   Switch,
   TextArea,
   TextField,
@@ -45,8 +53,11 @@ function ComponentGallery() {
   const [seg2, setSeg2] = useState('list');
   const [seg3, setSeg3] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [channel, setChannel] = useState('general');
   const [message, setMessage] = useState('');
+  const [plan, setPlan] = useState('dev');
+  const [notify, setNotify] = useState(true);
 
   return (
     <div className="bg-background min-h-screen p-10">
@@ -254,6 +265,99 @@ function ComponentGallery() {
             />
           </div>
         </Section>
+
+        <Section title="Badge">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge>기본</Badge>
+            <Badge color="brand">브랜드</Badge>
+            <Badge color="green">완료</Badge>
+            <Badge color="blue">정보</Badge>
+            <Badge color="amber">경고</Badge>
+            <Badge color="red">오류</Badge>
+          </div>
+        </Section>
+
+        <Section title="Status Badge">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status="planned">계획됨</StatusBadge>
+            <StatusBadge status="inProgress">진행중</StatusBadge>
+            <StatusBadge status="done">완료됨</StatusBadge>
+            <StatusBadge status="open">Open</StatusBadge>
+            <StatusBadge status="closed">Closed</StatusBadge>
+          </div>
+        </Section>
+
+        <Section title="Option Card">
+          <div className="grid max-w-xl grid-cols-2 gap-3">
+            <OptionCard
+              icon={<HashIcon />}
+              label="일반 채팅"
+              description="텍스트·음성 대화"
+              selected={plan === 'general'}
+              onClick={() => setPlan('general')}
+            />
+            <OptionCard
+              icon={<ChatIcon />}
+              label="개발 프로젝트"
+              description="채널 5개 자동 구성"
+              selected={plan === 'dev'}
+              onClick={() => setPlan('dev')}
+            />
+          </div>
+        </Section>
+
+        <Section title="Setting Row">
+          <div className="flex max-w-xl flex-col gap-2">
+            <SettingRow label="알림 받기" description="새 메시지 푸시 알림">
+              <Switch checked={notify} onCheckedChange={setNotify} aria-label="알림" />
+            </SettingRow>
+            <SettingRow label="공개 범위" description="팀 전체에게 표시">
+              <Button size="S" variant="weak" color="neutral">
+                변경
+              </Button>
+            </SettingRow>
+          </div>
+        </Section>
+
+        <Section title="Menu">
+          <Menu className="max-w-[240px]">
+            <MenuItem icon={<EyeIcon />}>읽음 표시</MenuItem>
+            <MenuItem icon={<BellIcon />} hasSubmenu>
+              알림 설정
+            </MenuItem>
+            <MenuSeparator />
+            <MenuItem icon={<GearIcon />}>채널 설정</MenuItem>
+            <MenuItem icon={<TrashIcon />} danger>
+              채널 삭제
+            </MenuItem>
+          </Menu>
+        </Section>
+
+        <Section title="Modal">
+          <div>
+            <Button variant="weak" color="neutral" onClick={() => setModalOpen(true)}>
+              모달 열기
+            </Button>
+            <Modal
+              open={modalOpen}
+              onClose={() => setModalOpen(false)}
+              title="채널 만들기"
+              footer={
+                <>
+                  <Button variant="weak" color="neutral" onClick={() => setModalOpen(false)}>
+                    취소
+                  </Button>
+                  <Button onClick={() => setModalOpen(false)}>만들기</Button>
+                </>
+              }
+            >
+              <TextField label="채널 이름" placeholder="# 새-채널" />
+              <p className="typography-subtext-medium text-on-surface-variant">
+                유형과 공개 범위를 선택하세요.
+              </p>
+            </Modal>
+          </div>
+        </Section>
       </div>
     </div>
   );
@@ -310,6 +414,52 @@ function PaperclipIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function HashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path
+        d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function GearIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8 2 2 0 1 1-2.8 2.8 1.6 1.6 0 0 0-2.7 1.1 2 2 0 0 1-4 0 1.6 1.6 0 0 0-2.7-1.1 2 2 0 1 1-2.8-2.8A1.6 1.6 0 0 0 4.6 15a2 2 0 0 1 0-4 1.6 1.6 0 0 0 1.1-2.7 2 2 0 1 1 2.8-2.8A1.6 1.6 0 0 0 11 4.6a2 2 0 0 1 4 0 1.6 1.6 0 0 0 2.7 1.1 2 2 0 1 1 2.8 2.8A1.6 1.6 0 0 0 19.4 11a2 2 0 0 1 0 4z" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
