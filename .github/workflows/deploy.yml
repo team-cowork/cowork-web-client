@@ -122,7 +122,8 @@ jobs:
             EOF
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             docker compose pull
-            docker compose up -d --force-recreate --remove-orphans
+            docker compose down --remove-orphans || true
+            docker compose up -d
             docker logout ghcr.io || true
             docker image prune -f
         env:
