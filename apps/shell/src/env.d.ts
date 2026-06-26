@@ -1,6 +1,14 @@
 /// <reference types="@rsbuild/core/types" />
 
 /**
+ * 배포 시 nginx 가 env 로 치환한 /config.js 가 주입하는 런타임 remote 매핑.
+ * key 는 MF remote name(cowork_chat 등), value 는 mf-manifest.json URL.
+ */
+interface Window {
+  __MF_REMOTES__?: Record<string, string>;
+}
+
+/**
  * Imports the SVG file as a React component.
  * @requires [@rsbuild/plugin-svgr](https://npmjs.com/package/@rsbuild/plugin-svgr)
  */

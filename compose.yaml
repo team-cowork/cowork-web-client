@@ -1,0 +1,72 @@
+services:
+  shell:
+    image: ghcr.io/team-cowork/cowork-web-client/shell:${IMAGE_TAG:-develop}
+    build:
+      context: .
+      args:
+        APP: shell
+        ASSET_PREFIX: /
+        SUBPATH: ''
+    expose:
+      - '80'
+    restart: unless-stopped
+
+  chat:
+    image: ghcr.io/team-cowork/cowork-web-client/cowork-chat:${IMAGE_TAG:-develop}
+    build:
+      context: .
+      args:
+        APP: cowork-chat
+        ASSET_PREFIX: /_mf/chat/
+        SUBPATH: _mf/chat/
+    expose:
+      - '80'
+    restart: unless-stopped
+
+  issue:
+    image: ghcr.io/team-cowork/cowork-web-client/cowork-issue:${IMAGE_TAG:-develop}
+    build:
+      context: .
+      args:
+        APP: cowork-issue
+        ASSET_PREFIX: /_mf/issue/
+        SUBPATH: _mf/issue/
+    expose:
+      - '80'
+    restart: unless-stopped
+
+  profile:
+    image: ghcr.io/team-cowork/cowork-web-client/cowork-profile:${IMAGE_TAG:-develop}
+    build:
+      context: .
+      args:
+        APP: cowork-profile
+        ASSET_PREFIX: /_mf/profile/
+        SUBPATH: _mf/profile/
+    expose:
+      - '80'
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - shell
+      - chat
+      - issue
+      - profile
+    ports:
+      - '80:80'
+    environment:
+      SERVER_NAME: ${SERVER_NAME:-_}
+      CHAT_REMOTE_URL: ${CHAT_REMOTE_URL:-/_mf/chat/mf-manifest.json}
+      ISSUE_REMOTE_URL: ${ISSUE_REMOTE_URL:-/_mf/issue/mf-manifest.json}
+      PROFILE_REMOTE_URL: ${PROFILE_REMOTE_URL:-/_mf/profile/mf-manifest.json}
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates:ro
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: '1400'

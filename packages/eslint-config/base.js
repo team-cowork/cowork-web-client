@@ -32,6 +32,6 @@ export const config = [
     },
   },
   {
-    ignores: ['dist/**', '@mf-types/**'],
+    ignores: ['dist/**', '@mf-types/**', '**/.__mf__temp/**', '**/.mf/**'],
   },
 ];

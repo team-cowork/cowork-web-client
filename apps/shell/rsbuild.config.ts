@@ -4,7 +4,6 @@ import { pluginBabel } from '@rsbuild/plugin-babel';
 import { pluginReact } from '@rsbuild/plugin-react';
 import { tanstackRouter } from '@tanstack/router-plugin/rspack';
 
-// Docs: https://rsbuild.rs/config/
 export default defineConfig({
   source: {
     entry: {
@@ -17,6 +16,10 @@ export default defineConfig({
       description: 'cowork shell application',
       viewport: 'width=device-width, initial-scale=1.0',
     },
+    tags:
+      process.env.NODE_ENV === 'production'
+        ? [{ tag: 'script', attrs: { src: '/config.js' }, head: true, append: false }]
+        : [],
   },
   dev: {
     assetPrefix: true,
@@ -52,6 +55,7 @@ export default defineConfig({
         cowork_issue: 'cowork_issue@http://127.0.0.1:3002/mf-manifest.json',
         cowork_profile: 'cowork_profile@http://127.0.0.1:3003/mf-manifest.json',
       },
+      runtimePlugins: ['./src/mf-runtime-plugin.ts'],
       experiments: {
         asyncStartup: true,
       },

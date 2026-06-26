@@ -4,7 +4,8 @@ import { pluginBabel } from '@rsbuild/plugin-babel';
 import { pluginReact } from '@rsbuild/plugin-react';
 import { tanstackRouter } from '@tanstack/router-plugin/rspack';
 
-// Docs: https://rsbuild.rs/config/
+const assetPrefix = process.env.ASSET_PREFIX || 'http://127.0.0.1:3002';
+
 export default defineConfig({
   source: {
     entry: {
@@ -16,7 +17,7 @@ export default defineConfig({
     lazyCompilation: false,
   },
   output: {
-    assetPrefix: 'http://127.0.0.1:3002',
+    assetPrefix,
   },
   server: {
     host: '127.0.0.1',
