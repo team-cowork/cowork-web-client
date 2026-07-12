@@ -1,7 +1,6 @@
 import { createRootRoute, Link, Outlet, useRouterState } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
-/** 인증 흐름 라우트. 이 경로들에서는 개발용 네비게이션 바를 숨긴다. */
 const PUBLIC_ROUTES = ['/login', '/auth/callback', '/auth/error'];
 
 const RootLayout = () => {

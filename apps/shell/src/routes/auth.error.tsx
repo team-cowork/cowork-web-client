@@ -13,7 +13,6 @@ function AuthErrorPage() {
     <div className="bg-background flex min-h-screen items-center justify-center px-4">
       <div className="flex w-full max-w-[460px] flex-col items-center gap-5">
         <div className="bg-error-container flex size-16 items-center justify-center rounded-full">
-          {/* TODO: 실제 에러 아이콘 에셋으로 교체 예정. 아직은 alt 텍스트로만 대체. */}
           <img src="/assets/auth/login-failed.svg" alt="로그인 실패" className="size-[30px]" />
         </div>
 
