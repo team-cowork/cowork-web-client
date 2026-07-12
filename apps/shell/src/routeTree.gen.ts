@@ -10,16 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as IssueRouteImport } from './routes/issue'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfileSplatRouteImport } from './routes/profile.$'
 import { Route as IssueSplatRouteImport } from './routes/issue.$'
 import { Route as ChatSplatRouteImport } from './routes/chat.$'
+import { Route as AuthErrorRouteImport } from './routes/auth.error'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IssueRoute = IssueRouteImport.update({
@@ -52,12 +60,25 @@ const ChatSplatRoute = ChatSplatRouteImport.update({
   path: '/$',
   getParentRoute: () => ChatRoute,
 } as any)
+const AuthErrorRoute = AuthErrorRouteImport.update({
+  id: '/auth/error',
+  path: '/auth/error',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/chat': typeof ChatRouteWithChildren
   '/issue': typeof IssueRouteWithChildren
+  '/login': typeof LoginRoute
   '/profile': typeof ProfileRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/error': typeof AuthErrorRoute
   '/chat/$': typeof ChatSplatRoute
   '/issue/$': typeof IssueSplatRoute
   '/profile/$': typeof ProfileSplatRoute
@@ -66,7 +87,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/chat': typeof ChatRouteWithChildren
   '/issue': typeof IssueRouteWithChildren
+  '/login': typeof LoginRoute
   '/profile': typeof ProfileRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/error': typeof AuthErrorRoute
   '/chat/$': typeof ChatSplatRoute
   '/issue/$': typeof IssueSplatRoute
   '/profile/$': typeof ProfileSplatRoute
@@ -76,7 +100,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/chat': typeof ChatRouteWithChildren
   '/issue': typeof IssueRouteWithChildren
+  '/login': typeof LoginRoute
   '/profile': typeof ProfileRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/error': typeof AuthErrorRoute
   '/chat/$': typeof ChatSplatRoute
   '/issue/$': typeof IssueSplatRoute
   '/profile/$': typeof ProfileSplatRoute
@@ -87,7 +114,10 @@ export interface FileRouteTypes {
     | '/'
     | '/chat'
     | '/issue'
+    | '/login'
     | '/profile'
+    | '/auth/callback'
+    | '/auth/error'
     | '/chat/$'
     | '/issue/$'
     | '/profile/$'
@@ -96,7 +126,10 @@ export interface FileRouteTypes {
     | '/'
     | '/chat'
     | '/issue'
+    | '/login'
     | '/profile'
+    | '/auth/callback'
+    | '/auth/error'
     | '/chat/$'
     | '/issue/$'
     | '/profile/$'
@@ -105,7 +138,10 @@ export interface FileRouteTypes {
     | '/'
     | '/chat'
     | '/issue'
+    | '/login'
     | '/profile'
+    | '/auth/callback'
+    | '/auth/error'
     | '/chat/$'
     | '/issue/$'
     | '/profile/$'
@@ -115,7 +151,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChatRoute: typeof ChatRouteWithChildren
   IssueRoute: typeof IssueRouteWithChildren
+  LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRouteWithChildren
+  AuthCallbackRoute: typeof AuthCallbackRoute
+  AuthErrorRoute: typeof AuthErrorRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -125,6 +164,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/issue': {
@@ -169,6 +215,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatSplatRouteImport
       parentRoute: typeof ChatRoute
     }
+    '/auth/error': {
+      id: '/auth/error'
+      path: '/auth/error'
+      fullPath: '/auth/error'
+      preLoaderRoute: typeof AuthErrorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -207,7 +267,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChatRoute: ChatRouteWithChildren,
   IssueRoute: IssueRouteWithChildren,
+  LoginRoute: LoginRoute,
   ProfileRoute: ProfileRouteWithChildren,
+  AuthCallbackRoute: AuthCallbackRoute,
+  AuthErrorRoute: AuthErrorRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
