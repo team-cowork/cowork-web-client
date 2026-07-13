@@ -1,16 +1,7 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+
+import { ChatView } from '../views/chat-view';
 
 export const Route = createFileRoute('/')({
-  component: ChatIndexPage,
+  component: ChatView,
 });
-
-function ChatIndexPage() {
-  return (
-    <div className="p-2">
-      <h3>Welcome Chat!</h3>
-      <Link to="/example" className="[&.active]:font-bold">
-        Example
-      </Link>
-    </div>
-  );
-}

@@ -1,16 +1,7 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+
+import { IssueView } from '../views/issue-view';
 
 export const Route = createFileRoute('/')({
-  component: IssueIndexPage,
+  component: IssueView,
 });
-
-function IssueIndexPage() {
-  return (
-    <div className="p-2">
-      <h3>Welcome Issue!</h3>
-      <Link to="/example" className="[&.active]:font-bold">
-        Example
-      </Link>
-    </div>
-  );
-}
