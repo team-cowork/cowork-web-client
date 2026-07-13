@@ -1,14 +1,14 @@
 import { Button } from '@cowork/ui';
 
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+
+import { startLogin } from '../features/auth/login';
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
 });
 
 function LoginPage() {
-  const navigate = useNavigate();
-
   return (
     <div className="bg-background flex min-h-screen items-center justify-center px-4">
       <div className="bg-surface flex w-full max-w-[460px] flex-col items-center gap-5 rounded-3xl px-12 pt-12 pb-10">
@@ -25,12 +25,7 @@ function LoginPage() {
 
         <div className="h-2 w-full" />
 
-        <Button
-          size="L"
-          color="brand"
-          className="w-full"
-          onClick={() => navigate({ to: '/auth/callback' })}
-        >
+        <Button size="L" color="brand" className="w-full" onClick={() => void startLogin()}>
           DataGSM 계정으로 로그인
         </Button>
 
