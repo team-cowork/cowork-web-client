@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   Avatar,
@@ -51,8 +51,21 @@ const SEED: Column[] = [
 ];
 
 export function IssueView() {
-  const [columns, setColumns] = useState<Column[]>(SEED);
+  // 탭 이동으로 remote가 언마운트돼도 생성한 이슈가 유지되도록 localStorage에 영속.
+  const [columns, setColumns] = useState<Column[]>(() => {
+    try {
+      const saved = localStorage.getItem('demo-issue-columns');
+      return saved ? (JSON.parse(saved) as Column[]) : SEED;
+    } catch {
+      return SEED;
+    }
+  });
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('demo-issue-columns', JSON.stringify(columns));
+  }, [columns]);
+
   const [title, setTitle] = useState('');
   const [tag, setTag] = useState('');
 
@@ -132,14 +145,14 @@ export function IssueView() {
           value={title}
           autoFocus
           onChange={(e) => setTitle(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && create()}
+          onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && create()}
         />
         <TextField
           label="라벨 (선택)"
           placeholder="예: 프론트"
           value={tag}
           onChange={(e) => setTag(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && create()}
+          onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && create()}
         />
       </Modal>
     </div>
