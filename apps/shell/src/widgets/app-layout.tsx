@@ -122,7 +122,7 @@ function CreateTeamModal({
         value={name}
         autoFocus
         onChange={(e) => onName(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
+        onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && onSubmit()}
       />
     </Modal>
   );
@@ -236,7 +236,7 @@ function ChannelSidebar() {
           value={name}
           autoFocus
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && submit()}
+          onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && submit()}
         />
         <label className="flex items-center justify-between py-1">
           <span className="typography-label-small text-on-surface">음성 채널</span>
