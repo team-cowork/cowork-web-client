@@ -1,14 +1,24 @@
 import { pluginModuleFederation } from '@module-federation/rsbuild-plugin';
-import { defineConfig } from '@rsbuild/core';
+import { defineConfig, loadEnv } from '@rsbuild/core';
 import { pluginBabel } from '@rsbuild/plugin-babel';
 import { pluginReact } from '@rsbuild/plugin-react';
 import { tanstackRouter } from '@tanstack/router-plugin/rspack';
+
+// .env.local(gitignore)에 PUBLIC_DATAGSM_CLIENT_ID / PUBLIC_AUTH_API_BASE_URL을 넣으면
+// 로컬 DataGSM PKCE 연동 값을 코드 수정 없이 오버라이드할 수 있다.
+const { publicVars } = loadEnv();
+
+const AUTH_CONFIG_DEFAULTS = {
+  'import.meta.env.PUBLIC_DATAGSM_CLIENT_ID': JSON.stringify('cowork-shell-dev'),
+  'import.meta.env.PUBLIC_AUTH_API_BASE_URL': JSON.stringify('https://ssh.gsmsv.site:22132/api'),
+};
 
 export default defineConfig({
   source: {
     entry: {
       index: './src/main.tsx',
     },
+    define: { ...AUTH_CONFIG_DEFAULTS, ...publicVars },
   },
   html: {
     title: 'cowork',

@@ -14,6 +14,15 @@ interface Window {
 }
 
 /**
+ * apps/shell/.env.local(gitignore)에서 오버라이드 가능한 로컬 DataGSM PKCE 연동 값.
+ * rsbuild.config.ts의 AUTH_CONFIG_DEFAULTS가 기본값을 제공한다.
+ */
+interface ImportMetaEnv {
+  readonly PUBLIC_DATAGSM_CLIENT_ID: string;
+  readonly PUBLIC_AUTH_API_BASE_URL: string;
+}
+
+/**
  * Imports the SVG file as a React component.
  * @requires [@rsbuild/plugin-svgr](https://npmjs.com/package/@rsbuild/plugin-svgr)
  */
