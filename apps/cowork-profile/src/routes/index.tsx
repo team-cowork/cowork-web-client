@@ -1,16 +1,7 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+
+import { ProfileView } from '../views/profile-view';
 
 export const Route = createFileRoute('/')({
-  component: ProfileIndexPage,
+  component: ProfileView,
 });
-
-function ProfileIndexPage() {
-  return (
-    <div className="p-2">
-      <h3>Welcome Profile!</h3>
-      <Link to="/example" className="[&.active]:font-bold">
-        Example
-      </Link>
-    </div>
-  );
-}
