@@ -16,7 +16,6 @@ export async function startLogin() {
     response_type: 'code',
     code_challenge: challenge,
     code_challenge_method: 'S256',
-    scope: AUTH_CONFIG.scope,
     state,
   });
 

@@ -18,5 +18,4 @@ export const AUTH_CONFIG = {
   get redirectUri() {
     return `${window.location.origin}/auth/callback`;
   },
-  scope: 'self:read',
 };
