@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   Avatar,
@@ -57,7 +57,19 @@ const OFFLINE: { name: string; tone: AvatarTone }[] = [
 export function ChatView() {
   const channel = useActiveChannel();
   const [draft, setDraft] = useState('');
-  const [byChannel, setByChannel] = useState<Record<string, Message[]>>(SEED_MESSAGES);
+  // 탭 이동으로 remote가 언마운트돼도 시연 메시지가 유지되도록 localStorage에 영속.
+  const [byChannel, setByChannel] = useState<Record<string, Message[]>>(() => {
+    try {
+      const saved = localStorage.getItem('demo-chat-messages');
+      return saved ? (JSON.parse(saved) as Record<string, Message[]>) : SEED_MESSAGES;
+    } catch {
+      return SEED_MESSAGES;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('demo-chat-messages', JSON.stringify(byChannel));
+  }, [byChannel]);
 
   const messages = byChannel[channel.id] ?? [];
 
@@ -92,16 +104,20 @@ export function ChatView() {
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col justify-end gap-[18px] overflow-y-auto py-4 pr-4 pl-2">
+        <div className="flex flex-1 flex-col gap-[18px] overflow-y-auto py-4 pr-4 pl-2">
           {messages.length === 0 ? (
             <div className="text-on-surface-variant flex flex-1 flex-col items-center justify-center gap-1">
               <p className="text-[15px] font-semibold">#{channel.name}</p>
               <p className="text-[13px]">아직 메시지가 없어요. 첫 메시지를 보내보세요.</p>
             </div>
           ) : (
-            messages.map((m, i) => (
-              <MessageItem key={i} author={m.author} tone={m.tone} timestamp={m.time} content={m.content} />
-            ))
+            // justify-end 대신 mt-auto 스페이서 — overflow 스크롤 컨테이너에서 상단 clip 방지.
+            <>
+              <div className="mt-auto" />
+              {messages.map((m, i) => (
+                <MessageItem key={i} author={m.author} tone={m.tone} timestamp={m.time} content={m.content} />
+              ))}
+            </>
           )}
         </div>
 
