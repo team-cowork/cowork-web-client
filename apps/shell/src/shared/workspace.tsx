@@ -149,6 +149,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         setActiveChannelId(channelId);
       },
       createChannel: (groupName, name, voice) => {
+        // 모달 열린 채 팀 전환 시 그룹이 새 팀에 없으면 중단(activeChannel undefined 방지).
+        const team = teams.find((t) => t.id === activeTeamId);
+        if (!team || !team.groups.some((g) => g.name === groupName)) return;
+
         const id = `${activeTeamId}-${Date.now()}`;
         setTeams((prev) =>
           prev.map((t) =>
