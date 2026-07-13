@@ -20,7 +20,10 @@ declare module '*.svg?react' {
 
 declare module 'cowork_chat/App' {
   import type { ComponentType } from 'react';
-  const App: ComponentType<{ basepath?: string }>;
+  const App: ComponentType<{
+    basepath?: string;
+    channel?: { id: string; name: string; description?: string };
+  }>;
   export default App;
 }
 

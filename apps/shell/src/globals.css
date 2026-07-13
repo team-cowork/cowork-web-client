@@ -1,1 +1,7 @@
 @import '@cowork/tailwind-config';
+
+html,
+body,
+#root {
+  height: 100%;
+}
