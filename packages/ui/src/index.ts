@@ -1,5 +1,5 @@
 export { AttachmentCard, type AttachmentCardProps } from './components/attachment-card';
-export { Avatar, type AvatarProps } from './components/avatar';
+export { Avatar, type AvatarProps, type AvatarTone } from './components/avatar';
 export { Badge, type BadgeProps } from './components/badge';
 export { Button, type ButtonProps } from './components/button';
 export { ChannelListItem, type ChannelListItemProps } from './components/channel-list-item';
