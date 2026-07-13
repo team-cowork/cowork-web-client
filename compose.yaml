@@ -61,6 +61,8 @@ services:
       CHAT_REMOTE_URL: ${CHAT_REMOTE_URL:-/_mf/chat/mf-manifest.json}
       ISSUE_REMOTE_URL: ${ISSUE_REMOTE_URL:-/_mf/issue/mf-manifest.json}
       PROFILE_REMOTE_URL: ${PROFILE_REMOTE_URL:-/_mf/profile/mf-manifest.json}
+      DATAGSM_CLIENT_ID: ${DATAGSM_CLIENT_ID:-}
+      AUTH_API_BASE_URL: ${AUTH_API_BASE_URL:-}
     volumes:
       - ./nginx/templates:/etc/nginx/templates:ro
     restart: unless-stopped

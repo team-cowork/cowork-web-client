@@ -108,7 +108,7 @@ jobs:
           port: ${{ secrets.VM_PORT }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
-          envs: GHCR_USER,GHCR_TOKEN,IMAGE_TAG
+          envs: GHCR_USER,GHCR_TOKEN,IMAGE_TAG,DATAGSM_CLIENT_ID,AUTH_API_BASE_URL
           script: |
             set -e
             docker --version >/dev/null 2>&1 || curl -fsSL https://get.docker.com | sudo sh
@@ -119,6 +119,8 @@ jobs:
             CHAT_REMOTE_URL=/_mf/chat/mf-manifest.json
             ISSUE_REMOTE_URL=/_mf/issue/mf-manifest.json
             PROFILE_REMOTE_URL=/_mf/profile/mf-manifest.json
+            DATAGSM_CLIENT_ID=${DATAGSM_CLIENT_ID}
+            AUTH_API_BASE_URL=${AUTH_API_BASE_URL}
             EOF
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             docker compose pull
@@ -130,6 +132,8 @@ jobs:
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE_TAG: ${{ needs.setup.outputs.tag }}
+          DATAGSM_CLIENT_ID: ${{ secrets.DATAGSM_CLIENT_ID }}
+          AUTH_API_BASE_URL: ${{ secrets.AUTH_API_BASE_URL }}
 
       - name: Deployment summary
         if: success()
