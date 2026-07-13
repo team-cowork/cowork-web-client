@@ -6,6 +6,11 @@
  */
 interface Window {
   __MF_REMOTES__?: Record<string, string>;
+  /** config.js가 주입하는 DataGSM PKCE 연동 설정(clientId·Cowork Authorization API 주소). */
+  __AUTH_CONFIG__?: {
+    clientId: string;
+    authApiBaseUrl: string;
+  };
 }
 
 /**
