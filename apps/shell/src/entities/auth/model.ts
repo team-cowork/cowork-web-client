@@ -35,7 +35,13 @@ export function getTokens(): TokenPair | null {
   if (!raw) return null;
 
   try {
-    return JSON.parse(raw) as TokenPair;
+    const parsed = JSON.parse(raw) as Partial<TokenPair>;
+    // accessToken/refreshToken이 빈 경우(백엔드 응답 누락 등) 그대로 반환하면
+    // 이후 refresh 요청 body가 {}로 나가 400을 유발한다 — 애초에 유효하지 않은 세션으로 취급한다.
+    if (!parsed.accessToken || !parsed.refreshToken || typeof parsed.expiresAt !== 'number') {
+      return null;
+    }
+    return parsed as TokenPair;
   } catch {
     return null;
   }

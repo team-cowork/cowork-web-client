@@ -37,6 +37,11 @@ export async function handleAuthCallback(params: AuthCallbackParams): Promise<Au
   if (!response.ok) return { ok: false, reason: 'token_exchange_failed' };
 
   const data = (await response.json()) as TokenPairResponse;
+  // access_token/refresh_token이 빠진 응답을 그대로 저장하면 이후 refresh 요청이
+  // 빈 body로 나가 400을 유발한다 — 이 시점에 실패로 처리해 재로그인을 유도한다.
+  if (!data.access_token || !data.refresh_token) {
+    return { ok: false, reason: 'invalid_token_response' };
+  }
   storeTokens(data);
   return { ok: true };
 }

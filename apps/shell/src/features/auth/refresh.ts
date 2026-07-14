@@ -23,6 +23,10 @@ export async function refreshAccessToken(): Promise<boolean> {
   }
 
   const data = (await response.json()) as TokenPairResponse;
+  if (!data.access_token || !data.refresh_token) {
+    clearTokens();
+    return false;
+  }
   storeTokens(data);
   return true;
 }
