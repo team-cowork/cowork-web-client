@@ -1,11 +1,10 @@
-import { getTokens, isTokenExpired } from '../../entities/auth/model';
+import { getAccessToken, getRefreshToken } from '../../entities/auth/model';
 import { refreshAccessToken } from './refresh';
 
-/** 라우트 진입 가드용: 유효 토큰이 있으면 true, 만료면 조용히 갱신 시도 후 결과를 반환한다. */
+/** 라우트 진입 가드용: access_token이 있으면 true, 없으면 refresh_token으로 갱신을 시도한다. */
 export async function ensureAuthenticated(): Promise<boolean> {
-  const tokens = getTokens();
-  if (!tokens) return false;
-  if (!isTokenExpired(tokens)) return true;
+  if (getAccessToken()) return true;
+  if (!getRefreshToken()) return false;
 
   return refreshAccessToken();
 }
