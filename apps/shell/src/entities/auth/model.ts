@@ -18,6 +18,14 @@ export interface TokenPairResponse {
   token_type: string;
 }
 
+/** Cowork Authorization API가 모든 응답을 감싸는 공통 봉투. 실제 값은 `data`에 있다. */
+export interface ApiEnvelope<T> {
+  status: string;
+  code: number;
+  message: string;
+  data: T;
+}
+
 const STORAGE_KEY = 'datagsm_auth_tokens';
 
 export function storeTokens(response: TokenPairResponse): TokenPair {

@@ -1,5 +1,6 @@
 import { AUTH_CONFIG } from '../../entities/auth/config';
 import {
+  type ApiEnvelope,
   clearTokens,
   getTokens,
   storeTokens,
@@ -22,8 +23,9 @@ export async function refreshAccessToken(): Promise<boolean> {
     return false;
   }
 
-  const data = (await response.json()) as TokenPairResponse;
-  if (!data.access_token || !data.refresh_token) {
+  const envelope = (await response.json()) as ApiEnvelope<TokenPairResponse>;
+  const data = envelope.data;
+  if (!data?.access_token || !data.refresh_token) {
     clearTokens();
     return false;
   }

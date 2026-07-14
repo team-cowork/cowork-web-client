@@ -1,5 +1,5 @@
 import { AUTH_CONFIG } from '../../entities/auth/config';
-import { storeTokens, type TokenPairResponse } from '../../entities/auth/model';
+import { type ApiEnvelope, storeTokens, type TokenPairResponse } from '../../entities/auth/model';
 import { consumePkceSession } from './pkce-session';
 
 export type AuthCallbackParams = {
@@ -36,10 +36,12 @@ export async function handleAuthCallback(params: AuthCallbackParams): Promise<Au
 
   if (!response.ok) return { ok: false, reason: 'token_exchange_failed' };
 
-  const data = (await response.json()) as TokenPairResponse;
+  // Cowork Authorization API는 실제 값을 { status, code, message, data } 봉투로 감싸서 응답한다.
+  const envelope = (await response.json()) as ApiEnvelope<TokenPairResponse>;
+  const data = envelope.data;
   // access_token/refresh_token이 빠진 응답을 그대로 저장하면 이후 refresh 요청이
   // 빈 body로 나가 400을 유발한다 — 이 시점에 실패로 처리해 재로그인을 유도한다.
-  if (!data.access_token || !data.refresh_token) {
+  if (!data?.access_token || !data.refresh_token) {
     return { ok: false, reason: 'invalid_token_response' };
   }
   storeTokens(data);
