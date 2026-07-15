@@ -20,9 +20,7 @@ jobs:
         with:
           # assignee는 PR 작성자로 고정
           assignees: ${{ github.event.pull_request.user.login }}
-          # 리뷰어 후보 풀 = team-cowork/cowork-client 팀 멤버
-          # (PR 작성자는 자동으로 후보에서 제외됩니다)
+          # 리뷰어 = team-cowork/cowork-client 팀 멤버 전원 요청
+          # (PR 작성자는 자동으로 제외됩니다. max-num-of-reviewers 미설정 시 전원 요청)
           reviewers: >-
             Dino0204, junjuny0227, LeeSangHyeok0731, yeondon125, hyooeunn
-          # 후보 중 무작위 2명 요청
-          max-num-of-reviewers: 2
