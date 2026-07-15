@@ -2,7 +2,7 @@ import { Button } from '@cowork/ui';
 
 import { createFileRoute } from '@tanstack/react-router';
 
-import { startLogin } from '../features/auth/login';
+import { startLogin } from '../features/auth/api/login';
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
