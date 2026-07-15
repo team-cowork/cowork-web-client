@@ -23,7 +23,6 @@ jobs:
           # 리뷰어 후보 풀 = team-cowork/cowork-client 팀 멤버
           # (PR 작성자는 자동으로 후보에서 제외됩니다)
           reviewers: >-
-            aiden30015, snowykte0426, Dino0204, h-0y28, junjuny0227,
-            LeeSangHyeok0731, yeondon125, ryusuye0n, hyooeunn
+            Dino0204, junjuny0227, LeeSangHyeok0731, yeondon125, hyooeunn
           # 후보 중 무작위 2명 요청
           max-num-of-reviewers: 2
