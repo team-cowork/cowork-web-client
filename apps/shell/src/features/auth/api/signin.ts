@@ -3,7 +3,7 @@ import { generateCodeChallenge, generateCodeVerifier, generateState } from '../l
 import { savePkceSession } from '../lib/pkce-session';
 
 /** DataGSM 인가 서버로 리다이렉트해 PKCE 로그인 플로우를 시작한다. */
-export async function startLogin() {
+export async function startSignin() {
   const verifier = generateCodeVerifier();
   const challenge = await generateCodeChallenge(verifier);
   const state = generateState();

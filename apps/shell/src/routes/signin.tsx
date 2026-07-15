@@ -2,13 +2,13 @@ import { Button } from '@cowork/ui';
 
 import { createFileRoute } from '@tanstack/react-router';
 
-import { startLogin } from '../features/auth/api/login';
+import { startSignin } from '../features/auth/api/signin';
 
-export const Route = createFileRoute('/login')({
-  component: LoginPage,
+export const Route = createFileRoute('/signin')({
+  component: SigninPage,
 });
 
-function LoginPage() {
+function SigninPage() {
   return (
     <div className="bg-background flex min-h-screen items-center justify-center px-4">
       <div className="bg-surface flex w-full max-w-[460px] flex-col items-center gap-5 rounded-3xl px-12 pt-12 pb-10">
@@ -25,7 +25,7 @@ function LoginPage() {
 
         <div className="h-2 w-full" />
 
-        <Button size="L" color="brand" className="w-full" onClick={() => void startLogin()}>
+        <Button size="L" color="brand" className="w-full" onClick={() => void startSignin()}>
           DataGSM 계정으로 로그인
         </Button>
 

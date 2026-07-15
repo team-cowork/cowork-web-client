@@ -2,7 +2,7 @@ import { instance } from '../../../entities/auth/api/instance';
 import { clearTokens, getAccessToken, getRefreshToken } from '../../../entities/auth/model/token';
 
 /** 서버 쪽 refresh_token을 무효화하고 로컬 토큰을 정리한다. */
-export async function logout() {
+export async function signout() {
   const accessToken = getAccessToken();
   const refreshToken = getRefreshToken();
 

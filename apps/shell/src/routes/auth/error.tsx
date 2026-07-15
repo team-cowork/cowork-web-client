@@ -26,11 +26,11 @@ function AuthErrorPage() {
                 size="L"
                 color="brand"
                 className="w-full"
-                onClick={() => navigate({ to: '/login' })}
+                onClick={() => navigate({ to: '/signin' })}
               >
                 다시 로그인
               </Button>
-              <Link to="/login" className="typography-label-x-small text-on-surface-variant">
+              <Link to="/signin" className="typography-label-x-small text-on-surface-variant">
                 처음으로 돌아가기
               </Link>
             </div>

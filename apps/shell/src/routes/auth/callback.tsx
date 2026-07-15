@@ -4,7 +4,7 @@ import { LoadingPane } from '@cowork/ui';
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
-import { handleAuthCallback } from '../features/auth/api/callback';
+import { handleAuthCallback } from '../../features/auth/api/callback';
 
 export interface AuthCallbackSearch {
   code?: string;

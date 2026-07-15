@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 
 import { createFileRoute } from '@tanstack/react-router';
 
-import { useWorkspace } from '../shared/workspace';
+import { useWorkspace } from '../../shared/workspace';
 
 const ChatApp = lazy(() => import('cowork_chat/App'));
 
