@@ -5,6 +5,8 @@ groups:
 overrides:
   # ── 백엔드(Kotlin/Spring)·인프라 전용 스킬 제외 ─────────────
   claude/skills/kotlin-spring-arch: false
+  claude/skills/java-spring-arch: false
+  claude/skills/the-sdk: false
   claude/skills/kotest-guide: false
   claude/skills/database-schema: false
   claude/skills/migration-guide: false
@@ -24,6 +26,16 @@ overrides:
   claude/hooks/command-guard: true
 
   # ── Codex 훅 ───────────────────────────────────────────────
+  # Codex(.agents/skills)에도 동일 스킬이 있어 Claude 쪽과 동일하게 제외
+  codex/skills/kotlin-spring-arch: false
+  codex/skills/java-spring-arch: false
+  codex/skills/the-sdk: false
+  codex/skills/kotest-guide: false
+  codex/skills/database-schema: false
+  codex/skills/migration-guide: false
+  codex/skills/api-design: false
+  codex/skills/docker: false
+
   codex/hooks/dispatcher: true
   codex/hooks-json: true
 
