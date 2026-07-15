@@ -12,24 +12,10 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-const ACCESS_TOKEN_KEY = 'access_token';
-const REFRESH_TOKEN_COOKIE = 'refresh_token';
+/** 발급된 JWT 액세스/리프레시 토큰 쿠키. 모두 httpOnly라 JS에서 접근 불가. */
+export const ACCESS_TOKEN_COOKIE = 'access_token';
+export const REFRESH_TOKEN_COOKIE = 'refresh_token';
 
-export function storeTokens(response: TokenPairResponse) {
-  sessionStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
-  document.cookie = `${REFRESH_TOKEN_COOKIE}=${response.refresh_token}; path=/; SameSite=Lax`;
-}
-
-export function getAccessToken(): string | null {
-  return sessionStorage.getItem(ACCESS_TOKEN_KEY);
-}
-
-export function getRefreshToken(): string | null {
-  const match = document.cookie.match(/(?:^|; )refresh_token=([^;]*)/);
-  return match?.[1] ? decodeURIComponent(match[1]) : null;
-}
-
-export function clearTokens() {
-  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
-  document.cookie = `${REFRESH_TOKEN_COOKIE}=; path=/; max-age=0`;
-}
+/** authorize → callback 왕복 동안만 유지되는 PKCE 임시 쿠키. 콜백에서 소비 후 삭제. */
+export const CODE_VERIFIER_COOKIE = 'oauth_code_verifier';
+export const OAUTH_STATE_COOKIE = 'oauth_state';

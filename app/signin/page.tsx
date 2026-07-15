@@ -1,7 +1,4 @@
-'use client';
-
 import { Button } from '@/shared/ui/button';
-import { startSignin } from '@/features/auth/api/signin';
 
 export default function SigninPage() {
   return (
@@ -16,9 +13,12 @@ export default function SigninPage() {
 
         <div className="h-2 w-full" />
 
-        <Button size="L" color="brand" className="w-full" onClick={() => void startSignin()}>
-          DataGSM 계정으로 로그인
-        </Button>
+        {/* 서버 라우트가 code_verifier를 httpOnly 쿠키로 심고 authorize로 리다이렉트한다. */}
+        <form action="/api/auth/signin" className="w-full">
+          <Button type="submit" size="L" color="brand" className="w-full">
+            DataGSM 계정으로 로그인
+          </Button>
+        </form>
       </div>
     </div>
   );
