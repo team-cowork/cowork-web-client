@@ -1,26 +1,373 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --cowork-primitive-red-50: #ffeeee;
+  --cowork-primitive-red-100: #ffd4d6;
+  --cowork-primitive-red-200: #feafb4;
+  --cowork-primitive-red-300: #fb8890;
+  --cowork-primitive-red-400: #f66570;
+  --cowork-primitive-red-500: #f04452;
+  --cowork-primitive-red-600: #db2d3d;
+  --cowork-primitive-red-700: #d22030;
+  --cowork-primitive-red-800: #bc1b2a;
+  --cowork-primitive-red-900: #a51926;
+  --cowork-primitive-neutral-50: #f2f3f5;
+  --cowork-primitive-neutral-100: #e3e5e8;
+  --cowork-primitive-neutral-200: #b9bbbe;
+  --cowork-primitive-neutral-300: #949ba4;
+  --cowork-primitive-neutral-400: #6d6f78;
+  --cowork-primitive-neutral-500: #4e5058;
+  --cowork-primitive-neutral-600: #3b3d44;
+  --cowork-primitive-neutral-650: #313338;
+  --cowork-primitive-neutral-700: #2b2d31;
+  --cowork-primitive-neutral-750: #232428;
+  --cowork-primitive-neutral-800: #1e1f22;
+  --cowork-primitive-neutral-850: #141517;
+  --cowork-primitive-neutral-900: #0d0e10;
+  --cowork-primitive-blue-50: #ebf0ff;
+  --cowork-primitive-blue-100: #d4e0ff;
+  --cowork-primitive-blue-300: #7faaff;
+  --cowork-primitive-blue-400: #4f8ef7;
+  --cowork-primitive-blue-500: #3b6ff0;
+  --cowork-primitive-blue-600: #2f5ec9;
+  --cowork-primitive-blue-900: #0e2b6e;
+  --cowork-primitive-green-50: #d4f4e2;
+  --cowork-primitive-green-300: #6bd98e;
+  --cowork-primitive-green-400: #3bbf70;
+  --cowork-primitive-green-500: #23a559;
+  --cowork-primitive-green-600: #1b8a47;
+  --cowork-primitive-green-900: #0a3d22;
+  --cowork-primitive-amber-50: #fff3d0;
+  --cowork-primitive-amber-300: #ffcd70;
+  --cowork-primitive-amber-400: #ffba3b;
+  --cowork-primitive-amber-500: #f0a30a;
+  --cowork-primitive-amber-600: #c98600;
+  --cowork-primitive-amber-900: #4d3300;
+
+  --cowork-semantic-primary: var(--cowork-primitive-red-500);
+  --cowork-semantic-on-primary: #ffffff;
+  --cowork-semantic-primary-container: var(--cowork-primitive-red-50);
+  --cowork-semantic-on-primary-container: var(--cowork-primitive-red-900);
+  --cowork-semantic-secondary: var(--cowork-primitive-red-700);
+  --cowork-semantic-on-secondary: #ffffff;
+  --cowork-semantic-secondary-container: var(--cowork-primitive-red-100);
+  --cowork-semantic-on-secondary-container: var(--cowork-primitive-red-900);
+  --cowork-semantic-tertiary: var(--cowork-primitive-blue-500);
+  --cowork-semantic-on-tertiary: #ffffff;
+  --cowork-semantic-tertiary-container: var(--cowork-primitive-blue-50);
+  --cowork-semantic-on-tertiary-container: var(--cowork-primitive-blue-900);
+  --cowork-semantic-background: var(--cowork-primitive-neutral-50);
+  --cowork-semantic-on-background: #060607;
+  --cowork-semantic-surface: #ffffff;
+  --cowork-semantic-on-surface: #060607;
+  --cowork-semantic-surface-variant: var(--cowork-primitive-neutral-100);
+  --cowork-semantic-on-surface-variant: var(--cowork-primitive-neutral-500);
+  --cowork-semantic-surface-container: var(--cowork-primitive-neutral-50);
+  --cowork-semantic-surface-container-low: #ffffff;
+  --cowork-semantic-surface-container-high: var(--cowork-primitive-neutral-100);
+  --cowork-semantic-outline: var(--cowork-primitive-neutral-200);
+  --cowork-semantic-outline-variant: var(--cowork-primitive-neutral-100);
+  --cowork-semantic-error: var(--cowork-primitive-red-700);
+  --cowork-semantic-on-error: #ffffff;
+  --cowork-semantic-error-container: var(--cowork-primitive-red-50);
+  --cowork-semantic-on-error-container: var(--cowork-primitive-red-900);
+  --cowork-semantic-success: var(--cowork-primitive-green-500);
+  --cowork-semantic-on-success: #ffffff;
+  --cowork-semantic-inverse-surface: var(--cowork-primitive-neutral-800);
+  --cowork-semantic-inverse-on-surface: var(--cowork-primitive-neutral-100);
+  --cowork-semantic-inverse-primary: var(--cowork-primitive-red-300);
+}
+
+.dark {
+  --cowork-semantic-primary: var(--cowork-primitive-red-400);
+  --cowork-semantic-on-primary: #ffffff;
+  --cowork-semantic-primary-container: var(--cowork-primitive-red-900);
+  --cowork-semantic-on-primary-container: var(--cowork-primitive-red-100);
+  --cowork-semantic-secondary: var(--cowork-primitive-red-300);
+  --cowork-semantic-on-secondary: var(--cowork-primitive-red-900);
+  --cowork-semantic-secondary-container: var(--cowork-primitive-red-800);
+  --cowork-semantic-on-secondary-container: var(--cowork-primitive-red-50);
+  --cowork-semantic-tertiary: var(--cowork-primitive-blue-300);
+  --cowork-semantic-on-tertiary: var(--cowork-primitive-blue-900);
+  --cowork-semantic-tertiary-container: var(--cowork-primitive-blue-900);
+  --cowork-semantic-on-tertiary-container: var(--cowork-primitive-blue-100);
+  --cowork-semantic-background: var(--cowork-primitive-neutral-850);
+  --cowork-semantic-on-background: #dbdee1;
+  --cowork-semantic-surface: var(--cowork-primitive-neutral-800);
+  --cowork-semantic-on-surface: #dbdee1;
+  --cowork-semantic-surface-variant: var(--cowork-primitive-neutral-700);
+  --cowork-semantic-on-surface-variant: var(--cowork-primitive-neutral-300);
+  --cowork-semantic-surface-container: var(--cowork-primitive-neutral-750);
+  --cowork-semantic-surface-container-low: var(--cowork-primitive-neutral-800);
+  --cowork-semantic-surface-container-high: var(--cowork-primitive-neutral-700);
+  --cowork-semantic-outline: var(--cowork-primitive-neutral-600);
+  --cowork-semantic-outline-variant: var(--cowork-primitive-neutral-700);
+  --cowork-semantic-error: var(--cowork-primitive-red-400);
+  --cowork-semantic-on-error: #ffffff;
+  --cowork-semantic-error-container: var(--cowork-primitive-red-900);
+  --cowork-semantic-on-error-container: var(--cowork-primitive-red-100);
+  --cowork-semantic-success: var(--cowork-primitive-green-400);
+  --cowork-semantic-on-success: #ffffff;
+  --cowork-semantic-inverse-surface: var(--cowork-primitive-neutral-100);
+  --cowork-semantic-inverse-on-surface: var(--cowork-primitive-neutral-800);
+  --cowork-semantic-inverse-primary: var(--cowork-primitive-red-600);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans:
+    var(--font-pretendard), "Pretendard", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  --font-cowork: var(--font-sans);
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --text-display-small: 1.625rem;
+  --text-display-small--line-height: 2.1875rem;
+  --text-display-medium: 1.75rem;
+  --text-display-medium--line-height: 2.375rem;
+  --text-display-large: 1.875rem;
+  --text-display-large--line-height: 2.5625rem;
+  --text-title-small: 1.25rem;
+  --text-title-small--line-height: 1.6875rem;
+  --text-title-medium: 1.375rem;
+  --text-title-medium--line-height: 1.875rem;
+  --text-title-large: 1.5rem;
+  --text-title-large--line-height: 2rem;
+  --text-body-x-small: 0.8125rem;
+  --text-body-x-small--line-height: 1.25rem;
+  --text-body-medium: 1.0625rem;
+  --text-body-medium--line-height: 1.625rem;
+  --text-body-medium-strong: 1.0625rem;
+  --text-body-medium-strong--line-height: 1.625rem;
+  --text-body-large: 1.1875rem;
+  --text-body-large--line-height: 1.8125rem;
+  --text-subtext-small: 0.75rem;
+  --text-subtext-small--line-height: 1rem;
+  --text-subtext-medium: 0.8125rem;
+  --text-subtext-medium--line-height: 1.125rem;
+  --text-subtext-large: 0.9375rem;
+  --text-subtext-large--line-height: 1.25rem;
+  --text-label-x-small: 0.8125rem;
+  --text-label-x-small--line-height: 1rem;
+  --text-label-small: 0.9375rem;
+  --text-label-small--line-height: 1.1875rem;
+  --text-label-medium: 1.0625rem;
+  --text-label-medium--line-height: 1.3125rem;
+  --text-label-large: 1.1875rem;
+  --text-label-large--line-height: 1.5rem;
+
+  --color-cowork-red-50: var(--cowork-primitive-red-50);
+  --color-cowork-red-100: var(--cowork-primitive-red-100);
+  --color-cowork-red-200: var(--cowork-primitive-red-200);
+  --color-cowork-red-300: var(--cowork-primitive-red-300);
+  --color-cowork-red-400: var(--cowork-primitive-red-400);
+  --color-cowork-red-500: var(--cowork-primitive-red-500);
+  --color-cowork-red-600: var(--cowork-primitive-red-600);
+  --color-cowork-red-700: var(--cowork-primitive-red-700);
+  --color-cowork-red-800: var(--cowork-primitive-red-800);
+  --color-cowork-red-900: var(--cowork-primitive-red-900);
+  --color-cowork-neutral-50: var(--cowork-primitive-neutral-50);
+  --color-cowork-neutral-100: var(--cowork-primitive-neutral-100);
+  --color-cowork-neutral-200: var(--cowork-primitive-neutral-200);
+  --color-cowork-neutral-300: var(--cowork-primitive-neutral-300);
+  --color-cowork-neutral-400: var(--cowork-primitive-neutral-400);
+  --color-cowork-neutral-500: var(--cowork-primitive-neutral-500);
+  --color-cowork-neutral-600: var(--cowork-primitive-neutral-600);
+  --color-cowork-neutral-650: var(--cowork-primitive-neutral-650);
+  --color-cowork-neutral-700: var(--cowork-primitive-neutral-700);
+  --color-cowork-neutral-750: var(--cowork-primitive-neutral-750);
+  --color-cowork-neutral-800: var(--cowork-primitive-neutral-800);
+  --color-cowork-neutral-850: var(--cowork-primitive-neutral-850);
+  --color-cowork-neutral-900: var(--cowork-primitive-neutral-900);
+  --color-cowork-blue-50: var(--cowork-primitive-blue-50);
+  --color-cowork-blue-100: var(--cowork-primitive-blue-100);
+  --color-cowork-blue-300: var(--cowork-primitive-blue-300);
+  --color-cowork-blue-400: var(--cowork-primitive-blue-400);
+  --color-cowork-blue-500: var(--cowork-primitive-blue-500);
+  --color-cowork-blue-600: var(--cowork-primitive-blue-600);
+  --color-cowork-blue-900: var(--cowork-primitive-blue-900);
+  --color-cowork-green-50: var(--cowork-primitive-green-50);
+  --color-cowork-green-300: var(--cowork-primitive-green-300);
+  --color-cowork-green-400: var(--cowork-primitive-green-400);
+  --color-cowork-green-500: var(--cowork-primitive-green-500);
+  --color-cowork-green-600: var(--cowork-primitive-green-600);
+  --color-cowork-green-900: var(--cowork-primitive-green-900);
+  --color-cowork-amber-50: var(--cowork-primitive-amber-50);
+  --color-cowork-amber-300: var(--cowork-primitive-amber-300);
+  --color-cowork-amber-400: var(--cowork-primitive-amber-400);
+  --color-cowork-amber-500: var(--cowork-primitive-amber-500);
+  --color-cowork-amber-600: var(--cowork-primitive-amber-600);
+  --color-cowork-amber-900: var(--cowork-primitive-amber-900);
+
+  --color-primary: var(--cowork-semantic-primary);
+  --color-on-primary: var(--cowork-semantic-on-primary);
+  --color-primary-container: var(--cowork-semantic-primary-container);
+  --color-on-primary-container: var(--cowork-semantic-on-primary-container);
+  --color-secondary: var(--cowork-semantic-secondary);
+  --color-on-secondary: var(--cowork-semantic-on-secondary);
+  --color-secondary-container: var(--cowork-semantic-secondary-container);
+  --color-on-secondary-container: var(--cowork-semantic-on-secondary-container);
+  --color-tertiary: var(--cowork-semantic-tertiary);
+  --color-on-tertiary: var(--cowork-semantic-on-tertiary);
+  --color-tertiary-container: var(--cowork-semantic-tertiary-container);
+  --color-on-tertiary-container: var(--cowork-semantic-on-tertiary-container);
+  --color-background: var(--cowork-semantic-background);
+  --color-on-background: var(--cowork-semantic-on-background);
+  --color-surface: var(--cowork-semantic-surface);
+  --color-on-surface: var(--cowork-semantic-on-surface);
+  --color-surface-variant: var(--cowork-semantic-surface-variant);
+  --color-on-surface-variant: var(--cowork-semantic-on-surface-variant);
+  --color-surface-container: var(--cowork-semantic-surface-container);
+  --color-surface-container-low: var(--cowork-semantic-surface-container-low);
+  --color-surface-container-high: var(--cowork-semantic-surface-container-high);
+  --color-outline: var(--cowork-semantic-outline);
+  --color-outline-variant: var(--cowork-semantic-outline-variant);
+  --color-error: var(--cowork-semantic-error);
+  --color-on-error: var(--cowork-semantic-on-error);
+  --color-error-container: var(--cowork-semantic-error-container);
+  --color-on-error-container: var(--cowork-semantic-on-error-container);
+  --color-success: var(--cowork-semantic-success);
+  --color-on-success: var(--cowork-semantic-on-success);
+  --color-inverse-surface: var(--cowork-semantic-inverse-surface);
+  --color-inverse-on-surface: var(--cowork-semantic-inverse-on-surface);
+  --color-inverse-primary: var(--cowork-semantic-inverse-primary);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@utility typography-display-small {
+  font-family: var(--font-cowork);
+  font-size: var(--text-display-small);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0;
+  line-height: var(--text-display-small--line-height);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@utility typography-display-medium {
+  font-family: var(--font-cowork);
+  font-size: var(--text-display-medium);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0;
+  line-height: var(--text-display-medium--line-height);
+}
+
+@utility typography-display-large {
+  font-family: var(--font-cowork);
+  font-size: var(--text-display-large);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0;
+  line-height: var(--text-display-large--line-height);
+}
+
+@utility typography-title-small {
+  font-family: var(--font-cowork);
+  font-size: var(--text-title-small);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0;
+  line-height: var(--text-title-small--line-height);
+}
+
+@utility typography-title-medium {
+  font-family: var(--font-cowork);
+  font-size: var(--text-title-medium);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0;
+  line-height: var(--text-title-medium--line-height);
+}
+
+@utility typography-title-large {
+  font-family: var(--font-cowork);
+  font-size: var(--text-title-large);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0;
+  line-height: var(--text-title-large--line-height);
+}
+
+@utility typography-body-x-small {
+  font-family: var(--font-cowork);
+  font-size: var(--text-body-x-small);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0;
+  line-height: var(--text-body-x-small--line-height);
+}
+
+@utility typography-body-medium {
+  font-family: var(--font-cowork);
+  font-size: var(--text-body-medium);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0;
+  line-height: var(--text-body-medium--line-height);
+}
+
+@utility typography-body-medium-strong {
+  font-family: var(--font-cowork);
+  font-size: var(--text-body-medium-strong);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0;
+  line-height: var(--text-body-medium-strong--line-height);
+}
+
+@utility typography-body-large {
+  font-family: var(--font-cowork);
+  font-size: var(--text-body-large);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0;
+  line-height: var(--text-body-large--line-height);
+}
+
+@utility typography-subtext-small {
+  font-family: var(--font-cowork);
+  font-size: var(--text-subtext-small);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0;
+  line-height: var(--text-subtext-small--line-height);
+}
+
+@utility typography-subtext-medium {
+  font-family: var(--font-cowork);
+  font-size: var(--text-subtext-medium);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0;
+  line-height: var(--text-subtext-medium--line-height);
+}
+
+@utility typography-subtext-large {
+  font-family: var(--font-cowork);
+  font-size: var(--text-subtext-large);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0;
+  line-height: var(--text-subtext-large--line-height);
+}
+
+@utility typography-label-x-small {
+  font-family: var(--font-cowork);
+  font-size: var(--text-label-x-small);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+  line-height: var(--text-label-x-small--line-height);
+}
+
+@utility typography-label-small {
+  font-family: var(--font-cowork);
+  font-size: var(--text-label-small);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+  line-height: var(--text-label-small--line-height);
+}
+
+@utility typography-label-medium {
+  font-family: var(--font-cowork);
+  font-size: var(--text-label-medium);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+  line-height: var(--text-label-medium--line-height);
+}
+
+@utility typography-label-large {
+  font-family: var(--font-cowork);
+  font-size: var(--text-label-large);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+  line-height: var(--text-label-large--line-height);
 }
