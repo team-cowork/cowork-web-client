@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { type InputHTMLAttributes, type Ref, useId } from 'react';
+import { type InputHTMLAttributes, type Ref, useId } from "react";
 
-import { cn } from '@/shared/lib/cn';
+import { cn } from "@/shared/lib/cn";
 
 export interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -24,9 +24,12 @@ export function TextField({
   const errorId = `${inputId}-error`;
 
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
+    <div className={cn("flex flex-col gap-2", className)}>
       {label && (
-        <label htmlFor={inputId} className="typography-label-x-small text-on-surface-variant">
+        <label
+          htmlFor={inputId}
+          className="typography-label-x-small text-on-surface-variant"
+        >
           {label}
         </label>
       )}
@@ -37,8 +40,10 @@ export function TextField({
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
         className={cn(
-          'bg-surface text-on-surface typography-subtext-large placeholder:text-on-surface-variant focus:ring-primary/50 h-12 w-full rounded-xl border px-4 focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40',
-          error ? 'border-error focus:ring-error/50' : 'border-outline focus:border-primary',
+          "bg-surface text-on-surface typography-subtext-large placeholder:text-on-surface-variant focus:ring-primary/50 h-12 w-full rounded-xl border px-4 focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40",
+          error
+            ? "border-error focus:ring-error/50"
+            : "border-outline focus:border-primary",
         )}
         {...props}
       />

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { type KeyboardEvent, type ReactNode } from 'react';
+import { type KeyboardEvent, type ReactNode } from "react";
 
-import { cn } from '@/shared/lib/cn';
-import { IconButton } from '@/shared/ui/icon-button';
-import { SendIcon } from '@/shared/ui/icons';
+import { cn } from "@/shared/lib/cn";
+import { IconButton } from "@/shared/ui/icon-button";
+import { SendIcon } from "@/shared/ui/icons";
 
 export interface MessageComposerProps {
   value: string;
@@ -19,14 +19,14 @@ export function MessageComposer({
   value,
   onChange,
   onSend,
-  placeholder = '메시지를 입력하세요. Markdown 지원',
+  placeholder = "메시지를 입력하세요. Markdown 지원",
   leading,
   className,
 }: MessageComposerProps) {
   const canSend = value.trim().length > 0;
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       if (e.nativeEvent.isComposing) return;
       e.preventDefault();
       if (canSend) onSend();
@@ -36,7 +36,7 @@ export function MessageComposer({
   return (
     <div
       className={cn(
-        'border-outline-variant bg-surface focus-within:border-primary flex items-center gap-3 rounded-[20px] border p-4',
+        "border-outline-variant bg-surface focus-within:border-primary flex items-center gap-3 rounded-[20px] border p-4",
         className,
       )}
     >

@@ -7,3 +7,9 @@ pnpm-lock.yaml
 next-env.d.ts
 *.tsbuildinfo
 public
+
+# agent / tooling directories (not product source)
+.claude
+.agents
+.codex
+.harness

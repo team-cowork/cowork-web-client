@@ -1,17 +1,20 @@
-import { cn } from '@/shared/lib/cn';
+import { cn } from "@/shared/lib/cn";
 
 export interface LoadingPaneProps {
   label?: string;
   className?: string;
 }
 
-export function LoadingPane({ label = '불러오는 중…', className }: LoadingPaneProps) {
+export function LoadingPane({
+  label = "불러오는 중…",
+  className,
+}: LoadingPaneProps) {
   return (
     <div
       role="status"
       aria-live="polite"
       className={cn(
-        'border-outline-variant bg-surface flex flex-col items-center justify-center gap-4 rounded-[24px] border px-4 py-3',
+        "border-outline-variant bg-surface flex flex-col items-center justify-center gap-4 rounded-[24px] border px-4 py-3",
         className,
       )}
     >

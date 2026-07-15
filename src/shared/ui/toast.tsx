@@ -1,6 +1,6 @@
-import { type ReactNode } from 'react';
+import { type ReactNode } from "react";
 
-import { cn } from '@/shared/lib/cn';
+import { cn } from "@/shared/lib/cn";
 
 export interface ToastProps {
   message: string;
@@ -14,7 +14,7 @@ export function Toast({ message, icon, action, className }: ToastProps) {
     <div
       role="status"
       className={cn(
-        'bg-inverse-surface text-inverse-on-surface inline-flex items-center gap-3 rounded-[16px] px-[18px] py-[14px] shadow-lg',
+        "bg-inverse-surface text-inverse-on-surface inline-flex items-center gap-3 rounded-[16px] px-[18px] py-[14px] shadow-lg",
         className,
       )}
     >

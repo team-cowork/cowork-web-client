@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   createContext,
@@ -8,11 +8,11 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react';
+} from "react";
 
-import { createPortal } from 'react-dom';
+import { createPortal } from "react-dom";
 
-import { Toast } from '@/shared/ui/toast';
+import { Toast } from "@/shared/ui/toast";
 
 export interface ToastOptions {
   icon?: ReactNode;
@@ -35,7 +35,8 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 export function useToast() {
   const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error('useToast는 ToastProvider 내부에서만 사용할 수 있습니다');
+  if (!ctx)
+    throw new Error("useToast는 ToastProvider 내부에서만 사용할 수 있습니다");
   return ctx;
 }
 
@@ -69,7 +70,7 @@ export function ToastProvider({
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {typeof document !== 'undefined' &&
+      {typeof document !== "undefined" &&
         createPortal(
           <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex flex-col items-center gap-2 px-4">
             {toasts.map((t) => (

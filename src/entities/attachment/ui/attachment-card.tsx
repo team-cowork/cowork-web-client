@@ -1,7 +1,7 @@
-import { type ReactNode } from 'react';
+import { type ReactNode } from "react";
 
-import { cn } from '@/shared/lib/cn';
-import { CloseIcon, FileIcon } from '@/shared/ui/icons';
+import { cn } from "@/shared/lib/cn";
+import { CloseIcon, FileIcon } from "@/shared/ui/icons";
 
 export interface AttachmentCardProps {
   name: string;
@@ -11,11 +11,17 @@ export interface AttachmentCardProps {
   className?: string;
 }
 
-export function AttachmentCard({ name, meta, icon, onRemove, className }: AttachmentCardProps) {
+export function AttachmentCard({
+  name,
+  meta,
+  icon,
+  onRemove,
+  className,
+}: AttachmentCardProps) {
   return (
     <div
       className={cn(
-        'border-outline-variant bg-surface flex items-center gap-[14px] rounded-[16px] border p-[14px]',
+        "border-outline-variant bg-surface flex items-center gap-[14px] rounded-[16px] border p-[14px]",
         className,
       )}
     >
@@ -23,8 +29,14 @@ export function AttachmentCard({ name, meta, icon, onRemove, className }: Attach
         {icon ?? <FileIcon />}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="typography-label-small text-on-surface truncate">{name}</p>
-        {meta && <p className="typography-subtext-medium text-on-surface-variant">{meta}</p>}
+        <p className="typography-label-small text-on-surface truncate">
+          {name}
+        </p>
+        {meta && (
+          <p className="typography-subtext-medium text-on-surface-variant">
+            {meta}
+          </p>
+        )}
       </div>
       {onRemove && (
         <button
