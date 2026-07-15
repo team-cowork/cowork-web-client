@@ -1,0 +1,78 @@
+name: PR Triage
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  assign:
+    name: Assign author & reviewers
+    runs-on: ubuntu-latest
+    # 드래프트 PR은 리뷰 준비가 되면(ready_for_review) 처리한다.
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Assign assignee & reviewers
+        uses: hkusu/review-assign-action@v1.4.0
+        with:
+          # assignee는 PR 작성자로 고정
+          assignees: ${{ github.event.pull_request.user.login }}
+          # 리뷰어 후보 풀 — 팀 상황에 맞게 자유롭게 편집하세요.
+          # (PR 작성자는 자동으로 후보에서 제외됩니다)
+          reviewers: >-
+            wwwcomcomcomcom, SeoRace, aiden30015, snowykte0426, Dino0204,
+            h-0y28, jihoonwjj, junjuny0227, leesiuuuu, LeeSangHyeok0731,
+            Sean-mn, chaeeun-09, yeondon125, ZaMan0806, ryusuye0n,
+            hyooeunn, jyx-07, kimseongchan0914
+          # 후보 중 무작위 2명 요청
+          max-num-of-reviewers: 2
+
+  label:
+    name: Auto label by branch prefix
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Apply labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // 브랜치 prefix(예: feat/xxx, fix/yyy)를 기존 시맨틱 라벨로 매핑
+            const branch = context.payload.pull_request.head.ref;
+            const prefix = branch.split("/")[0].toLowerCase();
+            const prefixToLabel = {
+              feat: "enhancement:개선작업",
+              feature: "enhancement:개선작업",
+              add: "enhancement:개선작업",
+              enhancement: "enhancement:개선작업",
+              refactor: "enhancement:개선작업",
+              refac: "enhancement:개선작업",
+              perf: "enhancement:개선작업",
+              style: "enhancement:개선작업",
+              chore: "enhancement:개선작업",
+              design: "enhancement:개선작업",
+              fix: "bug:버그",
+              bugfix: "bug:버그",
+              hotfix: "bug:버그",
+              bug: "bug:버그",
+              docs: "documentation:문서화",
+              doc: "documentation:문서화",
+              release: "release:릴리즈",
+            };
+
+            // PR 오픈 시 항상 "검토 대기" 부여
+            const labels = new Set(["waiting for review:검토 대기"]);
+            if (prefixToLabel[prefix]) {
+              labels.add(prefixToLabel[prefix]);
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: [...labels],
+            });
+            core.info(`Applied labels: ${[...labels].join(", ")}`);
