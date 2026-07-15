@@ -1,6 +1,5 @@
 const AUTHORIZE_URL = 'https://oauth.authorization.datagsm.kr/v1/oauth/authorize';
 
-/** DataGSM 인가 서버로 보낼 authorize URL을 조립한다(code_challenge_method=S256 고정). */
 export function buildAuthorizeUrl(input: {
   clientId: string;
   redirectUri: string;

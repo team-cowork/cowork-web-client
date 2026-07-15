@@ -8,16 +8,9 @@ import {
   type TokenPairResponse,
 } from '@/shared/model/token';
 
-/** PKCE 임시 쿠키 수명(초). authorize → callback 왕복에만 필요해 짧게 둔다. */
 const PKCE_MAX_AGE = 600;
-/** refresh_token 쿠키 수명(초). 서버가 실제 만료를 관리하므로 넉넉히 잡는다. */
 const REFRESH_MAX_AGE = 60 * 60 * 24 * 30;
 
-/**
- * httpOnly 쿠키는 JS에서 접근 불가라 XSS로 탈취되지 않는다. 로컬(http)에서는 secure 쿠키가
- * 저장되지 않으므로 production에서만 secure를 켠다. sameSite=lax는 DataGSM에서 우리 콜백으로
- * 돌아오는 top-level GET 리다이렉트에 쿠키가 실려 오도록 허용한다.
- */
 function baseCookieOptions() {
   return {
     httpOnly: true,
