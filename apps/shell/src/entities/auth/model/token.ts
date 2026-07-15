@@ -1,9 +1,3 @@
-/**
- * DataGSM 인증 토큰 저장소.
- *
- * access_token은 sessionStorage(탭 닫으면 소멸)에, refresh_token은 쿠키에 저장한다.
- * API 응답 필드명(snake_case)을 변환 없이 그대로 쓴다.
- */
 export interface TokenPairResponse {
   access_token: string;
   refresh_token: string;
@@ -11,8 +5,7 @@ export interface TokenPairResponse {
   token_type: string;
 }
 
-/** Cowork Authorization API가 모든 응답을 감싸는 공통 봉투. 실제 값은 `data`에 있다. */
-export interface ApiEnvelope<T> {
+export interface ApiResponse<T> {
   status: string;
   code: number;
   message: string;
