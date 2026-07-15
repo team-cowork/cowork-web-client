@@ -1,4 +1,4 @@
-import { Button } from '@/shared/ui/button';
+import { Button } from "@/shared/ui/button";
 
 export default function SigninPage() {
   return (
@@ -13,7 +13,6 @@ export default function SigninPage() {
 
         <div className="h-2 w-full" />
 
-        {/* 서버 라우트가 code_verifier를 httpOnly 쿠키로 심고 authorize로 리다이렉트한다. */}
         <form action="/api/auth/signin" className="w-full">
           <Button type="submit" size="L" color="brand" className="w-full">
             DataGSM 계정으로 로그인

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '@/entities/auth/model/token';
+import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '@/shared/model/token';
 import { refreshTokens } from '@/features/auth/api/token';
 import { clearTokenCookies, setTokenCookies } from '@/features/auth/lib/cookies';
 

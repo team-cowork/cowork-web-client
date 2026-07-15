@@ -6,7 +6,7 @@ import {
   OAUTH_STATE_COOKIE,
   REFRESH_TOKEN_COOKIE,
   type TokenPairResponse,
-} from '@/entities/auth/model/token';
+} from '@/shared/model/token';
 
 /** PKCE 임시 쿠키 수명(초). authorize → callback 왕복에만 필요해 짧게 둔다. */
 const PKCE_MAX_AGE = 600;

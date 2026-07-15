@@ -1,4 +1,4 @@
-import { type ApiResponse, type TokenPairResponse } from '@/entities/auth/model/token';
+import { type ApiResponse, type TokenPairResponse } from '@/shared/model/token';
 
 /**
  * Cowork Authorization API 베이스 URL(서버 전용). DataGSM 토큰 엔드포인트는 client_secret이
