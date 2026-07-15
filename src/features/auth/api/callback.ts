@@ -1,5 +1,4 @@
 import { instance } from '@/entities/auth/api/instance';
-import { AUTH_CONFIG } from '@/entities/auth/config/config';
 import { type ApiResponse, storeTokens, type TokenPairResponse } from '@/entities/auth/model/token';
 import { consumePkceSession } from '@/features/auth/lib/pkce-session';
 
@@ -29,7 +28,7 @@ export async function handleAuthCallback(params: AuthCallbackParams): Promise<Au
     const response = await instance.post<ApiResponse<TokenPairResponse>>('/auth/token', {
       code: params.code,
       code_verifier: session.verifier,
-      redirect_uri: AUTH_CONFIG.redirectUri,
+      redirect_uri: `${window.location.origin}/auth/callback`,
     });
 
     storeTokens(response.data.data);
