@@ -1,9 +1,8 @@
 function base64UrlEncode(bytes: Uint8Array): string {
-  let binary = '';
-  bytes.forEach((byte) => {
-    binary += String.fromCharCode(byte);
-  });
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
 }
 
 /** RFC 7636: 43~128자, [A-Z a-z 0-9 - . _ ~]. 32바이트 CSPRNG → base64url로 43자 생성. */

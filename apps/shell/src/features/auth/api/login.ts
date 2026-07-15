@@ -1,6 +1,6 @@
-import { AUTH_CONFIG } from '../../entities/auth/config';
-import { generateCodeChallenge, generateCodeVerifier, generateState } from './pkce';
-import { savePkceSession } from './pkce-session';
+import { AUTH_CONFIG } from '../../../entities/auth/config/config';
+import { generateCodeChallenge, generateCodeVerifier, generateState } from '../lib/pkce';
+import { savePkceSession } from '../lib/pkce-session';
 
 /** DataGSM 인가 서버로 리다이렉트해 PKCE 로그인 플로우를 시작한다. */
 export async function startLogin() {
