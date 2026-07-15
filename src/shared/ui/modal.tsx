@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 
 import { cn } from '@/shared/lib/cn';
+import { CloseIcon } from '@/shared/ui/icons';
 
 export interface ModalProps {
   open: boolean;
@@ -48,14 +49,7 @@ export function Modal({ open, onClose, title, children, footer, className }: Mod
           onClick={onClose}
           className="text-on-surface-variant hover:text-on-surface flex size-6 cursor-pointer items-center justify-center"
         >
-          <svg className="size-5" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M18 6 6 18M6 6l12 12"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
+          <CloseIcon className="size-5" />
         </button>
       </div>
       {children && <div className="flex flex-col gap-3 px-6 py-5">{children}</div>}
