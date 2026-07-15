@@ -22,7 +22,11 @@ export async function proxy(request: NextRequest) {
   if (refreshToken) {
     const tokens = await refreshTokens(refreshToken);
     if (tokens) {
-      const response = NextResponse.next();
+      request.cookies.set(ACCESS_TOKEN_COOKIE, tokens.access_token);
+      request.cookies.set(REFRESH_TOKEN_COOKIE, tokens.refresh_token);
+      const response = NextResponse.next({
+        request: { headers: new Headers(request.headers) },
+      });
       setTokenCookies(response, tokens);
       return response;
     }
@@ -34,5 +38,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|json|txt|woff2?)).*)',
+  ],
 };
