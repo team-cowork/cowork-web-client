@@ -72,7 +72,11 @@ export default defineConfig({
       dts: {
         consumeTypes: false,
       },
-      shared: ['react', 'react-dom'],
+      shared: {
+        react: { singleton: true },
+        'react-dom': { singleton: true },
+        '@tanstack/react-query': { singleton: true },
+      },
     }),
   ],
 });
