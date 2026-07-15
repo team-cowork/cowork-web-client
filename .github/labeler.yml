@@ -1,0 +1,41 @@
+# actions/labeler 설정 — 브랜치 prefix / 변경 경로 / base 브랜치 기반 자동 라벨
+# 라벨명은 저장소에 이미 존재하는 시맨틱 라벨과 정확히 일치해야 합니다.
+
+"enhancement:개선작업":
+  - head-branch:
+      - "^feat"
+      - "^feature"
+      - "^add"
+      - "^refactor"
+      - "^refac"
+      - "^perf"
+      - "^style"
+      - "^chore"
+      - "^design"
+
+"bug:버그":
+  - head-branch:
+      - "^fix"
+      - "^bugfix"
+      - "^hotfix"
+
+"documentation:문서화":
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - "**/*.md"
+              - "docs/**"
+      - head-branch:
+          - "^docs"
+          - "^doc"
+
+"release:릴리즈":
+  - any:
+      - base-branch: "^main$"
+      - head-branch:
+          - "^release"
+
+# 모든 PR에 검토 대기 라벨 부여 (변경 파일이 하나라도 있으면 매칭)
+"waiting for review:검토 대기":
+  - changed-files:
+      - any-glob-to-any-file: "**"
