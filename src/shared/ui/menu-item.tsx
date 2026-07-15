@@ -1,6 +1,7 @@
 import { type ButtonHTMLAttributes, type ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
+import { ChevronRightIcon } from '@/shared/ui/icons';
 
 export interface MenuItemProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
@@ -39,17 +40,7 @@ export function MenuItem({
         </span>
       )}
       <span className="flex-1 truncate">{children}</span>
-      {hasSubmenu && (
-        <svg className="text-on-surface-variant size-3.5 shrink-0" viewBox="0 0 24 24" fill="none">
-          <path
-            d="m9 6 6 6-6 6"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )}
+      {hasSubmenu && <ChevronRightIcon className="text-on-surface-variant size-3.5 shrink-0" />}
     </button>
   );
 }

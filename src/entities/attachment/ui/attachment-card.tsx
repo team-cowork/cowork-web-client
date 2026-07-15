@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
+import { CloseIcon, FileIcon } from '@/shared/ui/icons';
 
 export interface AttachmentCardProps {
   name: string;
@@ -32,33 +33,9 @@ export function AttachmentCard({ name, meta, icon, onRemove, className }: Attach
           aria-label="첨부 삭제"
           className="text-on-surface-variant hover:bg-surface-variant hover:text-on-surface shrink-0 cursor-pointer rounded-md p-1"
         >
-          <CloseIcon />
+          <CloseIcon className="size-4" />
         </button>
       )}
     </div>
-  );
-}
-
-function FileIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinejoin="round" />
-      <path d="M14 2v6h6" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      aria-hidden
-      className="size-4"
-    >
-      <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
-    </svg>
   );
 }

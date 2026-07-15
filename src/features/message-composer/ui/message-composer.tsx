@@ -4,6 +4,7 @@ import { type KeyboardEvent, type ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
 import { IconButton } from '@/shared/ui/icon-button';
+import { SendIcon } from '@/shared/ui/icons';
 
 export interface MessageComposerProps {
   value: string;
@@ -59,13 +60,5 @@ export function MessageComposer({
         <SendIcon />
       </IconButton>
     </div>
-  );
-}
-
-function SendIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
-      <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" strokeLinejoin="round" strokeLinecap="round" />
-    </svg>
   );
 }
