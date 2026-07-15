@@ -1,0 +1,17 @@
+.git
+.github
+.next
+node_modules
+npm-debug.log*
+.pnpm-debug.log*
+.env*.local
+.env.development
+README.md
+Dockerfile
+.dockerignore
+docker-compose*.yml
+.claude
+.codex
+.agents
+.harness
+*.tsbuildinfo
