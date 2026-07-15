@@ -1,0 +1,34 @@
+groups:
+  - claude
+  - codex
+
+overrides:
+  # ── 백엔드(Kotlin/Spring)·인프라 전용 스킬 제외 ─────────────
+  claude/skills/kotlin-spring-arch: false
+  claude/skills/kotest-guide: false
+  claude/skills/database-schema: false
+  claude/skills/migration-guide: false
+  claude/skills/api-design: false
+  claude/skills/docker: false
+
+  # ── Kotlin 전용 에이전트 제외 ──────────────────────────────
+  claude/agents/kotlin-convention-validator: false
+  claude/agents/kotlin-test-fixer: false
+
+  # ── 훅/설정 활성화 (opt-in) ────────────────────────────────
+  claude/hooks/dispatcher: true
+  claude/settings: true
+  claude/hooks/eslint: true
+  claude/hooks/ts-check: true
+  claude/hooks/secret-guard: true
+  claude/hooks/command-guard: true
+
+  # ── Codex 훅 ───────────────────────────────────────────────
+  codex/hooks/dispatcher: true
+  codex/hooks-json: true
+
+# PR 메시지 한국어
+language: ko
+
+# 현재 기본 브랜치. develop 기반 워크플로 도입 시 develop 으로 변경할 것.
+base_branch: develop
