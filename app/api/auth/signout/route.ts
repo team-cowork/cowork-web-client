@@ -4,8 +4,8 @@ import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
 } from "@/shared/model/token";
-import { revokeTokens } from "@/features/auth/api/token";
-import { clearTokenCookies } from "@/features/auth/lib/cookies";
+import { revokeTokens } from "@/shared/auth/api/token";
+import { clearTokenCookies } from "@/shared/auth/lib/cookies";
 
 export async function POST(request: NextRequest) {
   const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;

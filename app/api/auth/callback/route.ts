@@ -4,8 +4,8 @@ import {
   CODE_VERIFIER_COOKIE,
   OAUTH_STATE_COOKIE,
 } from "@/shared/model/token";
-import { exchangeCodeForTokens } from "@/features/auth/api/token";
-import { clearPkceCookies, setTokenCookies } from "@/features/auth/lib/cookies";
+import { exchangeCodeForTokens } from "@/shared/auth/api/token";
+import { clearPkceCookies, setTokenCookies } from "@/shared/auth/lib/cookies";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

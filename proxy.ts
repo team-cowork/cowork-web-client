@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '@/shared/model/token';
-import { refreshTokens } from '@/features/auth/api/token';
-import { clearTokenCookies, setTokenCookies } from '@/features/auth/lib/cookies';
+import { refreshTokens } from '@/shared/auth/api/token';
+import { clearTokenCookies, setTokenCookies } from '@/shared/auth/lib/cookies';
 
 const PUBLIC_PATHS = ['/signin', '/auth/error'];
 

@@ -1,5 +1,5 @@
 import { type ApiResponse, type TokenPairResponse } from '@/shared/model/token';
-import { instance } from '@/features/auth/api/instance';
+import { instance } from '@/shared/auth/api/instance';
 
 export async function exchangeCodeForTokens(input: {
   code: string;
