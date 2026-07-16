@@ -1,22 +1,13 @@
 import { type ApiResponse, type TokenPairResponse } from '@/shared/model/token';
-
-const AUTH_API_BASE_URL = process.env.AUTH_API_BASE_URL ?? '';
+import { instance } from '@/features/auth/api/instance';
 
 async function postForTokens(
   path: string,
   body: Record<string, string>,
 ): Promise<TokenPairResponse | null> {
   try {
-    const response = await fetch(`${AUTH_API_BASE_URL}${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      cache: 'no-store',
-    });
-    if (!response.ok) return null;
-
-    const json = (await response.json()) as ApiResponse<TokenPairResponse>;
-    const data = json.data;
+    const response = await instance.post<ApiResponse<TokenPairResponse>>(path, body);
+    const data = response.data.data;
     if (!data?.access_token || !data.refresh_token) return null;
 
     return data;
@@ -46,15 +37,11 @@ export async function revokeTokens(input: {
   refreshToken: string;
 }): Promise<void> {
   try {
-    await fetch(`${AUTH_API_BASE_URL}/auth/signout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${input.accessToken}`,
-      },
-      body: JSON.stringify({ refresh_token: input.refreshToken }),
-      cache: 'no-store',
-    });
+    await instance.post(
+      '/auth/signout',
+      { refresh_token: input.refreshToken },
+      { headers: { Authorization: `Bearer ${input.accessToken}` } },
+    );
   } catch {
     return;
   }
