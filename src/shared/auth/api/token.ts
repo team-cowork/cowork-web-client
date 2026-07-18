@@ -1,5 +1,5 @@
-import { type ApiResponse, type TokenPairResponse } from '@/shared/model/token';
-import { instance } from '@/shared/auth/api/instance';
+import { type ApiResponse, type TokenPairResponse } from "@/shared/model/token";
+import { instance } from "@/shared/auth/api/instance";
 
 export async function exchangeCodeForTokens(input: {
   code: string;
@@ -7,11 +7,14 @@ export async function exchangeCodeForTokens(input: {
   redirectUri: string;
 }): Promise<TokenPairResponse | null> {
   try {
-    const response = await instance.post<ApiResponse<TokenPairResponse>>('/auth/token', {
-      code: input.code,
-      code_verifier: input.verifier,
-      redirect_uri: input.redirectUri,
-    });
+    const response = await instance.post<ApiResponse<TokenPairResponse>>(
+      "/auth/token",
+      {
+        code: input.code,
+        code_verifier: input.verifier,
+        redirect_uri: input.redirectUri,
+      },
+    );
     const data = response.data.data;
     if (!data?.access_token || !data.refresh_token) return null;
 
@@ -21,11 +24,16 @@ export async function exchangeCodeForTokens(input: {
   }
 }
 
-export async function refreshTokens(refreshToken: string): Promise<TokenPairResponse | null> {
+export async function refreshTokens(
+  refreshToken: string,
+): Promise<TokenPairResponse | null> {
   try {
-    const response = await instance.post<ApiResponse<TokenPairResponse>>('/auth/refresh', {
-      refresh_token: refreshToken,
-    });
+    const response = await instance.post<ApiResponse<TokenPairResponse>>(
+      "/auth/refresh",
+      {
+        refresh_token: refreshToken,
+      },
+    );
     const data = response.data.data;
     if (!data?.access_token || !data.refresh_token) return null;
 
@@ -41,7 +49,7 @@ export async function revokeTokens(input: {
 }): Promise<void> {
   try {
     await instance.post(
-      '/auth/signout',
+      "/auth/signout",
       { refresh_token: input.refreshToken },
       { headers: { Authorization: `Bearer ${input.accessToken}` } },
     );

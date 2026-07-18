@@ -1,9 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import {
-  CODE_VERIFIER_COOKIE,
-  OAUTH_STATE_COOKIE,
-} from "@/shared/model/token";
+import { CODE_VERIFIER_COOKIE, OAUTH_STATE_COOKIE } from "@/shared/model/token";
 import { exchangeCodeForTokens } from "@/shared/auth/api/token";
 import { clearPkceCookies, setTokenCookies } from "@/shared/auth/lib/cookies";
 
