@@ -1,8 +1,8 @@
 function base64UrlEncode(bytes: Uint8Array): string {
   return btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 export function generateCodeVerifier(): string {
@@ -11,7 +11,7 @@ export function generateCodeVerifier(): string {
 
 export async function generateCodeChallenge(verifier: string): Promise<string> {
   const data = new TextEncoder().encode(verifier);
-  const digest = await crypto.subtle.digest('SHA-256', data);
+  const digest = await crypto.subtle.digest("SHA-256", data);
   return base64UrlEncode(new Uint8Array(digest));
 }
 

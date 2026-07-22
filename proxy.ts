@@ -1,13 +1,18 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from "next/server";
 
-import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '@/shared/model/token';
-import { refreshTokens } from '@/shared/auth/api/token';
-import { clearTokenCookies, setTokenCookies } from '@/shared/auth/lib/cookies';
+import {
+  ACCESS_TOKEN_COOKIE,
+  REFRESH_TOKEN_COOKIE,
+} from "@/shared/model/token";
+import { refreshTokens } from "@/shared/auth/api/token";
+import { clearTokenCookies, setTokenCookies } from "@/shared/auth/lib/cookies";
 
-const PUBLIC_PATHS = ['/signin', '/auth/error'];
+const PUBLIC_PATHS = ["/signin", "/auth/error"];
 
 function isPublic(pathname: string): boolean {
-  return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+  return PUBLIC_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
 }
 
 export async function proxy(request: NextRequest) {
@@ -32,13 +37,13 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  const response = NextResponse.redirect(new URL('/signin', request.url));
+  const response = NextResponse.redirect(new URL("/signin", request.url));
   clearTokenCookies(response);
   return response;
 }
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|json|txt|woff2?)).*)',
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|json|txt|woff2?)).*)",
   ],
 };

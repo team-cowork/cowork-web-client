@@ -1,4 +1,5 @@
-const AUTHORIZE_URL = 'https://oauth.authorization.datagsm.kr/v1/oauth/authorize';
+const AUTHORIZE_URL =
+  "https://oauth.authorization.datagsm.kr/v1/oauth/authorize";
 
 export function buildAuthorizeUrl(input: {
   clientId: string;
@@ -9,9 +10,9 @@ export function buildAuthorizeUrl(input: {
   const params = new URLSearchParams({
     client_id: input.clientId,
     redirect_uri: input.redirectUri,
-    response_type: 'code',
+    response_type: "code",
     code_challenge: input.challenge,
-    code_challenge_method: 'S256',
+    code_challenge_method: "S256",
     state: input.state,
   });
 
