@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+
+import { QueryProvider } from "@/shared/api/query-provider";
+
 import "./globals.css";
 
 const pretendard = localFont({
@@ -22,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="ko" className={`${pretendard.variable} h-full antialiased`}>
       <body className="bg-background text-on-background font-sans flex min-h-full flex-col">
-        {children}
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );
