@@ -1,5 +1,3 @@
-import Link from 'next/link';
-
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { cn } from '@/shared/lib/cn';
 import { Badge } from '@/shared/ui/badge';
@@ -22,10 +20,11 @@ function buildSubtitle(user: User): string {
 
 export interface ProfileCardProps {
   user: User;
+  onEdit?: () => void;
   className?: string;
 }
 
-export function ProfileCard({ user, className }: ProfileCardProps) {
+export function ProfileCard({ user, onEdit, className }: ProfileCardProps) {
   const chips = buildChips(user);
   const subtitle = buildSubtitle(user);
 
@@ -53,12 +52,15 @@ export function ProfileCard({ user, className }: ProfileCardProps) {
               )}
             </div>
           </div>
-          <Link
-            href="/settings/profile"
-            className="bg-surface-container text-on-surface-variant typography-label-small flex h-9 shrink-0 items-center justify-center rounded-[10px] px-3.5"
-          >
-            프로필 편집
-          </Link>
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="bg-surface-container text-on-surface-variant typography-label-small flex h-9 shrink-0 cursor-pointer items-center justify-center rounded-[10px] px-3.5"
+            >
+              프로필 편집
+            </button>
+          )}
         </div>
       </section>
       {chips.length > 0 && (

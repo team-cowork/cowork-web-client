@@ -1,8 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -10,8 +8,11 @@ import { UserStatusPopover } from '@/features/user-status/ui/user-status-popover
 import { userQueries } from '@/entities/user/api/user-queries';
 import { USER_STATUS_LABEL, type UserStatus } from '@/entities/user/model/user';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
+import { MyProfile } from '@/widgets/my-profile/ui/my-profile';
+import { ProfileSettings } from '@/widgets/profile-settings/ui/profile-settings';
 import { cn } from '@/shared/lib/cn';
 import { SettingsIcon } from '@/shared/ui/icons';
+import { Modal } from '@/shared/ui/modal';
 
 export interface UserFooterProps {
   className?: string;
@@ -20,43 +21,44 @@ export interface UserFooterProps {
 export function UserFooter({ className }: UserFooterProps) {
   const { data: user } = useQuery(userQueries.me());
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
 
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
-    };
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false);
     };
 
-    document.addEventListener('pointerdown', handlePointerDown);
     document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open]);
 
   const statusLabel = user ? (USER_STATUS_LABEL[user.status as UserStatus] ?? user.status) : '';
 
+  const handleEdit = () => {
+    setProfileOpen(false);
+    setSettingsOpen(true);
+  };
+
   return (
-    <div ref={containerRef} className={cn('relative', className)}>
+    <div className={cn('relative', className)}>
       {open && user && (
-        <div className="absolute bottom-full left-2 z-50 mb-2">
-          <UserStatusPopover user={user} />
-        </div>
+        <>
+          <div aria-hidden className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute bottom-full left-2 z-50 mb-2">
+            <UserStatusPopover user={user} />
+          </div>
+        </>
       )}
       <div className="bg-surface-container flex h-14 w-full items-center gap-2 px-2">
         <button
           type="button"
-          disabled={!user}
           aria-expanded={open}
           aria-haspopup="dialog"
           onClick={() => setOpen((prev) => !prev)}
-          className="hover:bg-surface-container-high flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-1 py-1 text-left disabled:cursor-default"
+          className="hover:bg-surface-container-high flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-1 py-1 text-left"
         >
           <UserAvatar user={user} size={32} ringClassName="ring-surface-container" />
           <span className="flex min-w-0 flex-1 flex-col gap-px">
@@ -66,14 +68,33 @@ export function UserFooter({ className }: UserFooterProps) {
             <span className="text-on-surface-variant truncate text-[0.75rem]">{statusLabel}</span>
           </span>
         </button>
-        <Link
-          href="/profile"
+        <button
+          type="button"
           aria-label="내 프로필"
-          className="hover:bg-surface-container-high flex size-9 shrink-0 items-center justify-center rounded-lg"
+          onClick={() => setProfileOpen(true)}
+          className="hover:bg-surface-container-high flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg"
         >
           <SettingsIcon size={20} className="text-on-surface-variant" />
-        </Link>
+        </button>
       </div>
+
+      <Modal
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        title="프로필"
+        className="w-[800px] max-h-[85vh] overflow-y-auto"
+      >
+        <MyProfile onEdit={handleEdit} />
+      </Modal>
+
+      <Modal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        title="설정 · 프로필"
+        className="w-[680px] max-h-[85vh] overflow-y-auto"
+      >
+        <ProfileSettings />
+      </Modal>
     </div>
   );
 }
