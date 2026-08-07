@@ -17,7 +17,6 @@ const toneClass: Record<AvatarTone, string> = {
   neutral: "bg-cowork-neutral-500 text-white",
 };
 
-/** 유저 아바타는 Circle, 팀 아이콘은 Squircle. */
 export type AvatarShape = "circle" | "squircle";
 
 export interface AvatarProps {
