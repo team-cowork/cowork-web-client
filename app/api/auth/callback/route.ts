@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { CODE_VERIFIER_COOKIE, OAUTH_STATE_COOKIE } from "@/shared/model/token";
 import { exchangeCodeForTokens } from "@/shared/auth/api/token";
-import { clearPkceCookies, setTokenCookies } from "@/shared/auth/lib/cookies";
+import { clearPkceCookies, setRefreshTokenCookie } from "@/shared/auth/lib/cookies";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
   if (!tokens) return failure();
 
   const response = NextResponse.redirect(new URL("/", request.url));
-  setTokenCookies(response, tokens);
+  setRefreshTokenCookie(response, tokens);
   clearPkceCookies(response);
   return response;
 }

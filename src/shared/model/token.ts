@@ -12,8 +12,8 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-export const ACCESS_TOKEN_COOKIE = 'access_token';
-export const REFRESH_TOKEN_COOKIE = 'refresh_token';
+export const REFRESH_TOKEN_COOKIE = "refresh_token";
+export const ACCESS_TOKEN_STORAGE_KEY = "access_token";
 
-export const CODE_VERIFIER_COOKIE = 'oauth_code_verifier';
-export const OAUTH_STATE_COOKIE = 'oauth_state';
+export const CODE_VERIFIER_COOKIE = "oauth_code_verifier";
+export const OAUTH_STATE_COOKIE = "oauth_state";
