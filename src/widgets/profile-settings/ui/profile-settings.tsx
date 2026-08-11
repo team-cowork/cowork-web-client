@@ -2,16 +2,14 @@
 
 import { useQuery } from '@tanstack/react-query';
 
+import { ProfileBasicForm } from '@/features/profile-edit/ui/profile-basic-form';
+import { ProfileImageField } from '@/features/profile-image/ui/profile-image-field';
 import { userQueries } from '@/entities/user/api/user-queries';
-import { ProfileCard } from '@/entities/user/ui/profile-card';
 import { ErrorState } from '@/shared/ui/error-state';
 import { LoadingPane } from '@/shared/ui/loading-pane';
+import { SettingsCard } from '@/shared/ui/settings-card';
 
-export interface MyProfileProps {
-  onEdit?: () => void;
-}
-
-export function MyProfile({ onEdit }: MyProfileProps) {
+export function ProfileSettings() {
   const { data: user, isPending } = useQuery(userQueries.me());
 
   if (isPending) return <LoadingPane />;
@@ -22,5 +20,14 @@ export function MyProfile({ onEdit }: MyProfileProps) {
     );
   }
 
-  return <ProfileCard user={user} onEdit={onEdit} />;
+  return (
+    <>
+      <SettingsCard title="프로필 사진">
+        <ProfileImageField user={user} />
+      </SettingsCard>
+      <SettingsCard title="기본 정보">
+        <ProfileBasicForm user={user} />
+      </SettingsCard>
+    </>
+  );
 }

@@ -1,5 +1,5 @@
+import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { cn } from '@/shared/lib/cn';
-import { Avatar } from '@/shared/ui/avatar';
 import { Badge } from '@/shared/ui/badge';
 import { type User } from '@/entities/user/model/user';
 
@@ -20,10 +20,11 @@ function buildSubtitle(user: User): string {
 
 export interface ProfileCardProps {
   user: User;
+  onEdit?: () => void;
   className?: string;
 }
 
-export function ProfileCard({ user, className }: ProfileCardProps) {
+export function ProfileCard({ user, onEdit, className }: ProfileCardProps) {
   const chips = buildChips(user);
   const subtitle = buildSubtitle(user);
 
@@ -34,12 +35,7 @@ export function ProfileCard({ user, className }: ProfileCardProps) {
         <div className="flex items-end justify-between gap-4 px-6 pt-4 pb-5">
           <div className="flex min-w-0 items-end gap-4">
             <span className="bg-surface shrink-0 rounded-full p-1">
-              <Avatar
-                src={user.profile_image_url ?? undefined}
-                name={user.name}
-                size={88}
-                shape="circle"
-              />
+              <UserAvatar user={user} size={88} ringClassName="ring-surface" />
             </span>
             <div className="flex min-w-0 flex-col gap-1.5 pb-1">
               <div className="flex flex-wrap items-center gap-2">
@@ -56,6 +52,15 @@ export function ProfileCard({ user, className }: ProfileCardProps) {
               )}
             </div>
           </div>
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="bg-surface-container text-on-surface-variant typography-label-small flex h-9 shrink-0 cursor-pointer items-center justify-center rounded-[10px] px-3.5"
+            >
+              프로필 편집
+            </button>
+          )}
         </div>
       </section>
       {chips.length > 0 && (
