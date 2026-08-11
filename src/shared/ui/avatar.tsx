@@ -38,7 +38,7 @@ export function Avatar({
   tone = "default",
   className,
 }: AvatarProps) {
-  const initials = name ? name.trim().slice(1, 3).toUpperCase() : "";
+  const initials = name ? name.trim().slice(0, 2).toUpperCase() : "";
 
   return (
     <span
