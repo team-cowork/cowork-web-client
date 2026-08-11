@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { cn } from "@/shared/lib/cn";
 
 export type AvatarTone =
@@ -53,7 +55,13 @@ export function Avatar({
       )}
     >
       {src ? (
-        <img src={src} alt={name ?? ""} className="size-full object-cover" />
+        <Image
+          src={src}
+          alt={name ?? ""}
+          width={size}
+          height={size}
+          className="size-full object-cover"
+        />
       ) : (
         initials
       )}
