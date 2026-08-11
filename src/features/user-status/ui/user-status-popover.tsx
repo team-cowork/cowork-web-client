@@ -32,6 +32,7 @@ export function UserStatusPopover({ user, className }: UserStatusPopoverProps) {
 
   const handleSubmitMessage = (event: SyntheticEvent) => {
     event.preventDefault();
+    if (!currentStatus) return;
     updateStatus.mutate({ status: currentStatus, message: message || null });
   };
 
@@ -59,7 +60,8 @@ export function UserStatusPopover({ user, className }: UserStatusPopoverProps) {
             onChange={(event) => setMessage(event.target.value)}
             placeholder="무슨 생각 중이세요?"
             aria-label="상태 메시지"
-            className="bg-surface-container text-on-surface placeholder:text-on-surface-variant focus:ring-primary/50 h-9 w-full rounded-lg px-3 text-[0.8125rem] focus:ring-2 focus:outline-none"
+            disabled={!currentStatus}
+            className="bg-surface-container text-on-surface placeholder:text-on-surface-variant focus:ring-primary/50 h-9 w-full rounded-lg px-3 text-[0.8125rem] focus:ring-2 focus:outline-none disabled:opacity-50"
           />
         </form>
       </div>

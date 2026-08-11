@@ -16,8 +16,8 @@ export const USER_STATUS_DOT_CLASS: Record<UserStatus, string> = {
   OFFLINE: 'bg-cowork-neutral-300',
 };
 
-export function toUserStatus(status: string): UserStatus {
-  return USER_STATUSES.find((candidate) => candidate === status) ?? 'ONLINE';
+export function toUserStatus(status: string): UserStatus | null {
+  return USER_STATUSES.find((candidate) => candidate === status) ?? null;
 }
 
 export interface User {
