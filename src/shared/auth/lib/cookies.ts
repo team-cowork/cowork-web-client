@@ -1,7 +1,6 @@
 import { type NextResponse } from 'next/server';
 
 import {
-  ACCESS_TOKEN_COOKIE,
   CODE_VERIFIER_COOKIE,
   OAUTH_STATE_COOKIE,
   REFRESH_TOKEN_COOKIE,
@@ -31,19 +30,13 @@ export function clearPkceCookies(response: NextResponse) {
   response.cookies.delete(OAUTH_STATE_COOKIE);
 }
 
-export function setTokenCookies(response: NextResponse, tokens: TokenPairResponse) {
-  const base = baseCookieOptions();
-  response.cookies.set(ACCESS_TOKEN_COOKIE, tokens.access_token, {
-    ...base,
-    maxAge: tokens.expires_in,
-  });
+export function setRefreshTokenCookie(response: NextResponse, tokens: TokenPairResponse) {
   response.cookies.set(REFRESH_TOKEN_COOKIE, tokens.refresh_token, {
-    ...base,
+    ...baseCookieOptions(),
     maxAge: REFRESH_MAX_AGE,
   });
 }
 
 export function clearTokenCookies(response: NextResponse) {
-  response.cookies.delete(ACCESS_TOKEN_COOKIE);
   response.cookies.delete(REFRESH_TOKEN_COOKIE);
 }
