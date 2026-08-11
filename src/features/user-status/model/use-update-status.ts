@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { patchMyStatus } from '@/entities/user/api/patch-my-status';
@@ -9,10 +10,12 @@ import { type User } from '@/entities/user/model/user';
 export function useUpdateStatus() {
   const queryClient = useQueryClient();
   const meQuery = userQueries.me();
+  const latestRequestId = useRef(0);
 
   return useMutation({
     mutationFn: patchMyStatus,
     onMutate: async (variables) => {
+      const requestId = ++latestRequestId.current;
       await queryClient.cancelQueries({ queryKey: meQuery.queryKey });
       const previous = queryClient.getQueryData<User>(meQuery.queryKey);
 
@@ -22,13 +25,17 @@ export function useUpdateStatus() {
           : prev,
       );
 
-      return { previous };
+      return { previous, requestId };
     },
     onError: (_error, _variables, context) => {
-      if (context?.previous) queryClient.setQueryData<User>(meQuery.queryKey, context.previous);
+      if (context?.previous && context.requestId === latestRequestId.current) {
+        queryClient.setQueryData<User>(meQuery.queryKey, context.previous);
+      }
     },
-    onSuccess: (user) => {
-      queryClient.setQueryData<User>(meQuery.queryKey, user);
+    onSuccess: (user, _variables, context) => {
+      if (context.requestId === latestRequestId.current) {
+        queryClient.setQueryData<User>(meQuery.queryKey, user);
+      }
     },
   });
 }
