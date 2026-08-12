@@ -4,7 +4,7 @@ import { type KeyboardEvent, type ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
 import { IconButton } from '@/shared/ui/icon-button';
-import { SendIcon } from '@/shared/ui/icons';
+import { SendIcon } from '@/shared/ui/icons/send-icon';
 
 export interface MessageComposerProps {
   value: string;

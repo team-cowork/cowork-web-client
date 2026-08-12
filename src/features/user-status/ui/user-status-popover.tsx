@@ -13,7 +13,7 @@ import {
 } from "@/entities/user/model/user";
 import { UserAvatar } from "@/entities/user/ui/user-avatar";
 import { cn } from "@/shared/lib/cn";
-import { CheckIcon } from "@/shared/ui/icons";
+import { CheckIcon } from "@/shared/ui/icons/check-icon";
 
 export interface UserStatusPopoverProps {
   user: User;

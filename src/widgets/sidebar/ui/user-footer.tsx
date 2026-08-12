@@ -11,7 +11,7 @@ import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { MyProfile } from '@/widgets/my-profile/ui/my-profile';
 import { ProfileSettings } from '@/widgets/profile-settings/ui/profile-settings';
 import { cn } from '@/shared/lib/cn';
-import { SettingsIcon } from '@/shared/ui/icons';
+import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 import { Modal } from '@/shared/ui/modal';
 
 export interface UserFooterProps {
