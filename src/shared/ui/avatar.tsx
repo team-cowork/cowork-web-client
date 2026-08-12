@@ -60,6 +60,7 @@ export function Avatar({
           alt={name ?? ""}
           width={size}
           height={size}
+          loading="eager"
           className="size-full object-cover"
         />
       ) : (
