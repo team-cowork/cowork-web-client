@@ -7,6 +7,7 @@ import { userQueries } from '@/entities/user/api/user-queries';
 import { type User, toUserStatus } from '@/entities/user/model/user';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { cn } from '@/shared/lib/cn';
+import { Button } from '@/shared/ui/button';
 
 export interface MemberPanelProps {
   channelId: number;
@@ -20,7 +21,12 @@ function isOnline(user: User): boolean {
 }
 
 export function MemberPanel({ channelId, className }: MemberPanelProps) {
-  const { data: members, isPending } = useQuery(channelQueries.members(channelId));
+  const {
+    data: members,
+    isPending,
+    isError,
+    refetch,
+  } = useQuery(channelQueries.members(channelId));
 
   const results = useQueries({
     queries: (members ?? []).map((member) => userQueries.detail(member.userId)),
@@ -46,7 +52,18 @@ export function MemberPanel({ channelId, className }: MemberPanelProps) {
         </ul>
       )}
 
-      {!loading && users.length === 0 && (
+      {!loading && isError && (
+        <div className="flex flex-col items-start gap-2 px-2 py-4">
+          <p className="typography-subtext-medium text-on-surface-variant">
+            멤버 목록을 불러오지 못했습니다
+          </p>
+          <Button size="S" variant="weak" onClick={() => refetch()}>
+            다시 시도
+          </Button>
+        </div>
+      )}
+
+      {!loading && !isError && users.length === 0 && (
         <p className="typography-subtext-medium text-on-surface-variant px-2 py-4">
           표시할 멤버가 없습니다
         </p>
