@@ -11,7 +11,7 @@ import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { MyProfile } from '@/widgets/my-profile/ui/my-profile';
 import { ProfileSettings } from '@/widgets/profile-settings/ui/profile-settings';
 import { cn } from '@/shared/lib/cn';
-import { SettingsIcon } from '@/shared/ui/icons';
+import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 import { Modal } from '@/shared/ui/modal';
 
 export interface UserFooterProps {
@@ -60,7 +60,7 @@ export function UserFooter({ className }: UserFooterProps) {
           onClick={() => setOpen((prev) => !prev)}
           className="hover:bg-surface-container-high flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-1 py-1 text-left"
         >
-          <UserAvatar user={user} size={32} ringClassName="ring-surface-container" />
+          <UserAvatar user={user} size={32} ringClassName="ring-surface-container" loading="eager" />
           <span className="flex min-w-0 flex-1 flex-col gap-px">
             <span className="text-on-surface truncate text-[0.875rem] font-semibold">
               {user?.name ?? ''}

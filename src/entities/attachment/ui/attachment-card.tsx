@@ -1,7 +1,8 @@
 import { type ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
-import { CloseIcon, FileIcon } from '@/shared/ui/icons';
+import { CloseIcon } from '@/shared/ui/icons/close-icon';
+import { FileIcon } from '@/shared/ui/icons/file-icon';
 
 export interface AttachmentCardProps {
   name: string;

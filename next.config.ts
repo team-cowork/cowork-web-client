@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      { protocol: "http", hostname: "ssh.gsmsv.site", port: "22108" },
+    ],
+  },
   reactCompiler: true,
 };
 

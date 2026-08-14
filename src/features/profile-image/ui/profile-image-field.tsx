@@ -46,7 +46,7 @@ export function ProfileImageField({ user }: ProfileImageFieldProps) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-[18px]">
-        <UserAvatar user={user} size={80} ringClassName="ring-surface" />
+        <UserAvatar user={user} size={80} ringClassName="ring-surface" loading="eager" />
         <div className="flex flex-col gap-2">
           <div className="flex gap-2.5">
             <Button

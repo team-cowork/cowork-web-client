@@ -3,7 +3,7 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 
 import { cn } from '@/shared/lib/cn';
-import { CloseIcon } from '@/shared/ui/icons';
+import { CloseIcon } from '@/shared/ui/icons/close-icon';
 
 export interface ModalProps {
   open: boolean;

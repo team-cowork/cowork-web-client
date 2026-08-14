@@ -1,7 +1,7 @@
 import { type ButtonHTMLAttributes, type ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
-import { ChevronRightIcon } from '@/shared/ui/icons';
+import { ChevronRightIcon } from '@/shared/ui/icons/chevron-right-icon';
 
 export interface MenuItemProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
