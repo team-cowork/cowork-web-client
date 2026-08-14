@@ -18,14 +18,14 @@ import { ChatIcon } from "@/shared/ui/icons/chat-icon";
 import { LoadingPane } from "@/shared/ui/loading-pane";
 
 export default function ChannelPage() {
-  const { channelId } = useRouteIds();
+  const { teamId, channelId } = useRouteIds();
 
-  if (channelId === null) notFound();
+  if (teamId === null || channelId === null) notFound();
 
-  return <ChannelView channelId={channelId} />;
+  return <ChannelView teamId={teamId} channelId={channelId} />;
 }
 
-function ChannelView({ channelId }: { channelId: number }) {
+function ChannelView({ teamId, channelId }: { teamId: number; channelId: number }) {
   const [membersOpen, setMembersOpen] = useState(true);
   const {
     data: channel,
@@ -61,6 +61,10 @@ function ChannelView({ channelId }: { channelId: number }) {
         />
       </div>
     );
+  }
+
+  if (channel.teamId !== teamId) {
+    notFound();
   }
 
   return (
