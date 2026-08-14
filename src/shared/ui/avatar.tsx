@@ -27,6 +27,7 @@ export interface AvatarProps {
   size?: number;
   shape?: AvatarShape;
   tone?: AvatarTone;
+  loading?: "eager" | "lazy";
   className?: string;
 }
 
@@ -36,6 +37,7 @@ export function Avatar({
   size = 40,
   shape = "squircle",
   tone = "default",
+  loading = "lazy",
   className,
 }: AvatarProps) {
   const initials = name ? name.trim().slice(0, 2).toUpperCase() : "";
@@ -60,7 +62,7 @@ export function Avatar({
           alt={name ?? ""}
           width={size}
           height={size}
-          loading="eager"
+          loading={loading}
           className="size-full object-cover"
         />
       ) : (

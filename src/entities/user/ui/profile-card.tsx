@@ -35,7 +35,7 @@ export function ProfileCard({ user, onEdit, className }: ProfileCardProps) {
         <div className="flex items-end justify-between gap-4 px-6 pt-4 pb-5">
           <div className="flex min-w-0 items-end gap-4">
             <span className="bg-surface shrink-0 rounded-full p-1">
-              <UserAvatar user={user} size={88} ringClassName="ring-surface" />
+              <UserAvatar user={user} size={88} ringClassName="ring-surface" loading="eager" />
             </span>
             <div className="flex min-w-0 flex-col gap-1.5 pb-1">
               <div className="flex flex-wrap items-center gap-2">

@@ -11,6 +11,7 @@ export interface UserAvatarProps {
   user?: User;
   size?: number;
   ringClassName?: string;
+  loading?: "eager" | "lazy";
   className?: string;
 }
 
@@ -18,6 +19,7 @@ export function UserAvatar({
   user,
   size = 40,
   ringClassName = "ring-surface",
+  loading,
   className,
 }: UserAvatarProps) {
   const status = user ? toUserStatus(user.status) : null;
@@ -30,6 +32,7 @@ export function UserAvatar({
         name={user?.name}
         size={size}
         shape="circle"
+        loading={loading}
       />
       {status && (
         <span

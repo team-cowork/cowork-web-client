@@ -46,7 +46,12 @@ export function UserStatusPopover({ user, className }: UserStatusPopoverProps) {
       <div className="from-cowork-red-500 to-cowork-blue-500 h-14 bg-gradient-to-r" />
       <div className="flex flex-col gap-3 px-3 pt-0 pb-3">
         <span className="bg-surface-container-low -mt-7 w-fit rounded-full p-1">
-          <UserAvatar user={user} size={56} ringClassName="ring-surface-container-low" />
+          <UserAvatar
+            user={user}
+            size={56}
+            ringClassName="ring-surface-container-low"
+            loading="eager"
+          />
         </span>
         <div className="flex min-w-0 flex-col">
           <p className="text-on-surface truncate text-[1rem] font-bold">{user.name}</p>
