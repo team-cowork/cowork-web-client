@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { REFRESH_TOKEN_COOKIE } from "@/shared/model/token";
-import { refreshTokens } from "@/shared/auth/api/token";
-import { clearTokenCookies, setRefreshTokenCookie } from "@/shared/auth/lib/cookies";
+import { refreshTokens } from "@/shared/lib/token";
+import { clearTokenCookies, setRefreshTokenCookie } from "@/shared/lib/cookies";
 
 export async function POST(request: NextRequest) {
   const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
