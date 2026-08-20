@@ -1,5 +1,7 @@
 'use client';
 
+import { type ReactNode } from 'react';
+
 import { type Channel } from '@/entities/channel/model/channel';
 import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
 import { cn } from '@/shared/lib/cn';
@@ -10,11 +12,12 @@ import { UsersIcon } from '@/shared/ui/icons/users-icon';
 
 export interface ChannelHeaderProps {
   channel: Channel;
+  meta?: ReactNode;
   onToggleMembers?: () => void;
   className?: string;
 }
 
-export function ChannelHeader({ channel, onToggleMembers, className }: ChannelHeaderProps) {
+export function ChannelHeader({ channel, meta, onToggleMembers, className }: ChannelHeaderProps) {
   return (
     <header className={cn('flex h-12 shrink-0 items-center gap-2 px-4', className)}>
       <ChannelIcon
@@ -30,11 +33,13 @@ export function ChannelHeader({ channel, onToggleMembers, className }: ChannelHe
       {channel.description && (
         <>
           <span aria-hidden className="bg-outline-variant h-5 w-px shrink-0" />
-          <p className="typography-subtext-medium text-on-surface-variant min-w-0 flex-1 truncate">
+          <p className="typography-subtext-medium text-on-surface-variant min-w-0 truncate">
             {channel.description}
           </p>
         </>
       )}
+
+      {meta}
 
       <div className="ml-auto flex shrink-0 items-center gap-4 pl-4">
         <button
