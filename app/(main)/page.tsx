@@ -1,11 +1,11 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { useEffect } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { QueryErrorResetBoundary, useSuspenseQuery } from "@tanstack/react-query";
-import { ErrorBoundary } from "react-error-boundary";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { type FallbackProps } from "react-error-boundary";
 
 import { teamQueries } from "@/entities/team/api/team-queries";
 import { teamPath } from "@/shared/model/paths";
@@ -14,32 +14,31 @@ import { EmptyState } from "@/shared/ui/empty-state";
 import { ErrorState } from "@/shared/ui/error-state";
 import { UsersIcon } from "@/shared/ui/icons/users-icon";
 import { LoadingPane } from "@/shared/ui/loading-pane";
+import { QueryBoundary } from "@/shared/ui/query-boundary";
+
+function HomeError({ resetErrorBoundary }: FallbackProps) {
+  return (
+    <ErrorState
+      title="팀을 불러오지 못했습니다"
+      description="잠시 후 다시 시도해 주세요"
+      action={
+        <Button size="S" variant="weak" onClick={resetErrorBoundary}>
+          다시 시도
+        </Button>
+      }
+    />
+  );
+}
 
 export default function Home() {
   return (
     <div className="bg-background flex flex-1 items-center justify-center p-6">
-      <QueryErrorResetBoundary>
-        {({ reset }) => (
-          <ErrorBoundary
-            onReset={reset}
-            fallbackRender={({ resetErrorBoundary }) => (
-              <ErrorState
-                title="팀을 불러오지 못했습니다"
-                description="잠시 후 다시 시도해 주세요"
-                action={
-                  <Button size="S" variant="weak" onClick={resetErrorBoundary}>
-                    다시 시도
-                  </Button>
-                }
-              />
-            )}
-          >
-            <Suspense fallback={<LoadingPane label="팀을 불러오는 중…" />}>
-              <HomeTeams />
-            </Suspense>
-          </ErrorBoundary>
-        )}
-      </QueryErrorResetBoundary>
+      <QueryBoundary
+        loadingFallback={<LoadingPane label="팀을 불러오는 중…" />}
+        errorFallback={HomeError}
+      >
+        <HomeTeams />
+      </QueryBoundary>
     </div>
   );
 }

@@ -1,12 +1,12 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
 
 import { notFound } from 'next/navigation';
 
-import { QueryErrorResetBoundary, useSuspenseQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
-import { ErrorBoundary } from 'react-error-boundary';
+import { type FallbackProps } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-badge';
@@ -19,6 +19,25 @@ import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { ChatIcon } from '@/shared/ui/icons/chat-icon';
 import { LoadingPane } from '@/shared/ui/loading-pane';
+import { QueryBoundary } from '@/shared/ui/query-boundary';
+
+function ChannelPageError({ error, resetErrorBoundary }: FallbackProps) {
+  if (isAxiosError(error) && error.response?.status === 404) notFound();
+
+  return (
+    <div className="flex flex-1 items-center justify-center p-6">
+      <ErrorState
+        title="채널을 불러오지 못했습니다"
+        description="잠시 후 다시 시도해 주세요"
+        action={
+          <Button size="S" variant="weak" onClick={resetErrorBoundary}>
+            다시 시도
+          </Button>
+        }
+      />
+    </div>
+  );
+}
 
 export default function ChannelPage() {
   const { teamId, channelId } = useRouteIds();
@@ -26,40 +45,16 @@ export default function ChannelPage() {
   if (teamId === null || channelId === null) notFound();
 
   return (
-    <QueryErrorResetBoundary>
-      {({ reset }) => (
-        <ErrorBoundary
-          onReset={reset}
-          fallbackRender={({ error, resetErrorBoundary }) => {
-            if (isAxiosError(error) && error.response?.status === 404) notFound();
-
-            return (
-              <div className="flex flex-1 items-center justify-center p-6">
-                <ErrorState
-                  title="채널을 불러오지 못했습니다"
-                  description="잠시 후 다시 시도해 주세요"
-                  action={
-                    <Button size="S" variant="weak" onClick={resetErrorBoundary}>
-                      다시 시도
-                    </Button>
-                  }
-                />
-              </div>
-            );
-          }}
-        >
-          <Suspense
-            fallback={
-              <div className="flex flex-1 items-center justify-center p-6">
-                <LoadingPane label="채널을 불러오는 중…" />
-              </div>
-            }
-          >
-            <ChannelView teamId={teamId} channelId={channelId} />
-          </Suspense>
-        </ErrorBoundary>
-      )}
-    </QueryErrorResetBoundary>
+    <QueryBoundary
+      loadingFallback={
+        <div className="flex flex-1 items-center justify-center p-6">
+          <LoadingPane label="채널을 불러오는 중…" />
+        </div>
+      }
+      errorFallback={ChannelPageError}
+    >
+      <ChannelView teamId={teamId} channelId={channelId} />
+    </QueryBoundary>
   );
 }
 

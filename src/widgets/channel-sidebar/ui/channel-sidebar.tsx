@@ -1,9 +1,9 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
 
-import { QueryErrorResetBoundary, useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { ErrorBoundary } from 'react-error-boundary';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { type FallbackProps } from 'react-error-boundary';
 
 import { CreateChannelModal } from '@/features/channel-create/ui/create-channel-modal';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
@@ -17,6 +17,7 @@ import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { ChatIcon } from '@/shared/ui/icons/chat-icon';
 import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
+import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 export interface ChannelSidebarProps {
   className?: string;
@@ -36,6 +37,29 @@ interface TeamChannelsProps {
   className?: string;
 }
 
+function ChannelSidebarError({ resetErrorBoundary }: FallbackProps) {
+  return (
+    <ErrorState
+      title="채널을 불러오지 못했습니다"
+      action={
+        <Button size="S" variant="weak" onClick={resetErrorBoundary}>
+          다시 시도
+        </Button>
+      }
+    />
+  );
+}
+
+const CHANNEL_LIST_SKELETON = (
+  <ul className="flex flex-col gap-1">
+    {Array.from({ length: 5 }, (_, index) => (
+      <li key={index}>
+        <span className="bg-surface-container block h-13 animate-pulse rounded-xl" />
+      </li>
+    ))}
+  </ul>
+);
+
 function TeamChannels({ teamId, currentChannelId, className }: TeamChannelsProps) {
   const { data: team } = useQuery(teamQueries.detail(teamId));
   const [createOpen, setCreateOpen] = useState(false);
@@ -50,41 +74,13 @@ function TeamChannels({ teamId, currentChannelId, className }: TeamChannelsProps
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 py-3">
-        <QueryErrorResetBoundary>
-          {({ reset }) => (
-            <ErrorBoundary
-              onReset={reset}
-              fallbackRender={({ resetErrorBoundary }) => (
-                <ErrorState
-                  title="채널을 불러오지 못했습니다"
-                  action={
-                    <Button size="S" variant="weak" onClick={resetErrorBoundary}>
-                      다시 시도
-                    </Button>
-                  }
-                />
-              )}
-            >
-              <Suspense
-                fallback={
-                  <ul className="flex flex-col gap-1">
-                    {Array.from({ length: 5 }, (_, index) => (
-                      <li key={index}>
-                        <span className="bg-surface-container block h-13 animate-pulse rounded-xl" />
-                      </li>
-                    ))}
-                  </ul>
-                }
-              >
-                <ChannelList
-                  teamId={teamId}
-                  currentChannelId={currentChannelId}
-                  onCreateChannel={() => setCreateOpen(true)}
-                />
-              </Suspense>
-            </ErrorBoundary>
-          )}
-        </QueryErrorResetBoundary>
+        <QueryBoundary loadingFallback={CHANNEL_LIST_SKELETON} errorFallback={ChannelSidebarError}>
+          <ChannelList
+            teamId={teamId}
+            currentChannelId={currentChannelId}
+            onCreateChannel={() => setCreateOpen(true)}
+          />
+        </QueryBoundary>
       </div>
 
       <CreateChannelModal

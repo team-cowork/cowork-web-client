@@ -1,11 +1,11 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
 
 import Link from 'next/link';
 
-import { QueryErrorResetBoundary, useSuspenseQuery } from '@tanstack/react-query';
-import { ErrorBoundary } from 'react-error-boundary';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { type FallbackProps } from 'react-error-boundary';
 
 import { CreateTeamModal } from '@/features/team-create/ui/create-team-modal';
 import { teamQueries } from '@/entities/team/api/team-queries';
@@ -14,10 +14,31 @@ import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { HOME_PATH, teamPath } from '@/shared/model/paths';
 import { Avatar } from '@/shared/ui/avatar';
 import { PlusIcon } from '@/shared/ui/icons/plus-icon';
+import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 export interface TeamRailProps {
   className?: string;
 }
+
+function TeamRailError({ resetErrorBoundary }: FallbackProps) {
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={resetErrorBoundary}
+        className="bg-surface-container hover:bg-surface-container-high text-on-surface-variant typography-label-x-small flex size-12 items-center justify-center rounded-2xl text-center"
+      >
+        재시도
+      </button>
+    </li>
+  );
+}
+
+const TEAM_RAIL_SKELETON = Array.from({ length: 3 }, (_, index) => (
+  <li key={index}>
+    <span className="bg-surface-container block size-12 animate-pulse rounded-2xl" />
+  </li>
+));
 
 export function TeamRail({ className }: TeamRailProps) {
   const [createOpen, setCreateOpen] = useState(false);
@@ -45,34 +66,9 @@ export function TeamRail({ className }: TeamRailProps) {
       <span aria-hidden className="bg-outline-variant my-2 h-0.5 w-8 rounded-full" />
 
       <ul className="flex flex-col items-center gap-2">
-        <QueryErrorResetBoundary>
-          {({ reset }) => (
-            <ErrorBoundary
-              onReset={reset}
-              fallbackRender={({ resetErrorBoundary }) => (
-                <li>
-                  <button
-                    type="button"
-                    onClick={resetErrorBoundary}
-                    className="bg-surface-container hover:bg-surface-container-high text-on-surface-variant typography-label-x-small flex size-12 items-center justify-center rounded-2xl text-center"
-                  >
-                    재시도
-                  </button>
-                </li>
-              )}
-            >
-              <Suspense
-                fallback={Array.from({ length: 3 }, (_, index) => (
-                  <li key={index}>
-                    <span className="bg-surface-container block size-12 animate-pulse rounded-2xl" />
-                  </li>
-                ))}
-              >
-                <TeamLinks currentTeamId={currentTeamId} />
-              </Suspense>
-            </ErrorBoundary>
-          )}
-        </QueryErrorResetBoundary>
+        <QueryBoundary loadingFallback={TEAM_RAIL_SKELETON} errorFallback={TeamRailError}>
+          <TeamLinks currentTeamId={currentTeamId} />
+        </QueryBoundary>
       </ul>
 
       <button

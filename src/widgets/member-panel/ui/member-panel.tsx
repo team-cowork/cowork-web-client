@@ -1,9 +1,7 @@
 'use client';
 
-import { Suspense } from 'react';
-
-import { QueryErrorResetBoundary, useQueries, useSuspenseQuery } from '@tanstack/react-query';
-import { ErrorBoundary } from 'react-error-boundary';
+import { useQueries, useSuspenseQuery } from '@tanstack/react-query';
+import { type FallbackProps } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
@@ -11,6 +9,7 @@ import { type User, toUserStatus } from '@/entities/user/model/user';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/button';
+import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 export interface MemberPanelProps {
   channelId: number;
@@ -33,33 +32,28 @@ const MEMBER_SKELETON = (
   </ul>
 );
 
+function MemberPanelError({ resetErrorBoundary }: FallbackProps) {
+  return (
+    <div className="flex flex-col items-start gap-2 px-2 py-4">
+      <p className="typography-subtext-medium text-on-surface-variant">
+        멤버 목록을 불러오지 못했습니다
+      </p>
+      <Button size="S" variant="weak" onClick={resetErrorBoundary}>
+        다시 시도
+      </Button>
+    </div>
+  );
+}
+
 export function MemberPanel({ channelId, className }: MemberPanelProps) {
   return (
     <aside
       aria-label="채널 멤버"
       className={cn('bg-surface w-60 shrink-0 overflow-y-auto p-2', className)}
     >
-      <QueryErrorResetBoundary>
-        {({ reset }) => (
-          <ErrorBoundary
-            onReset={reset}
-            fallbackRender={({ resetErrorBoundary }) => (
-              <div className="flex flex-col items-start gap-2 px-2 py-4">
-                <p className="typography-subtext-medium text-on-surface-variant">
-                  멤버 목록을 불러오지 못했습니다
-                </p>
-                <Button size="S" variant="weak" onClick={resetErrorBoundary}>
-                  다시 시도
-                </Button>
-              </div>
-            )}
-          >
-            <Suspense fallback={MEMBER_SKELETON}>
-              <MemberList channelId={channelId} />
-            </Suspense>
-          </ErrorBoundary>
-        )}
-      </QueryErrorResetBoundary>
+      <QueryBoundary loadingFallback={MEMBER_SKELETON} errorFallback={MemberPanelError}>
+        <MemberList channelId={channelId} />
+      </QueryBoundary>
     </aside>
   );
 }
