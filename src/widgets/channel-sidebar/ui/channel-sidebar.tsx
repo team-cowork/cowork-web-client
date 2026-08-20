@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import { QueryErrorResetBoundary, useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { CreateChannelModal } from '@/features/channel-create/ui/create-channel-modal';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
@@ -37,10 +38,7 @@ interface TeamChannelsProps {
 
 function TeamChannels({ teamId, currentChannelId, className }: TeamChannelsProps) {
   const { data: team } = useQuery(teamQueries.detail(teamId));
-  const { data: channels, isPending, isError, refetch } = useQuery(channelQueries.byTeam(teamId));
   const [createOpen, setCreateOpen] = useState(false);
-
-  const groups = channels ? groupChannelsByProject(channels) : [];
 
   return (
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
@@ -52,52 +50,41 @@ function TeamChannels({ teamId, currentChannelId, className }: TeamChannelsProps
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 py-3">
-        {isPending && (
-          <ul className="flex flex-col gap-1">
-            {Array.from({ length: 5 }, (_, index) => (
-              <li key={index}>
-                <span className="bg-surface-container block h-13 animate-pulse rounded-xl" />
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {isError && (
-          <ErrorState
-            title="채널을 불러오지 못했습니다"
-            action={
-              <Button size="S" variant="weak" onClick={() => refetch()}>
-                다시 시도
-              </Button>
-            }
-          />
-        )}
-
-        {channels?.length === 0 && (
-          <EmptyState
-            icon={<ChatIcon />}
-            title="채널이 없습니다"
-            description="채널을 만들어 대화를 시작하세요"
-            action={
-              <Button size="S" onClick={() => setCreateOpen(true)}>
-                채널 만들기
-              </Button>
-            }
-          />
-        )}
-
-        <div className="flex flex-col gap-3">
-          {groups.map((group) => (
-            <ChannelGroup
-              key={group.projectId ?? 'none'}
-              teamId={teamId}
-              projectId={group.projectId}
-              channels={group.channels}
-              activeChannelId={currentChannelId}
-              onCreateChannel={() => setCreateOpen(true)}
-            />
-          ))}
-        </div>
+        <QueryErrorResetBoundary>
+          {({ reset }) => (
+            <ErrorBoundary
+              onReset={reset}
+              fallbackRender={({ resetErrorBoundary }) => (
+                <ErrorState
+                  title="채널을 불러오지 못했습니다"
+                  action={
+                    <Button size="S" variant="weak" onClick={resetErrorBoundary}>
+                      다시 시도
+                    </Button>
+                  }
+                />
+              )}
+            >
+              <Suspense
+                fallback={
+                  <ul className="flex flex-col gap-1">
+                    {Array.from({ length: 5 }, (_, index) => (
+                      <li key={index}>
+                        <span className="bg-surface-container block h-13 animate-pulse rounded-xl" />
+                      </li>
+                    ))}
+                  </ul>
+                }
+              >
+                <ChannelList
+                  teamId={teamId}
+                  currentChannelId={currentChannelId}
+                  onCreateChannel={() => setCreateOpen(true)}
+                />
+              </Suspense>
+            </ErrorBoundary>
+          )}
+        </QueryErrorResetBoundary>
       </div>
 
       <CreateChannelModal
@@ -106,5 +93,46 @@ function TeamChannels({ teamId, currentChannelId, className }: TeamChannelsProps
         onClose={() => setCreateOpen(false)}
       />
     </div>
+  );
+}
+
+interface ChannelListProps {
+  teamId: number;
+  currentChannelId: number | null;
+  onCreateChannel: () => void;
+}
+
+function ChannelList({ teamId, currentChannelId, onCreateChannel }: ChannelListProps) {
+  const { data: channels } = useSuspenseQuery(channelQueries.byTeam(teamId));
+  const groups = groupChannelsByProject(channels);
+
+  return (
+    <>
+      {channels.length === 0 && (
+        <EmptyState
+          icon={<ChatIcon />}
+          title="채널이 없습니다"
+          description="채널을 만들어 대화를 시작하세요"
+          action={
+            <Button size="S" onClick={onCreateChannel}>
+              채널 만들기
+            </Button>
+          }
+        />
+      )}
+
+      <div className="flex flex-col gap-3">
+        {groups.map((group) => (
+          <ChannelGroup
+            key={group.projectId ?? 'none'}
+            teamId={teamId}
+            projectId={group.projectId}
+            channels={group.channels}
+            activeChannelId={currentChannelId}
+            onCreateChannel={onCreateChannel}
+          />
+        ))}
+      </div>
+    </>
   );
 }

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 
 import { notFound } from 'next/navigation';
 
-import { useQuery } from '@tanstack/react-query';
+import { QueryErrorResetBoundary, useSuspenseQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-badge';
@@ -24,46 +25,47 @@ export default function ChannelPage() {
 
   if (teamId === null || channelId === null) notFound();
 
-  return <ChannelView teamId={teamId} channelId={channelId} />;
+  return (
+    <QueryErrorResetBoundary>
+      {({ reset }) => (
+        <ErrorBoundary
+          onReset={reset}
+          fallbackRender={({ error, resetErrorBoundary }) => {
+            if (isAxiosError(error) && error.response?.status === 404) notFound();
+
+            return (
+              <div className="flex flex-1 items-center justify-center p-6">
+                <ErrorState
+                  title="채널을 불러오지 못했습니다"
+                  description="잠시 후 다시 시도해 주세요"
+                  action={
+                    <Button size="S" variant="weak" onClick={resetErrorBoundary}>
+                      다시 시도
+                    </Button>
+                  }
+                />
+              </div>
+            );
+          }}
+        >
+          <Suspense
+            fallback={
+              <div className="flex flex-1 items-center justify-center p-6">
+                <LoadingPane label="채널을 불러오는 중…" />
+              </div>
+            }
+          >
+            <ChannelView teamId={teamId} channelId={channelId} />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+    </QueryErrorResetBoundary>
+  );
 }
 
 function ChannelView({ teamId, channelId }: { teamId: number; channelId: number }) {
   const [membersOpen, setMembersOpen] = useState(true);
-  const {
-    data: channel,
-    isPending,
-    isError,
-    error,
-    refetch,
-  } = useQuery(channelQueries.detail(channelId));
-
-  if (isError && isAxiosError(error) && error.response?.status === 404) {
-    notFound();
-  }
-
-  if (isPending) {
-    return (
-      <div className="flex flex-1 items-center justify-center p-6">
-        <LoadingPane label="채널을 불러오는 중…" />
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="flex flex-1 items-center justify-center p-6">
-        <ErrorState
-          title="채널을 불러오지 못했습니다"
-          description="잠시 후 다시 시도해 주세요"
-          action={
-            <Button size="S" variant="weak" onClick={() => refetch()}>
-              다시 시도
-            </Button>
-          }
-        />
-      </div>
-    );
-  }
+  const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
 
   if (channel.teamId !== teamId) {
     notFound();

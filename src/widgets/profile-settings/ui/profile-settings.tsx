@@ -1,6 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { Suspense } from 'react';
+
+import { QueryErrorResetBoundary, useSuspenseQuery } from '@tanstack/react-query';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { ProfileBasicForm } from '@/features/profile-edit/ui/profile-basic-form';
 import { ProfileImageField } from '@/features/profile-image/ui/profile-image-field';
@@ -10,15 +13,26 @@ import { LoadingPane } from '@/shared/ui/loading-pane';
 import { SettingsCard } from '@/shared/ui/settings-card';
 
 export function ProfileSettings() {
-  const { data: user, isPending } = useQuery(userQueries.me());
+  return (
+    <QueryErrorResetBoundary>
+      {({ reset }) => (
+        <ErrorBoundary
+          onReset={reset}
+          fallbackRender={() => (
+            <ErrorState title="프로필을 불러오지 못했어요" description="잠시 후 다시 시도해 주세요." />
+          )}
+        >
+          <Suspense fallback={<LoadingPane />}>
+            <ProfileSettingsContent />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+    </QueryErrorResetBoundary>
+  );
+}
 
-  if (isPending) return <LoadingPane />;
-
-  if (!user) {
-    return (
-      <ErrorState title="프로필을 불러오지 못했어요" description="잠시 후 다시 시도해 주세요." />
-    );
-  }
+function ProfileSettingsContent() {
+  const { data: user } = useSuspenseQuery(userQueries.me());
 
   return (
     <>
