@@ -71,6 +71,14 @@ export interface ChannelMember {
   joinedAt: string;
 }
 
+export interface OpenDmRequest {
+  targetUserId: number;
+}
+
+export interface AddChannelMemberRequest {
+  userId: number;
+}
+
 export interface CreateChannelRequest {
   teamId: number;
   name: string;
