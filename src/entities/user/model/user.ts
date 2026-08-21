@@ -40,6 +40,27 @@ export interface User {
   profile_image_url: string | null;
 }
 
+export interface SearchUsersParams {
+  name?: string;
+  nickname?: string;
+  major?: string;
+  student_role?: string;
+  status?: UserStatus;
+  role?: string;
+  page?: number;
+  page_size?: number;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+}
+
+export interface UserSearchResult {
+  items: User[];
+  page: number;
+  page_size: number;
+  total_count: number;
+  has_next: boolean;
+}
+
 export interface UpdateMeRequest {
   name?: string;
   description?: string;
