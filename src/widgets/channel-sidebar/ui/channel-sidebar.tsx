@@ -18,24 +18,12 @@ import { ChatIcon } from '@/shared/ui/icons/chat-icon';
 import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
 
 export interface ChannelSidebarProps {
-  className?: string;
-}
-
-export function ChannelSidebar({ className }: ChannelSidebarProps) {
-  const { teamId, channelId } = useRouteIds();
-
-  if (teamId === null) return <div className={cn('flex-1', className)} />;
-
-  return <TeamChannels teamId={teamId} currentChannelId={channelId} className={className} />;
-}
-
-interface TeamChannelsProps {
   teamId: number;
-  currentChannelId: number | null;
   className?: string;
 }
 
-function TeamChannels({ teamId, currentChannelId, className }: TeamChannelsProps) {
+export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
+  const { channelId: currentChannelId } = useRouteIds();
   const { data: team } = useQuery(teamQueries.detail(teamId));
   const { data: channels, isPending, isError, refetch } = useQuery(channelQueries.byTeam(teamId));
   const [createOpen, setCreateOpen] = useState(false);
