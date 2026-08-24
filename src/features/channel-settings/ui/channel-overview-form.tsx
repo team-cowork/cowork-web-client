@@ -7,77 +7,56 @@ import { type Channel } from '@/entities/channel/model/channel';
 import { Button } from '@/shared/ui/button';
 import { GlobeIcon } from '@/shared/ui/icons/globe-icon';
 import { LockIcon } from '@/shared/ui/icons/lock-icon';
-import { Modal } from '@/shared/ui/modal';
 import { OptionCard } from '@/shared/ui/option-card';
 import { TextField } from '@/shared/ui/text-field';
 
-export interface EditChannelModalProps {
-  open: boolean;
+export interface ChannelOverviewFormProps {
   teamId: number;
   channel: Channel;
-  onClose: () => void;
 }
 
-export function EditChannelModal({
-  open,
+export function ChannelOverviewForm({
   teamId,
   channel,
-  onClose,
-}: EditChannelModalProps) {
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="채널 수정"
-      className="w-[520px]"
-    >
-      {open ? (
-        <EditChannelForm teamId={teamId} channel={channel} onClose={onClose} />
-      ) : undefined}
-    </Modal>
-  );
-}
-
-function EditChannelForm({
-  teamId,
-  channel,
-  onClose,
-}: {
-  teamId: number;
-  channel: Channel;
-  onClose: () => void;
-}) {
-  const updateChannel = useUpdateChannel(channel.id, teamId);
+}: ChannelOverviewFormProps) {
   const [name, setName] = useState(channel.name);
   const [description, setDescription] = useState(channel.description ?? '');
   const [isPrivate, setIsPrivate] = useState(channel.isPrivate);
 
+  const updateChannel = useUpdateChannel(channel.id, teamId);
+
   const trimmedName = name.trim();
-  const canSubmit = trimmedName.length > 0 && !updateChannel.isPending;
+  const dirty =
+    trimmedName !== channel.name ||
+    description !== (channel.description ?? '') ||
+    isPrivate !== channel.isPrivate;
+  const canSubmit = trimmedName.length > 0 && dirty && !updateChannel.isPending;
 
   const handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
     if (!canSubmit) return;
 
-    updateChannel.mutate(
-      {
-        name: trimmedName,
-        description: description.trim() || null,
-        isPrivate,
-      },
-      { onSuccess: onClose },
-    );
+    updateChannel.mutate({
+      name: trimmedName,
+      description: description.trim() || null,
+      isPrivate,
+    });
+  };
+
+  const handleReset = () => {
+    setName(channel.name);
+    setDescription(channel.description ?? '');
+    setIsPrivate(channel.isPrivate);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
       <TextField
         label="채널 이름"
         value={name}
         onChange={(event) => setName(event.target.value)}
         placeholder="새-채널"
         maxLength={50}
-        autoFocus
       />
 
       <TextField
@@ -121,8 +100,8 @@ function EditChannelForm({
           type="button"
           variant="weak"
           color="neutral"
-          disabled={updateChannel.isPending}
-          onClick={onClose}
+          disabled={!dirty || updateChannel.isPending}
+          onClick={handleReset}
         >
           취소
         </Button>

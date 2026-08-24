@@ -2,13 +2,16 @@
 
 import { useState } from 'react';
 
+import Link from 'next/link';
+
 import { type Channel } from '@/entities/channel/model/channel';
 import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
 import { ChannelListItem } from '@/entities/channel/ui/channel-list-item';
-import { channelPath } from '@/shared/model/paths';
+import { channelPath, channelSettingsOverviewPath } from '@/shared/model/paths';
 import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
 import { ChevronRightIcon } from '@/shared/ui/icons/chevron-right-icon';
 import { PlusIcon } from '@/shared/ui/icons/plus-icon';
+import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 
 export interface ChannelGroupProps {
   teamId: number;
@@ -71,6 +74,15 @@ export function ChannelGroup({
                 href={channelPath(teamId, channel.id)}
                 active={channel.id === activeChannelId}
                 prefix={<ChannelIcon viewType={channel.viewType} size={18} />}
+                action={
+                  <Link
+                    href={channelSettingsOverviewPath(teamId, channel.id)}
+                    aria-label={`${channel.name} 채널 설정`}
+                    className="flex size-6 cursor-pointer items-center justify-center rounded hover:bg-surface-container-high hover:text-on-surface"
+                  >
+                    <SettingsIcon size={14} />
+                  </Link>
+                }
               />
             </li>
           ))}
