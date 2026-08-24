@@ -8,7 +8,6 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 
 import { DeleteTeamRoleMenu } from '@/features/team-roles/ui/delete-team-role-menu';
 import { TeamRoleDisplayTab } from '@/features/team-roles/ui/team-role-display-tab';
-import { TeamRoleLinksTab } from '@/features/team-roles/ui/team-role-links-tab';
 import { TeamRoleMembersTab } from '@/features/team-roles/ui/team-role-members-tab';
 import { TeamRolePermissionsTab } from '@/features/team-roles/ui/team-role-permissions-tab';
 import { teamQueries } from '@/entities/team/api/team-queries';
@@ -19,13 +18,12 @@ import { ErrorState } from '@/shared/ui/error-state';
 import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
-const TABS = ['display', 'permissions', 'links', 'members'] as const;
+const TABS = ['display', 'permissions', 'members'] as const;
 type Tab = (typeof TABS)[number];
 
 const TAB_LABEL: Record<Tab, string> = {
   display: '표시하기',
   permissions: '권한',
-  links: '링크',
   members: '멤버 관리',
 };
 
@@ -125,7 +123,6 @@ function TeamRoleDetailContent({
             <TeamRoleDisplayTab teamId={teamId} role={role} />
           )}
           {tab === 'permissions' && <TeamRolePermissionsTab />}
-          {tab === 'links' && <TeamRoleLinksTab />}
           {tab === 'members' && (
             <TeamRoleMembersTab teamId={teamId} role={role} />
           )}
