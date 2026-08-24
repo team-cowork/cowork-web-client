@@ -10,18 +10,27 @@ export interface SettingRowProps {
   className?: string;
 }
 
-export function SettingRow({ label, description, children, className }: SettingRowProps) {
+export function SettingRow({
+  label,
+  description,
+  children,
+  className,
+}: SettingRowProps) {
   return (
     <div
       className={cn(
-        'bg-surface flex items-center justify-between gap-4 rounded-xl px-4 py-3.5',
+        'flex items-center justify-between gap-4 rounded-xl bg-surface px-4 py-3.5',
         className,
       )}
     >
       <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="typography-body-medium-strong text-on-surface">{label}</span>
+        <span className="typography-body-medium-strong text-on-surface">
+          {label}
+        </span>
         {description && (
-          <span className="typography-subtext-medium text-on-surface-variant">{description}</span>
+          <span className="typography-subtext-medium text-on-surface-variant">
+            {description}
+          </span>
         )}
       </div>
       {children && <div className="shrink-0">{children}</div>}

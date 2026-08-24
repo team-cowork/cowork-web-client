@@ -22,12 +22,20 @@ export function MessageItem({
 }: MessageItemProps) {
   return (
     <div className={cn('flex gap-4 px-4 py-1', className)}>
-      <Avatar src={avatarSrc} name={author} size={44} tone={tone} className="shrink-0" />
+      <Avatar
+        src={avatarSrc}
+        name={author}
+        size={44}
+        tone={tone}
+        className="shrink-0"
+      />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <p className="typography-label-x-small text-on-surface-variant">
           {author} · {timestamp}
         </p>
-        <div className="typography-subtext-large text-on-surface break-words">{content}</div>
+        <div className="typography-subtext-large break-words text-on-surface">
+          {content}
+        </div>
       </div>
     </div>
   );

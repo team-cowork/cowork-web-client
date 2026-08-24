@@ -1,16 +1,16 @@
-import { type ReactNode } from "react";
+import { type ReactNode } from 'react';
 
-import { VoiceSessionProvider } from "@/features/voice-session/model/voice-session-provider";
-import { ChannelSidebar } from "@/widgets/channel-sidebar/ui/channel-sidebar";
-import { UserFooter } from "@/widgets/sidebar/ui/user-footer";
-import { TeamRail } from "@/widgets/team-rail/ui/team-rail";
+import { VoiceSessionProvider } from '@/features/voice-session/model/voice-session-provider';
+import { ChannelSidebar } from '@/widgets/channel-sidebar/ui/channel-sidebar';
+import { UserFooter } from '@/widgets/sidebar/ui/user-footer';
+import { TeamRail } from '@/widgets/team-rail/ui/team-rail';
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   return (
     <VoiceSessionProvider>
       <div className="flex flex-1 overflow-hidden">
         <TeamRail />
-        <aside className="bg-surface flex w-60 shrink-0 flex-col">
+        <aside className="flex w-60 shrink-0 flex-col bg-surface">
           <ChannelSidebar />
           <UserFooter />
         </aside>

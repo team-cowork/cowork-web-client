@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import { notFound } from "next/navigation";
+import { notFound } from 'next/navigation';
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
-import { type FallbackProps } from "react-error-boundary";
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
+import { type FallbackProps } from 'react-error-boundary';
 
-import { teamQueries } from "@/entities/team/api/team-queries";
-import { useRouteIds } from "@/shared/lib/use-route-ids";
-import { Button } from "@/shared/ui/button";
-import { EmptyState } from "@/shared/ui/empty-state";
-import { ErrorState } from "@/shared/ui/error-state";
-import { ChatIcon } from "@/shared/ui/icons/chat-icon";
-import { LoadingPane } from "@/shared/ui/loading-pane";
-import { QueryBoundary } from "@/shared/ui/query-boundary";
+import { teamQueries } from '@/entities/team/api/team-queries';
+import { useRouteIds } from '@/shared/lib/use-route-ids';
+import { Button } from '@/shared/ui/button';
+import { EmptyState } from '@/shared/ui/empty-state';
+import { ErrorState } from '@/shared/ui/error-state';
+import { ChatIcon } from '@/shared/ui/icons/chat-icon';
+import { LoadingPane } from '@/shared/ui/loading-pane';
+import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 function TeamPageError({ error, resetErrorBoundary }: FallbackProps) {
   if (isAxiosError(error) && error.response?.status === 404) notFound();
@@ -57,7 +57,7 @@ function TeamView({ teamId }: { teamId: number }) {
   useSuspenseQuery(teamQueries.detail(teamId));
 
   return (
-    <div className="bg-background flex flex-1 items-center justify-center p-6">
+    <div className="flex flex-1 items-center justify-center bg-background p-6">
       <EmptyState
         icon={<ChatIcon />}
         title="채널을 선택하세요"

@@ -11,8 +11,13 @@ export function useCreateChannel(teamId: number) {
   return useMutation({
     mutationFn: postChannel,
     onSuccess: (channel) => {
-      queryClient.setQueryData(channelQueries.detail(channel.id).queryKey, channel);
-      return queryClient.invalidateQueries({ queryKey: channelQueries.byTeam(teamId).queryKey });
+      queryClient.setQueryData(
+        channelQueries.detail(channel.id).queryKey,
+        channel,
+      );
+      return queryClient.invalidateQueries({
+        queryKey: channelQueries.byTeam(teamId).queryKey,
+      });
     },
   });
 }

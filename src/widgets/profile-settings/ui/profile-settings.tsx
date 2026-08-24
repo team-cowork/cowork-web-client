@@ -11,12 +11,20 @@ import { QueryBoundary } from '@/shared/ui/query-boundary';
 import { SettingsCard } from '@/shared/ui/settings-card';
 
 function ProfileSettingsError() {
-  return <ErrorState title="프로필을 불러오지 못했어요" description="잠시 후 다시 시도해 주세요." />;
+  return (
+    <ErrorState
+      title="프로필을 불러오지 못했어요"
+      description="잠시 후 다시 시도해 주세요."
+    />
+  );
 }
 
 export function ProfileSettings() {
   return (
-    <QueryBoundary loadingFallback={<LoadingPane />} errorFallback={ProfileSettingsError}>
+    <QueryBoundary
+      loadingFallback={<LoadingPane />}
+      errorFallback={ProfileSettingsError}
+    >
       <ProfileSettingsContent />
     </QueryBoundary>
   );

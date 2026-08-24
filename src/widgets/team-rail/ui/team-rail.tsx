@@ -26,7 +26,7 @@ function TeamRailError({ resetErrorBoundary }: FallbackProps) {
       <button
         type="button"
         onClick={resetErrorBoundary}
-        className="bg-surface-container hover:bg-surface-container-high text-on-surface-variant typography-label-x-small flex size-12 items-center justify-center rounded-2xl text-center"
+        className="flex size-12 items-center justify-center rounded-2xl bg-surface-container text-center typography-label-x-small text-on-surface-variant hover:bg-surface-container-high"
       >
         재시도
       </button>
@@ -36,7 +36,7 @@ function TeamRailError({ resetErrorBoundary }: FallbackProps) {
 
 const TEAM_RAIL_SKELETON = Array.from({ length: 3 }, (_, index) => (
   <li key={index}>
-    <span className="bg-surface-container block size-12 animate-pulse rounded-2xl" />
+    <span className="block size-12 animate-pulse rounded-2xl bg-surface-container" />
   </li>
 ));
 
@@ -47,7 +47,10 @@ export function TeamRail({ className }: TeamRailProps) {
   return (
     <nav
       aria-label="팀"
-      className={cn('bg-background flex w-18 shrink-0 flex-col items-center py-3', className)}
+      className={cn(
+        'flex w-18 shrink-0 flex-col items-center bg-background py-3',
+        className,
+      )}
     >
       <Link
         href={HOME_PATH}
@@ -63,10 +66,16 @@ export function TeamRail({ className }: TeamRailProps) {
         <span className="typography-label-medium font-bold">co</span>
       </Link>
 
-      <span aria-hidden className="bg-outline-variant my-2 h-0.5 w-8 rounded-full" />
+      <span
+        aria-hidden
+        className="my-2 h-0.5 w-8 rounded-full bg-outline-variant"
+      />
 
       <ul className="flex flex-col items-center gap-2">
-        <QueryBoundary loadingFallback={TEAM_RAIL_SKELETON} errorFallback={TeamRailError}>
+        <QueryBoundary
+          loadingFallback={TEAM_RAIL_SKELETON}
+          errorFallback={TeamRailError}
+        >
           <TeamLinks currentTeamId={currentTeamId} />
         </QueryBoundary>
       </ul>
@@ -76,7 +85,7 @@ export function TeamRail({ className }: TeamRailProps) {
         aria-label="팀 추가"
         aria-haspopup="dialog"
         onClick={() => setCreateOpen(true)}
-        className="text-primary bg-surface-container hover:bg-surface-container-high mt-2 flex size-12 cursor-pointer items-center justify-center rounded-2xl transition-colors"
+        className="mt-2 flex size-12 cursor-pointer items-center justify-center rounded-2xl bg-surface-container text-primary transition-colors hover:bg-surface-container-high"
       >
         <PlusIcon size={20} />
       </button>
@@ -99,7 +108,7 @@ function TeamLinks({ currentTeamId }: { currentTeamId: number | null }) {
             {active && (
               <span
                 aria-hidden
-                className="bg-on-background absolute top-1/2 -left-3 h-6 w-1 -translate-y-1/2 rounded-r-full"
+                className="absolute top-1/2 -left-3 h-6 w-1 -translate-y-1/2 rounded-r-full bg-on-background"
               />
             )}
             <Link
@@ -114,7 +123,10 @@ function TeamLinks({ currentTeamId }: { currentTeamId: number | null }) {
                 size={48}
                 shape="squircle"
                 tone={active ? 'red' : 'neutral'}
-                className={cn('transition-opacity', !active && 'opacity-90 hover:opacity-100')}
+                className={cn(
+                  'transition-opacity',
+                  !active && 'opacity-90 hover:opacity-100',
+                )}
               />
             </Link>
           </li>

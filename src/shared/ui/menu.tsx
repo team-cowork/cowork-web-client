@@ -13,7 +13,7 @@ export function Menu({ children, className }: MenuProps) {
     <div
       role="menu"
       className={cn(
-        'bg-surface-container-low border-outline-variant flex min-w-[220px] flex-col gap-0.5 rounded-[10px] border p-1.5 shadow-lg',
+        'flex min-w-[220px] flex-col gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-1.5 shadow-lg',
         className,
       )}
     >
@@ -27,5 +27,10 @@ export interface MenuSeparatorProps {
 }
 
 export function MenuSeparator({ className }: MenuSeparatorProps) {
-  return <div role="separator" className={cn('bg-outline-variant my-1 h-px', className)} />;
+  return (
+    <div
+      role="separator"
+      className={cn('my-1 h-px bg-outline-variant', className)}
+    />
+  );
 }

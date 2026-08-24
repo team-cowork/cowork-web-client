@@ -65,7 +65,7 @@ function CreateTeamForm({ onClose }: { onClose: () => void }) {
         maxLength={100}
       />
       {createTeam.isError && (
-        <p className="text-error typography-subtext-medium">
+        <p className="typography-subtext-medium text-error">
           팀을 만들지 못했어요. 다시 시도해 주세요.
         </p>
       )}

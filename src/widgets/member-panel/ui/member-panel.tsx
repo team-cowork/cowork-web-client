@@ -26,7 +26,7 @@ const MEMBER_SKELETON = (
   <ul className="flex flex-col gap-1">
     {Array.from({ length: 4 }, (_, index) => (
       <li key={index}>
-        <span className="bg-surface-container block h-11 animate-pulse rounded-lg" />
+        <span className="block h-11 animate-pulse rounded-lg bg-surface-container" />
       </li>
     ))}
   </ul>
@@ -49,7 +49,7 @@ export function MemberPanel({ channelId, className }: MemberPanelProps) {
   return (
     <aside
       aria-label="채널 멤버"
-      className={cn('bg-surface w-60 shrink-0 overflow-y-auto p-2', className)}
+      className={cn('w-60 shrink-0 overflow-y-auto bg-surface p-2', className)}
     >
       <QueryBoundary
         loadingFallback={MEMBER_SKELETON}
@@ -79,7 +79,7 @@ function MemberList({ channelId }: { channelId: number }) {
   return (
     <>
       {users.length === 0 && (
-        <p className="typography-subtext-medium text-on-surface-variant px-2 py-4">
+        <p className="px-2 py-4 typography-subtext-medium text-on-surface-variant">
           표시할 멤버가 없습니다
         </p>
       )}
@@ -101,7 +101,7 @@ function MemberSection({ label, users, dimmed }: MemberSectionProps) {
 
   return (
     <section>
-      <h3 className="typography-subtext-small text-on-surface-variant flex h-8 items-center px-2">
+      <h3 className="flex h-8 items-center px-2 typography-subtext-small text-on-surface-variant">
         {label} — {users.length}
       </h3>
       <ul className="flex flex-col">
@@ -109,12 +109,12 @@ function MemberSection({ label, users, dimmed }: MemberSectionProps) {
           <li
             key={user.id}
             className={cn(
-              'hover:bg-surface-container flex h-11 items-center gap-2.5 rounded-lg px-2',
+              'flex h-11 items-center gap-2.5 rounded-lg px-2 hover:bg-surface-container',
               dimmed && 'opacity-50',
             )}
           >
             <UserAvatar user={user} size={32} />
-            <span className="typography-label-x-small text-on-surface min-w-0 flex-1 truncate">
+            <span className="min-w-0 flex-1 truncate typography-label-x-small text-on-surface">
               {user.nickname ?? user.name}
             </span>
           </li>

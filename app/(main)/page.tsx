@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { type FallbackProps } from "react-error-boundary";
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { type FallbackProps } from 'react-error-boundary';
 
-import { teamQueries } from "@/entities/team/api/team-queries";
-import { teamPath } from "@/shared/model/paths";
-import { Button } from "@/shared/ui/button";
-import { EmptyState } from "@/shared/ui/empty-state";
-import { ErrorState } from "@/shared/ui/error-state";
-import { UsersIcon } from "@/shared/ui/icons/users-icon";
-import { LoadingPane } from "@/shared/ui/loading-pane";
-import { QueryBoundary } from "@/shared/ui/query-boundary";
+import { teamQueries } from '@/entities/team/api/team-queries';
+import { teamPath } from '@/shared/model/paths';
+import { Button } from '@/shared/ui/button';
+import { EmptyState } from '@/shared/ui/empty-state';
+import { ErrorState } from '@/shared/ui/error-state';
+import { UsersIcon } from '@/shared/ui/icons/users-icon';
+import { LoadingPane } from '@/shared/ui/loading-pane';
+import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 function HomeError({ resetErrorBoundary }: FallbackProps) {
   return (
@@ -32,7 +32,7 @@ function HomeError({ resetErrorBoundary }: FallbackProps) {
 
 export default function Home() {
   return (
-    <div className="bg-background flex flex-1 items-center justify-center p-6">
+    <div className="flex flex-1 items-center justify-center bg-background p-6">
       <QueryBoundary
         loadingFallback={<LoadingPane label="팀을 불러오는 중…" />}
         errorFallback={HomeError}

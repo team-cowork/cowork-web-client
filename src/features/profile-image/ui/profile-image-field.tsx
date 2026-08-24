@@ -46,7 +46,12 @@ export function ProfileImageField({ user }: ProfileImageFieldProps) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-[18px]">
-        <UserAvatar user={user} size={80} ringClassName="ring-surface" loading="eager" />
+        <UserAvatar
+          user={user}
+          size={80}
+          ringClassName="ring-surface"
+          loading="eager"
+        />
         <div className="flex flex-col gap-2">
           <div className="flex gap-2.5">
             <Button
@@ -65,14 +70,15 @@ export function ProfileImageField({ user }: ProfileImageFieldProps) {
               disabled={pending || !user.profile_image_url}
               onClick={() =>
                 remove.mutate(undefined, {
-                  onError: () => setError('이미지를 지우지 못했어요. 다시 시도해 주세요.'),
+                  onError: () =>
+                    setError('이미지를 지우지 못했어요. 다시 시도해 주세요.'),
                 })
               }
             >
               제거
             </Button>
           </div>
-          <p className="text-on-surface-variant typography-subtext-small">
+          <p className="typography-subtext-small text-on-surface-variant">
             JPG·PNG, 최대 5MB
           </p>
         </div>
@@ -84,7 +90,7 @@ export function ProfileImageField({ user }: ProfileImageFieldProps) {
         onChange={handleChange}
         className="hidden"
       />
-      {error && <p className="text-error typography-subtext-medium">{error}</p>}
+      {error && <p className="typography-subtext-medium text-error">{error}</p>}
     </div>
   );
 }

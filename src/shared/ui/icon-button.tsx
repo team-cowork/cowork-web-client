@@ -15,7 +15,8 @@ const iconButton = cva(
       },
       variant: {
         fill: 'bg-primary text-on-primary hover:opacity-90',
-        border: 'border border-outline text-on-surface hover:bg-surface-variant',
+        border:
+          'border border-outline text-on-surface hover:bg-surface-variant',
         clear: 'text-on-surface hover:bg-surface-variant',
       },
     },
@@ -24,7 +25,9 @@ const iconButton = cva(
 );
 
 export interface IconButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof iconButton> {
+  extends
+    ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof iconButton> {
   'aria-label': string;
   ref?: Ref<HTMLButtonElement>;
 }

@@ -1,4 +1,4 @@
-import { Icon, type IconProps } from "@/shared/ui/icons/icon";
+import { Icon, type IconProps } from '@/shared/ui/icons/icon';
 
 export const SearchIcon = (p: IconProps) => (
   <Icon {...p}>

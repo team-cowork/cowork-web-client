@@ -59,7 +59,13 @@ export default function ChannelPage() {
   );
 }
 
-function ChannelView({ teamId, channelId }: { teamId: number; channelId: number }) {
+function ChannelView({
+  teamId,
+  channelId,
+}: {
+  teamId: number;
+  channelId: number;
+}) {
   const [membersOpen, setMembersOpen] = useState(true);
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
 
@@ -71,10 +77,14 @@ function ChannelView({ teamId, channelId }: { teamId: number; channelId: number 
 
   return (
     <div className="flex min-w-0 flex-1">
-      <div className="bg-background flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col bg-background">
         <ChannelHeader
           channel={channel}
-          meta={isVoice ? <VoiceParticipantBadge channelId={channelId} /> : undefined}
+          meta={
+            isVoice ? (
+              <VoiceParticipantBadge channelId={channelId} />
+            ) : undefined
+          }
           onToggleMembers={() => setMembersOpen((prev) => !prev)}
         />
 

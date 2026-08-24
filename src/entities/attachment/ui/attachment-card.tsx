@@ -12,27 +12,39 @@ export interface AttachmentCardProps {
   className?: string;
 }
 
-export function AttachmentCard({ name, meta, icon, onRemove, className }: AttachmentCardProps) {
+export function AttachmentCard({
+  name,
+  meta,
+  icon,
+  onRemove,
+  className,
+}: AttachmentCardProps) {
   return (
     <div
       className={cn(
-        'border-outline-variant bg-surface flex items-center gap-[14px] rounded-[16px] border p-[14px]',
+        'flex items-center gap-[14px] rounded-[16px] border border-outline-variant bg-surface p-[14px]',
         className,
       )}
     >
-      <span className="bg-tertiary-container text-on-tertiary-container flex size-12 shrink-0 items-center justify-center rounded-xl [&_svg]:size-6">
+      <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-tertiary-container text-on-tertiary-container [&_svg]:size-6">
         {icon ?? <FileIcon />}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="typography-label-small text-on-surface truncate">{name}</p>
-        {meta && <p className="typography-subtext-medium text-on-surface-variant">{meta}</p>}
+        <p className="truncate typography-label-small text-on-surface">
+          {name}
+        </p>
+        {meta && (
+          <p className="typography-subtext-medium text-on-surface-variant">
+            {meta}
+          </p>
+        )}
       </div>
       {onRemove && (
         <button
           type="button"
           onClick={onRemove}
           aria-label="첨부 삭제"
-          className="text-on-surface-variant hover:bg-surface-variant hover:text-on-surface shrink-0 cursor-pointer rounded-md p-1"
+          className="shrink-0 cursor-pointer rounded-md p-1 text-on-surface-variant hover:bg-surface-variant hover:text-on-surface"
         >
           <CloseIcon className="size-4" />
         </button>

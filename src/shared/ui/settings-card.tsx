@@ -8,12 +8,21 @@ export interface SettingsCardProps {
   className?: string;
 }
 
-export function SettingsCard({ title, children, className }: SettingsCardProps) {
+export function SettingsCard({
+  title,
+  children,
+  className,
+}: SettingsCardProps) {
   return (
     <section
-      className={cn('bg-surface flex flex-col gap-3.5 rounded-[14px] px-5 pt-4 pb-[18px]', className)}
+      className={cn(
+        'flex flex-col gap-3.5 rounded-[14px] bg-surface px-5 pt-4 pb-[18px]',
+        className,
+      )}
     >
-      <h2 className="text-on-surface-variant text-[0.875rem] font-semibold">{title}</h2>
+      <h2 className="text-[0.875rem] font-semibold text-on-surface-variant">
+        {title}
+      </h2>
       {children}
     </section>
   );

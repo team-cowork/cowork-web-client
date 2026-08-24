@@ -57,10 +57,20 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
       }));
 
   const userIds = Array.from(
-    new Set(stage.map((participant) => participant.userId).filter((id) => id !== null)),
+    new Set(
+      stage
+        .map((participant) => participant.userId)
+        .filter((id) => id !== null),
+    ),
   );
-  const users = useQueries({ queries: userIds.map((userId) => userQueries.detail(userId)) });
-  const userById = new Map(users.flatMap((result) => (result.data ? [[result.data.id, result.data]] : [])));
+  const users = useQueries({
+    queries: userIds.map((userId) => userQueries.detail(userId)),
+  });
+  const userById = new Map(
+    users.flatMap((result) =>
+      result.data ? [[result.data.id, result.data]] : [],
+    ),
+  );
 
   const showPreviewPending = !isConnected && preview.isPending;
   const showPreviewError = !isConnected && preview.isError;
@@ -85,7 +95,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
           <ul className="flex w-225 max-w-full flex-wrap items-center justify-center gap-5">
             {Array.from({ length: 3 }, (_, index) => (
               <li key={index}>
-                <span className="bg-surface-container block h-49 w-70 animate-pulse rounded-2xl" />
+                <span className="block h-49 w-70 animate-pulse rounded-2xl bg-surface-container" />
               </li>
             ))}
           </ul>
@@ -117,8 +127,16 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
             {stage.map((participant) => (
               <li key={participant.key}>
                 <VoiceParticipantCard
-                  user={participant.userId === null ? undefined : userById.get(participant.userId)}
-                  fallbackName={participant.userId === null ? participant.key : `#${participant.userId}`}
+                  user={
+                    participant.userId === null
+                      ? undefined
+                      : userById.get(participant.userId)
+                  }
+                  fallbackName={
+                    participant.userId === null
+                      ? participant.key
+                      : `#${participant.userId}`
+                  }
                   speaking={participant.speaking}
                   muted={participant.muted}
                 />
@@ -137,7 +155,8 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
 
         {isBusyElsewhere && (
           <p className="typography-subtext-medium text-on-surface-variant">
-            다른 채널의 음성에 연결되어 있습니다. 참여하면 기존 연결이 종료됩니다.
+            다른 채널의 음성에 연결되어 있습니다. 참여하면 기존 연결이
+            종료됩니다.
           </p>
         )}
 

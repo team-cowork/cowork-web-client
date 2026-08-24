@@ -15,7 +15,14 @@ export interface ModalProps {
   className?: string;
 }
 
-export function Modal({ open, onClose, title, children, footer, className }: ModalProps) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  footer,
+  className,
+}: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -37,24 +44,26 @@ export function Modal({ open, onClose, title, children, footer, className }: Mod
         if (e.target === ref.current) onClose();
       }}
       className={cn(
-        'bg-surface text-on-surface m-auto w-[480px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[20px] backdrop:bg-black/55',
+        'm-auto w-[480px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[20px] bg-surface text-on-surface backdrop:bg-black/55',
         className,
       )}
     >
-      <div className="border-outline-variant flex items-center justify-between border-b py-[18px] pr-5 pl-6">
+      <div className="flex items-center justify-between border-b border-outline-variant py-[18px] pr-5 pl-6">
         <h2 className="typography-title-small text-on-surface">{title}</h2>
         <button
           type="button"
           aria-label="닫기"
           onClick={onClose}
-          className="text-on-surface-variant hover:text-on-surface flex size-6 cursor-pointer items-center justify-center"
+          className="flex size-6 cursor-pointer items-center justify-center text-on-surface-variant hover:text-on-surface"
         >
           <CloseIcon className="size-5" />
         </button>
       </div>
-      {children && <div className="flex flex-col gap-3 px-6 py-5">{children}</div>}
+      {children && (
+        <div className="flex flex-col gap-3 px-6 py-5">{children}</div>
+      )}
       {footer && (
-        <div className="border-outline-variant flex justify-end gap-2.5 border-t px-6 pt-4 pb-5">
+        <div className="flex justify-end gap-2.5 border-t border-outline-variant px-6 pt-4 pb-5">
           {footer}
         </div>
       )}

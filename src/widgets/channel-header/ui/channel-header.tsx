@@ -17,23 +17,36 @@ export interface ChannelHeaderProps {
   className?: string;
 }
 
-export function ChannelHeader({ channel, meta, onToggleMembers, className }: ChannelHeaderProps) {
+export function ChannelHeader({
+  channel,
+  meta,
+  onToggleMembers,
+  className,
+}: ChannelHeaderProps) {
   return (
-    <header className={cn('flex h-12 shrink-0 items-center gap-2 px-4', className)}>
+    <header
+      className={cn('flex h-12 shrink-0 items-center gap-2 px-4', className)}
+    >
       <ChannelIcon
         viewType={channel.viewType}
         size={22}
-        className="text-on-surface-variant shrink-0"
+        className="shrink-0 text-on-surface-variant"
       />
-      <h1 className="typography-label-small text-on-surface shrink-0">{channel.name}</h1>
+      <h1 className="shrink-0 typography-label-small text-on-surface">
+        {channel.name}
+      </h1>
       {channel.isPrivate && (
-        <LockIcon size={14} className="text-on-surface-variant shrink-0" aria-label="비공개 채널" />
+        <LockIcon
+          size={14}
+          className="shrink-0 text-on-surface-variant"
+          aria-label="비공개 채널"
+        />
       )}
 
       {channel.description && (
         <>
-          <span aria-hidden className="bg-outline-variant h-5 w-px shrink-0" />
-          <p className="typography-subtext-medium text-on-surface-variant min-w-0 truncate">
+          <span aria-hidden className="h-5 w-px shrink-0 bg-outline-variant" />
+          <p className="min-w-0 truncate typography-subtext-medium text-on-surface-variant">
             {channel.description}
           </p>
         </>
@@ -54,7 +67,7 @@ export function ChannelHeader({ channel, meta, onToggleMembers, className }: Cha
           type="button"
           aria-label="멤버 목록"
           onClick={onToggleMembers}
-          className="text-on-surface-variant hover:text-on-surface cursor-pointer"
+          className="cursor-pointer text-on-surface-variant hover:text-on-surface"
         >
           <UsersIcon size={20} />
         </button>

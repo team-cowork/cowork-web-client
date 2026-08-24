@@ -1,6 +1,11 @@
 'use client';
 
-import { Suspense, useSyncExternalStore, type ComponentType, type ReactNode } from 'react';
+import {
+  Suspense,
+  useSyncExternalStore,
+  type ComponentType,
+  type ReactNode,
+} from 'react';
 
 import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
@@ -32,7 +37,11 @@ export function QueryBoundary({
   if (!isMounted) return loadingFallback;
 
   return (
-    <ErrorBoundary onReset={reset} FallbackComponent={errorFallback} resetKeys={resetKeys}>
+    <ErrorBoundary
+      onReset={reset}
+      FallbackComponent={errorFallback}
+      resetKeys={resetKeys}
+    >
       <Suspense fallback={loadingFallback}>{children}</Suspense>
     </ErrorBoundary>
   );
