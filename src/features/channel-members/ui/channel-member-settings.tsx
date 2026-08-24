@@ -9,7 +9,10 @@ import { useRemoveChannelMember } from '@/features/channel-members/model/use-rem
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { teamQueries } from '@/entities/team/api/team-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
-import { type User } from '@/entities/user/model/user';
+import {
+  matchesUserKeyword,
+  userDisplayName,
+} from '@/entities/user/lib/user-display';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
@@ -17,11 +20,6 @@ import { UsersIcon } from '@/shared/ui/icons/users-icon';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 import { SettingsCard } from '@/shared/ui/settings-card';
 import { TextField } from '@/shared/ui/text-field';
-
-function memberDisplayName(userId: number, user: User | undefined): string {
-  if (user) return user.nickname ?? user.name;
-  return `사용자 #${userId}`;
-}
 
 const MEMBER_LIST_SKELETON = (
   <ul className="flex flex-col gap-1">
@@ -94,15 +92,13 @@ function ChannelMemberList({
     channelMembers.map((member) => [member.userId, member.id]),
   );
 
-  const trimmedKeyword = keyword.trim().toLowerCase();
-  const visibleMembers = trimmedKeyword
-    ? teamMembers.filter((member) => {
-        const user = usersByUserId.get(member.userId);
-        return memberDisplayName(member.userId, user)
-          .toLowerCase()
-          .includes(trimmedKeyword);
-      })
-    : teamMembers;
+  const visibleMembers = teamMembers.filter((member) =>
+    matchesUserKeyword(
+      member.userId,
+      usersByUserId.get(member.userId),
+      keyword,
+    ),
+  );
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -118,7 +114,7 @@ function ChannelMemberList({
         <ul className="flex flex-col gap-1">
           {visibleMembers.map((member) => {
             const user = usersByUserId.get(member.userId);
-            const name = memberDisplayName(member.userId, user);
+            const name = userDisplayName(member.userId, user);
             const channelMemberId = channelMemberIdByUserId.get(member.userId);
 
             return (

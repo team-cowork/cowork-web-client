@@ -7,18 +7,16 @@ import { useQueries, useQuery } from '@tanstack/react-query';
 import { useAssignTeamRole } from '@/features/team-roles/model/use-assign-team-role';
 import { useUnassignTeamRole } from '@/features/team-roles/model/use-unassign-team-role';
 import { teamQueries } from '@/entities/team/api/team-queries';
-import { type TeamMember, type TeamRole } from '@/entities/team/model/team';
+import { type TeamRole } from '@/entities/team/model/team';
 import { userQueries } from '@/entities/user/api/user-queries';
-import { type User } from '@/entities/user/model/user';
+import {
+  matchesUserKeyword,
+  userDisplayName,
+} from '@/entities/user/lib/user-display';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { UsersIcon } from '@/shared/ui/icons/users-icon';
 import { TextField } from '@/shared/ui/text-field';
-
-function memberDisplayName(member: TeamMember, user: User | undefined): string {
-  if (user) return user.nickname ?? user.name;
-  return `사용자 #${member.userId}`;
-}
 
 export interface TeamRoleMembersTabProps {
   teamId: number;
@@ -44,15 +42,13 @@ export function TeamRoleMembersTab({ teamId, role }: TeamRoleMembersTabProps) {
       .map((member) => member.userId),
   );
 
-  const trimmedKeyword = keyword.trim().toLowerCase();
-  const visibleMembers = trimmedKeyword
-    ? members.filter((member) => {
-        const user = usersByUserId.get(member.userId);
-        return memberDisplayName(member, user)
-          .toLowerCase()
-          .includes(trimmedKeyword);
-      })
-    : members;
+  const visibleMembers = members.filter((member) =>
+    matchesUserKeyword(
+      member.userId,
+      usersByUserId.get(member.userId),
+      keyword,
+    ),
+  );
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -68,7 +64,7 @@ export function TeamRoleMembersTab({ teamId, role }: TeamRoleMembersTabProps) {
         <ul className="flex flex-col gap-1">
           {visibleMembers.map((member) => {
             const user = usersByUserId.get(member.userId);
-            const name = memberDisplayName(member, user);
+            const name = userDisplayName(member.userId, user);
             const hasRole = holderIds.has(member.userId);
 
             return (
