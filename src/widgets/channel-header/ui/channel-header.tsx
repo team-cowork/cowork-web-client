@@ -2,12 +2,15 @@
 
 import { type ReactNode } from 'react';
 
-import { ChannelSettingsMenu } from '@/features/channel-settings/ui/channel-settings-menu';
+import Link from 'next/link';
+
 import { type Channel } from '@/entities/channel/model/channel';
 import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
 import { cn } from '@/shared/lib/cn';
+import { channelSettingsOverviewPath } from '@/shared/model/paths';
 import { LockIcon } from '@/shared/ui/icons/lock-icon';
 import { SearchIcon } from '@/shared/ui/icons/search-icon';
+import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 import { UsersIcon } from '@/shared/ui/icons/users-icon';
 
 export interface ChannelHeaderProps {
@@ -73,7 +76,13 @@ export function ChannelHeader({
         >
           <UsersIcon size={20} />
         </button>
-        <ChannelSettingsMenu teamId={teamId} channel={channel} />
+        <Link
+          href={channelSettingsOverviewPath(teamId, channel.id)}
+          aria-label="채널 설정"
+          className="text-on-surface-variant hover:text-on-surface"
+        >
+          <SettingsIcon size={20} />
+        </Link>
       </div>
     </header>
   );
