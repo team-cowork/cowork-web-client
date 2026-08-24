@@ -68,6 +68,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const roomRef = useRef<Room | null>(null);
   const audioEnabledRef = useRef(true);
+  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
 
   const [channelId, setChannelId] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -82,6 +83,14 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     setSessionId(null);
     setStatus('idle');
     setParticipants([]);
+  }, []);
+
+  const runExclusive = useCallback((task: () => Promise<void>) => {
+    const run = queueRef.current.then(task, task);
+
+    queueRef.current = run.catch(() => undefined);
+
+    return run;
   }, []);
 
   const disconnect = useCallback(async () => {
@@ -102,7 +111,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     }
   }, [channelId, queryClient, reset]);
 
-  const join = useCallback(
+  const joinChannel = useCallback(
     async (nextChannelId: number) => {
       if (roomRef.current) await disconnect();
 
@@ -162,6 +171,13 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     [disconnect, micEnabled, queryClient, reset],
   );
 
+  const join = useCallback(
+    (nextChannelId: number) => runExclusive(() => joinChannel(nextChannelId)),
+    [joinChannel, runExclusive],
+  );
+
+  const leave = useCallback(() => runExclusive(disconnect), [disconnect, runExclusive]);
+
   const toggleMic = useCallback(async () => {
     const room = roomRef.current;
     const next = !micEnabled;
@@ -203,15 +219,15 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       micEnabled,
       audioEnabled,
       join,
-      leave: disconnect,
+      leave,
       toggleMic,
       toggleAudio,
     }),
     [
       audioEnabled,
       channelId,
-      disconnect,
       join,
+      leave,
       micEnabled,
       participants,
       sessionId,
