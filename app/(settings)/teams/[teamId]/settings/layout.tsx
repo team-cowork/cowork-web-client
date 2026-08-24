@@ -2,7 +2,7 @@
 
 import { type ReactNode } from 'react';
 
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, usePathname, useRouter } from 'next/navigation';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -12,12 +12,15 @@ import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { teamPath } from '@/shared/model/paths';
 import { CloseIcon } from '@/shared/ui/icons/close-icon';
 
+const ROLE_DETAIL_PATH = /\/settings\/roles\/\d+$/;
+
 export default function TeamSettingsLayout({
   children,
 }: {
   children: ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { teamId } = useRouteIds();
   const { data: team } = useQuery({
     ...teamQueries.detail(teamId ?? 0),
@@ -26,12 +29,20 @@ export default function TeamSettingsLayout({
 
   if (teamId === null) notFound();
 
+  const isRoleDetail = ROLE_DETAIL_PATH.test(pathname);
+
   return (
     <div className="flex min-h-screen bg-surface-container-low">
-      <TeamSettingsNav teamId={teamId} teamName={team?.name ?? ''} />
+      {!isRoleDetail && (
+        <TeamSettingsNav teamId={teamId} teamName={team?.name ?? ''} />
+      )}
 
       <div className="relative flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-2xl px-10 py-12">{children}</div>
+        {isRoleDetail ? (
+          children
+        ) : (
+          <div className="mx-auto w-full max-w-2xl px-10 py-12">{children}</div>
+        )}
 
         <button
           type="button"

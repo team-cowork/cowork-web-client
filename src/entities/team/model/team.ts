@@ -14,6 +14,8 @@ export function toTeamMemberRole(role: string): TeamMemberRole | null {
   return TEAM_MEMBER_ROLES.find((candidate) => candidate === role) ?? null;
 }
 
+export const DEFAULT_ROLE_COLOR_HEX = '#5865F2';
+
 export const INVITE_DURATIONS = ['1d', '7d', '30d', 'never'] as const;
 
 export type InviteDuration = (typeof INVITE_DURATIONS)[number];
