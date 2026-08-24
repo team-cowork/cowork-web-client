@@ -2,15 +2,16 @@
 
 import { type ReactNode } from 'react';
 
+import { ChannelSettingsMenu } from '@/features/channel-settings/ui/channel-settings-menu';
 import { type Channel } from '@/entities/channel/model/channel';
 import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
 import { cn } from '@/shared/lib/cn';
 import { LockIcon } from '@/shared/ui/icons/lock-icon';
-import { MoreIcon } from '@/shared/ui/icons/more-icon';
 import { SearchIcon } from '@/shared/ui/icons/search-icon';
 import { UsersIcon } from '@/shared/ui/icons/users-icon';
 
 export interface ChannelHeaderProps {
+  teamId: number;
   channel: Channel;
   meta?: ReactNode;
   onToggleMembers?: () => void;
@@ -18,6 +19,7 @@ export interface ChannelHeaderProps {
 }
 
 export function ChannelHeader({
+  teamId,
   channel,
   meta,
   onToggleMembers,
@@ -71,14 +73,7 @@ export function ChannelHeader({
         >
           <UsersIcon size={20} />
         </button>
-        <button
-          type="button"
-          aria-label="채널 설정"
-          disabled
-          className="text-on-surface-variant disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <MoreIcon size={20} />
-        </button>
+        <ChannelSettingsMenu teamId={teamId} channel={channel} />
       </div>
     </header>
   );
