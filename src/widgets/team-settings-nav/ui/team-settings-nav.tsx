@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/shared/lib/cn';
 import {
   teamSettingsInvitesPath,
+  teamSettingsMembersPath,
   teamSettingsProfilePath,
 } from '@/shared/model/paths';
 
@@ -28,6 +29,7 @@ export function TeamSettingsNav({
   const pathname = usePathname();
   const sections: SettingsNavSection[] = [
     { label: '프로필', href: teamSettingsProfilePath(teamId) },
+    { label: '멤버', href: teamSettingsMembersPath(teamId) },
     { label: '초대 링크', href: teamSettingsInvitesPath(teamId) },
   ];
 
