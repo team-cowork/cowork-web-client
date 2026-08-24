@@ -109,10 +109,10 @@ function TeamMemberList({ teamId }: { teamId: number }) {
                 targetUserId={member.userId}
                 role={role}
               />
-              {isMe ? (
-                <LeaveTeamButton teamId={teamId} myUserId={member.userId} />
-              ) : (
-                role !== 'OWNER' && (
+              {role !== 'OWNER' &&
+                (isMe ? (
+                  <LeaveTeamButton teamId={teamId} myUserId={member.userId} />
+                ) : (
                   <RemoveTeamMemberButton
                     teamId={teamId}
                     targetUserId={member.userId}
@@ -122,8 +122,7 @@ function TeamMemberList({ teamId }: { teamId: number }) {
                         : `사용자 #${member.userId}`
                     }
                   />
-                )
-              )}
+                ))}
             </div>
           </li>
         );
