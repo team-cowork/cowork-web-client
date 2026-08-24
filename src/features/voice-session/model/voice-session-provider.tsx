@@ -69,6 +69,8 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const roomRef = useRef<Room | null>(null);
   const audioEnabledRef = useRef(true);
   const queueRef = useRef<Promise<unknown>>(Promise.resolve());
+  const channelIdRef = useRef<number | null>(null);
+  const generationRef = useRef(0);
 
   const [channelId, setChannelId] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -78,7 +80,9 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const [audioEnabled, setAudioEnabled] = useState(true);
 
   const reset = useCallback(() => {
+    generationRef.current += 1;
     roomRef.current = null;
+    channelIdRef.current = null;
     setChannelId(null);
     setSessionId(null);
     setStatus('idle');
@@ -93,30 +97,41 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     return run;
   }, []);
 
+  const notifyLeave = useCallback(
+    async (leftChannelId: number) => {
+      try {
+        await postVoiceLeave(leftChannelId);
+      } finally {
+        await queryClient.invalidateQueries({
+          queryKey: voiceQueries.participants(leftChannelId).queryKey,
+        });
+      }
+    },
+    [queryClient],
+  );
+
   const disconnect = useCallback(async () => {
     const room = roomRef.current;
-    const currentChannelId = channelId;
+    const currentChannelId = channelIdRef.current;
 
     reset();
 
     if (room) await room.disconnect();
     if (currentChannelId === null) return;
 
-    try {
-      await postVoiceLeave(currentChannelId);
-    } finally {
-      await queryClient.invalidateQueries({
-        queryKey: voiceQueries.participants(currentChannelId).queryKey,
-      });
-    }
-  }, [channelId, queryClient, reset]);
+    await notifyLeave(currentChannelId);
+  }, [notifyLeave, reset]);
 
   const joinChannel = useCallback(
     async (nextChannelId: number) => {
-      if (roomRef.current) await disconnect();
+      if (roomRef.current || channelIdRef.current !== null) await disconnect();
 
+      channelIdRef.current = nextChannelId;
       setStatus('connecting');
       setChannelId(nextChannelId);
+
+      const generation = generationRef.current;
+      const isCurrent = () => generationRef.current === generation;
 
       let room: Room | null = null;
       let sessionStarted = false;
@@ -128,7 +143,9 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
 
         room = new Room({ adaptiveStream: true, dynacast: true });
         const boundRoom = room;
-        const sync = () => setParticipants(toRoomParticipants(boundRoom));
+        const sync = () => {
+          if (isCurrent()) setParticipants(toRoomParticipants(boundRoom));
+        };
 
         room
           .on(RoomEvent.ParticipantConnected, () => {
@@ -142,8 +159,13 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
           .on(RoomEvent.LocalTrackPublished, sync)
           .on(RoomEvent.LocalTrackUnpublished, sync)
           .on(RoomEvent.Disconnected, () => {
-            roomRef.current = null;
+            if (!isCurrent()) return;
+
+            const leftChannelId = channelIdRef.current;
+
             reset();
+
+            if (leftChannelId !== null) void notifyLeave(leftChannelId).catch(() => undefined);
           });
 
         await room.connect(session.livekit_url, session.token);
@@ -166,20 +188,16 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
           queryKey: voiceQueries.participants(nextChannelId).queryKey,
         });
       } catch (error) {
-        await room?.disconnect();
         reset();
 
-        if (sessionStarted) {
-          await postVoiceLeave(nextChannelId).catch(() => undefined);
-          await queryClient.invalidateQueries({
-            queryKey: voiceQueries.participants(nextChannelId).queryKey,
-          });
-        }
+        await room?.disconnect();
+
+        if (sessionStarted) await notifyLeave(nextChannelId).catch(() => undefined);
 
         throw error;
       }
     },
-    [disconnect, micEnabled, queryClient, reset],
+    [disconnect, micEnabled, notifyLeave, queryClient, reset],
   );
 
   const join = useCallback(
