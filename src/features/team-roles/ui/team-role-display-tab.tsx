@@ -2,70 +2,46 @@
 
 import { type SyntheticEvent, useState } from 'react';
 
-import { useCreateTeamRole } from '@/features/team-roles/model/use-create-team-role';
+import { useUpdateTeamRole } from '@/features/team-roles/model/use-update-team-role';
+import { type TeamRole } from '@/entities/team/model/team';
 import { Button } from '@/shared/ui/button';
-import { Modal } from '@/shared/ui/modal';
 import { SettingRow } from '@/shared/ui/setting-row';
 import { Switch } from '@/shared/ui/switch';
 import { TextField } from '@/shared/ui/text-field';
 
-const DEFAULT_COLOR_HEX = '#5865F2';
-
-export interface CreateTeamRoleModalProps {
-  open: boolean;
+export interface TeamRoleDisplayTabProps {
   teamId: number;
-  onClose: () => void;
+  role: TeamRole;
 }
 
-export function CreateTeamRoleModal({
-  open,
-  teamId,
-  onClose,
-}: CreateTeamRoleModalProps) {
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="역할 만들기"
-      className="w-[520px]"
-    >
-      {open ? (
-        <CreateTeamRoleForm teamId={teamId} onClose={onClose} />
-      ) : undefined}
-    </Modal>
-  );
-}
+export function TeamRoleDisplayTab({ teamId, role }: TeamRoleDisplayTabProps) {
+  const [name, setName] = useState(role.name);
+  const [colorHex, setColorHex] = useState(role.colorHex);
+  const [mentionable, setMentionable] = useState(role.mentionable);
 
-function CreateTeamRoleForm({
-  teamId,
-  onClose,
-}: {
-  teamId: number;
-  onClose: () => void;
-}) {
-  const [name, setName] = useState('');
-  const [colorHex, setColorHex] = useState(DEFAULT_COLOR_HEX);
-  const [mentionable, setMentionable] = useState(false);
-
-  const createRole = useCreateTeamRole(teamId);
+  const updateRole = useUpdateTeamRole(teamId);
 
   const trimmedName = name.trim();
-  const canSubmit = trimmedName.length > 0 && !createRole.isPending;
+  const dirty =
+    trimmedName !== role.name ||
+    colorHex !== role.colorHex ||
+    mentionable !== role.mentionable;
+  const canSubmit = trimmedName.length > 0 && dirty && !updateRole.isPending;
 
   const handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
     if (!canSubmit) return;
 
-    createRole.mutate(
-      {
-        name: trimmedName,
-        colorHex,
-        priority: 0,
-        mentionable,
-        permissions: [],
-      },
-      { onSuccess: onClose },
-    );
+    updateRole.mutate({
+      roleId: role.id,
+      request: { name: trimmedName, colorHex, mentionable },
+    });
+  };
+
+  const handleReset = () => {
+    setName(role.name);
+    setColorHex(role.colorHex);
+    setMentionable(role.mentionable);
   };
 
   return (
@@ -75,9 +51,7 @@ function CreateTeamRoleForm({
           label="역할 이름"
           value={name}
           onChange={(event) => setName(event.target.value)}
-          placeholder="새 역할"
           maxLength={50}
-          autoFocus
           className="flex-1"
         />
         <div className="flex flex-col gap-2">
@@ -108,9 +82,9 @@ function CreateTeamRoleForm({
         <Switch checked={mentionable} onCheckedChange={setMentionable} />
       </SettingRow>
 
-      {createRole.isError && (
+      {updateRole.isError && (
         <p className="typography-subtext-medium text-error">
-          역할을 만들지 못했어요. 다시 시도해 주세요.
+          저장하지 못했어요. 다시 시도해 주세요.
         </p>
       )}
 
@@ -119,13 +93,13 @@ function CreateTeamRoleForm({
           type="button"
           variant="weak"
           color="neutral"
-          disabled={createRole.isPending}
-          onClick={onClose}
+          disabled={!dirty || updateRole.isPending}
+          onClick={handleReset}
         >
           취소
         </Button>
         <Button type="submit" disabled={!canSubmit}>
-          {createRole.isPending ? '만드는 중…' : '만들기'}
+          {updateRole.isPending ? '저장하는 중…' : '저장'}
         </Button>
       </div>
     </form>
