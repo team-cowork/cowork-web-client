@@ -37,7 +37,7 @@ export function CreateChannelModal({
       open={open}
       onClose={onClose}
       title="채널 만들기"
-      className="w-[520px]"
+      className="max-h-[85vh] w-[520px] overflow-y-auto"
     >
       {open ? (
         <CreateChannelForm teamId={teamId} onClose={onClose} />
