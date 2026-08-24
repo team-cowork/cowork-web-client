@@ -19,3 +19,7 @@ export function teamSettingsProfilePath(teamId: number): string {
 export function teamSettingsInvitesPath(teamId: number): string {
   return `/teams/${teamId}/settings/invites`;
 }
+
+export function teamSettingsMembersPath(teamId: number): string {
+  return `/teams/${teamId}/settings/members`;
+}
