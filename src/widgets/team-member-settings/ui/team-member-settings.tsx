@@ -2,6 +2,7 @@
 
 import { useQueries, useSuspenseQuery } from '@tanstack/react-query';
 
+import { RemoveTeamMemberButton } from '@/features/team-members/ui/remove-team-member-button';
 import { TeamMemberRoleMenu } from '@/features/team-members/ui/team-member-role-menu';
 import { teamQueries } from '@/entities/team/api/team-queries';
 import { toTeamMemberRole } from '@/entities/team/model/team';
@@ -105,6 +106,17 @@ function TeamMemberList({ teamId }: { teamId: number }) {
                 targetUserId={member.userId}
                 role={role}
               />
+              {role !== 'OWNER' && (
+                <RemoveTeamMemberButton
+                  teamId={teamId}
+                  targetUserId={member.userId}
+                  memberName={
+                    user
+                      ? (user.nickname ?? user.name)
+                      : `사용자 #${member.userId}`
+                  }
+                />
+              )}
             </div>
           </li>
         );
