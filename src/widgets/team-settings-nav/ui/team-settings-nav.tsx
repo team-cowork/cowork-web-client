@@ -8,6 +8,7 @@ import {
   teamSettingsInvitesPath,
   teamSettingsMembersPath,
   teamSettingsProfilePath,
+  teamSettingsRolesPath,
 } from '@/shared/model/paths';
 
 interface SettingsNavSection {
@@ -30,6 +31,7 @@ export function TeamSettingsNav({
   const sections: SettingsNavSection[] = [
     { label: '프로필', href: teamSettingsProfilePath(teamId) },
     { label: '멤버', href: teamSettingsMembersPath(teamId) },
+    { label: '역할', href: teamSettingsRolesPath(teamId) },
     { label: '초대 링크', href: teamSettingsInvitesPath(teamId) },
   ];
 
