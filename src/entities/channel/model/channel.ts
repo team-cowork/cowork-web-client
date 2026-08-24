@@ -87,3 +87,19 @@ export interface CreateChannelRequest {
   isPrivate: boolean;
   description?: string | null;
 }
+
+export interface UpdateChannelRequest {
+  name?: string | null;
+  description?: string | null;
+  isPrivate?: boolean | null;
+  projectId?: number | null;
+}
+
+export interface ReorderChannelsRequest {
+  orderedChannelIds: number[];
+}
+
+export interface SearchChannelsParams {
+  teamId: number;
+  q: string;
+}
