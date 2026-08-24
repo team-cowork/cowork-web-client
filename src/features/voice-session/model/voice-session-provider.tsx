@@ -119,9 +119,12 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       setChannelId(nextChannelId);
 
       let room: Room | null = null;
+      let sessionStarted = false;
 
       try {
         const session = await postVoiceJoin(nextChannelId);
+
+        sessionStarted = true;
 
         room = new Room({ adaptiveStream: true, dynacast: true });
         const boundRoom = room;
@@ -165,6 +168,14 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         await room?.disconnect();
         reset();
+
+        if (sessionStarted) {
+          await postVoiceLeave(nextChannelId).catch(() => undefined);
+          await queryClient.invalidateQueries({
+            queryKey: voiceQueries.participants(nextChannelId).queryKey,
+          });
+        }
+
         throw error;
       }
     },
