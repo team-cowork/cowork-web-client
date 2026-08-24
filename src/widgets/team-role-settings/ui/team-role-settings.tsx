@@ -112,10 +112,11 @@ function TeamRoleList({
               <span className="min-w-0 flex-1 truncate typography-label-small text-on-surface">
                 {role.name}
               </span>
-              <span className="shrink-0 typography-subtext-small text-on-surface-variant">
-                {role.mentionable && '멘션 가능 · '}
-                우선순위 {role.priority}
-              </span>
+              {role.mentionable && (
+                <span className="shrink-0 typography-subtext-small text-on-surface-variant">
+                  멘션 가능
+                </span>
+              )}
             </button>
           </li>
         ))}

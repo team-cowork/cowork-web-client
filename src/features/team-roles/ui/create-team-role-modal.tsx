@@ -45,16 +45,12 @@ function CreateTeamRoleForm({
 }) {
   const [name, setName] = useState('');
   const [colorHex, setColorHex] = useState(DEFAULT_COLOR_HEX);
-  const [priority, setPriority] = useState('0');
   const [mentionable, setMentionable] = useState(false);
 
   const createRole = useCreateTeamRole(teamId);
 
   const trimmedName = name.trim();
-  const priorityNumber = Number(priority);
-  const validPriority = Number.isInteger(priorityNumber);
-  const canSubmit =
-    trimmedName.length > 0 && validPriority && !createRole.isPending;
+  const canSubmit = trimmedName.length > 0 && !createRole.isPending;
 
   const handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
@@ -64,7 +60,7 @@ function CreateTeamRoleForm({
       {
         name: trimmedName,
         colorHex,
-        priority: priorityNumber,
+        priority: 0,
         mentionable,
         permissions: [],
       },
@@ -104,14 +100,6 @@ function CreateTeamRoleForm({
           </div>
         </div>
       </div>
-
-      <TextField
-        label="우선순위"
-        type="number"
-        value={priority}
-        onChange={(event) => setPriority(event.target.value)}
-        error={!validPriority ? '정수를 입력하세요' : undefined}
-      />
 
       <SettingRow
         label="멘션 허용"

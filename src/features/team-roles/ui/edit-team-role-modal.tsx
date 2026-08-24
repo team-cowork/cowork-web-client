@@ -55,7 +55,6 @@ function EditTeamRoleForm({
 }) {
   const [name, setName] = useState(role.name);
   const [colorHex, setColorHex] = useState(role.colorHex);
-  const [priority, setPriority] = useState(String(role.priority));
   const [mentionable, setMentionable] = useState(role.mentionable);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
@@ -63,15 +62,11 @@ function EditTeamRoleForm({
   const deleteRole = useDeleteTeamRole(teamId);
 
   const trimmedName = name.trim();
-  const priorityNumber = Number(priority);
-  const validPriority = Number.isInteger(priorityNumber);
   const dirty =
     trimmedName !== role.name ||
     colorHex !== role.colorHex ||
-    priorityNumber !== role.priority ||
     mentionable !== role.mentionable;
-  const canSubmit =
-    trimmedName.length > 0 && validPriority && dirty && !updateRole.isPending;
+  const canSubmit = trimmedName.length > 0 && dirty && !updateRole.isPending;
 
   const handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
@@ -82,7 +77,6 @@ function EditTeamRoleForm({
       request: {
         name: trimmedName,
         colorHex,
-        priority: priorityNumber,
         mentionable,
       },
     });
@@ -124,14 +118,6 @@ function EditTeamRoleForm({
           </div>
         </div>
 
-        <TextField
-          label="우선순위"
-          type="number"
-          value={priority}
-          onChange={(event) => setPriority(event.target.value)}
-          error={!validPriority ? '정수를 입력하세요' : undefined}
-        />
-
         <SettingRow
           label="멘션 허용"
           description="이 역할을 멘션으로 호출할 수 있게 해요"
@@ -164,7 +150,6 @@ function EditTeamRoleForm({
               onClick={() => {
                 setName(role.name);
                 setColorHex(role.colorHex);
-                setPriority(String(role.priority));
                 setMentionable(role.mentionable);
               }}
             >
