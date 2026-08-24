@@ -49,6 +49,7 @@ export function ChannelListItem({
         <Link
           href={href}
           onClick={onClick}
+          draggable={false}
           aria-current={active ? 'page' : undefined}
           className={linkClassName}
         >

@@ -2,9 +2,12 @@
 
 import { useState } from 'react';
 
+import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
 
+import { buildReorderedChannelIds } from '@/features/channel-reorder/lib/reorder-channels';
+import { useReorderChannels } from '@/features/channel-reorder/model/use-reorder-channels';
 import { ChannelSearchModal } from '@/features/channel-search/ui/channel-search-modal';
 import { CreateChannelModal } from '@/features/channel-create/ui/create-channel-modal';
 import { InviteTeamMembersModal } from '@/features/team-members/ui/invite-team-members-modal';
@@ -132,6 +135,23 @@ function ChannelList({
 }: ChannelListProps) {
   const { data: channels } = useSuspenseQuery(channelQueries.byTeam(teamId));
   const groups = groupChannelsByProject(channels);
+  const reorderChannels = useReorderChannels(teamId);
+
+  const handleDragEnd = ({ source, destination }: DropResult) => {
+    if (!destination) return;
+    if (destination.droppableId !== source.droppableId) return;
+    if (destination.index === source.index) return;
+
+    const orderedChannelIds = buildReorderedChannelIds(
+      groups,
+      source.droppableId,
+      source.index,
+      destination.index,
+    );
+    if (!orderedChannelIds) return;
+
+    reorderChannels.mutate(orderedChannelIds);
+  };
 
   return (
     <>
@@ -148,18 +168,20 @@ function ChannelList({
         />
       )}
 
-      <div className="flex flex-col gap-3">
-        {groups.map((group) => (
-          <ChannelGroup
-            key={group.projectId ?? 'none'}
-            teamId={teamId}
-            projectId={group.projectId}
-            channels={group.channels}
-            activeChannelId={currentChannelId}
-            onCreateChannel={onCreateChannel}
-          />
-        ))}
-      </div>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="flex flex-col gap-3">
+          {groups.map((group) => (
+            <ChannelGroup
+              key={group.projectId ?? 'none'}
+              teamId={teamId}
+              projectId={group.projectId}
+              channels={group.channels}
+              activeChannelId={currentChannelId}
+              onCreateChannel={onCreateChannel}
+            />
+          ))}
+        </div>
+      </DragDropContext>
     </>
   );
 }
