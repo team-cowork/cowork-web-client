@@ -58,7 +58,7 @@ export function InviteTeamMembersModal({
       open={open}
       onClose={onClose}
       title="팀원 초대"
-      className="max-h-[85vh] w-[520px] overflow-y-auto"
+      className="w-[520px]"
     >
       {open ? (
         <InviteTeamMembersForm teamId={teamId} onClose={onClose} />
