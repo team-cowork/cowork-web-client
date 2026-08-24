@@ -1,7 +1,8 @@
 'use client';
 
-import { useQueries, useSuspenseQuery } from '@tanstack/react-query';
+import { useQueries, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 
+import { LeaveTeamButton } from '@/features/team-members/ui/leave-team-button';
 import { RemoveTeamMemberButton } from '@/features/team-members/ui/remove-team-member-button';
 import { TeamMemberRoleMenu } from '@/features/team-members/ui/team-member-role-menu';
 import { teamQueries } from '@/entities/team/api/team-queries';
@@ -51,6 +52,7 @@ export function TeamMemberSettings({ teamId }: TeamMemberSettingsProps) {
 }
 
 function TeamMemberList({ teamId }: { teamId: number }) {
+  const { data: me } = useQuery(userQueries.me());
   const { data: members } = useSuspenseQuery(teamQueries.members(teamId));
   const userResults = useQueries({
     queries: members.map((member) => userQueries.detail(member.userId)),
@@ -67,6 +69,7 @@ function TeamMemberList({ teamId }: { teamId: number }) {
         const user = userResults[index]?.data;
         const customRoles = roleResults[index]?.data ?? [];
         const role = toTeamMemberRole(member.role) ?? 'MEMBER';
+        const isMe = me?.id === member.userId;
 
         return (
           <li key={member.id}>
@@ -106,16 +109,20 @@ function TeamMemberList({ teamId }: { teamId: number }) {
                 targetUserId={member.userId}
                 role={role}
               />
-              {role !== 'OWNER' && (
-                <RemoveTeamMemberButton
-                  teamId={teamId}
-                  targetUserId={member.userId}
-                  memberName={
-                    user
-                      ? (user.nickname ?? user.name)
-                      : `사용자 #${member.userId}`
-                  }
-                />
+              {isMe ? (
+                <LeaveTeamButton teamId={teamId} myUserId={member.userId} />
+              ) : (
+                role !== 'OWNER' && (
+                  <RemoveTeamMemberButton
+                    teamId={teamId}
+                    targetUserId={member.userId}
+                    memberName={
+                      user
+                        ? (user.nickname ?? user.name)
+                        : `사용자 #${member.userId}`
+                    }
+                  />
+                )
               )}
             </div>
           </li>
