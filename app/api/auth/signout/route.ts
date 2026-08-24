@@ -1,8 +1,8 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from 'next/server';
 
-import { REFRESH_TOKEN_COOKIE } from "@/shared/model/token";
-import { refreshTokens, revokeTokens } from "@/shared/auth/api/token";
-import { clearTokenCookies } from "@/shared/auth/lib/cookies";
+import { REFRESH_TOKEN_COOKIE } from '@/shared/model/token';
+import { refreshTokens, revokeTokens } from '@/shared/lib/token';
+import { clearTokenCookies } from '@/shared/lib/cookies';
 
 export async function POST(request: NextRequest) {
   const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const response = NextResponse.redirect(new URL("/signin", request.url));
+  const response = NextResponse.redirect(new URL('/signin', request.url));
   clearTokenCookies(response);
   return response;
 }

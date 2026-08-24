@@ -1,9 +1,9 @@
-import { EmptyState } from "@/shared/ui/empty-state";
-import { ChatIcon } from "@/shared/ui/icons/chat-icon";
+import { EmptyState } from '@/shared/ui/empty-state';
+import { ChatIcon } from '@/shared/ui/icons/chat-icon';
 
 export default function DmHome() {
   return (
-    <div className="bg-background flex flex-1 items-center justify-center p-6">
+    <div className="flex flex-1 items-center justify-center bg-background p-6">
       <EmptyState
         icon={<ChatIcon />}
         title="대화를 선택하세요"

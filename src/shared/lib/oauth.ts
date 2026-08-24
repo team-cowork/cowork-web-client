@@ -1,4 +1,5 @@
-const AUTHORIZE_URL = 'https://oauth.authorization.datagsm.kr/v1/oauth/authorize';
+const AUTHORIZE_URL =
+  'https://oauth.authorization.datagsm.kr/v1/oauth/authorize';
 
 export function buildAuthorizeUrl(input: {
   clientId: string;

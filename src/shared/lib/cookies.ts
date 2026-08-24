@@ -19,7 +19,11 @@ function baseCookieOptions() {
   };
 }
 
-export function setPkceCookies(response: NextResponse, verifier: string, state: string) {
+export function setPkceCookies(
+  response: NextResponse,
+  verifier: string,
+  state: string,
+) {
   const options = { ...baseCookieOptions(), maxAge: PKCE_MAX_AGE };
   response.cookies.set(CODE_VERIFIER_COOKIE, verifier, options);
   response.cookies.set(OAUTH_STATE_COOKIE, state, options);
@@ -30,7 +34,10 @@ export function clearPkceCookies(response: NextResponse) {
   response.cookies.delete(OAUTH_STATE_COOKIE);
 }
 
-export function setRefreshTokenCookie(response: NextResponse, tokens: TokenPairResponse) {
+export function setRefreshTokenCookie(
+  response: NextResponse,
+  tokens: TokenPairResponse,
+) {
   response.cookies.set(REFRESH_TOKEN_COOKIE, tokens.refresh_token, {
     ...baseCookieOptions(),
     maxAge: REFRESH_MAX_AGE,

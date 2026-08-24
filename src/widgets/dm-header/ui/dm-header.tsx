@@ -1,6 +1,10 @@
 'use client';
 
-import { USER_STATUS_LABEL, toUserStatus, type User } from '@/entities/user/model/user';
+import {
+  USER_STATUS_LABEL,
+  toUserStatus,
+  type User,
+} from '@/entities/user/model/user';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { cn } from '@/shared/lib/cn';
 import { MoreIcon } from '@/shared/ui/icons/more-icon';
@@ -13,19 +17,22 @@ export interface DmHeaderProps {
 
 export function DmHeader({ user, className }: DmHeaderProps) {
   const status = user ? toUserStatus(user.status) : null;
-  const subtitle = user?.status_message ?? (status ? USER_STATUS_LABEL[status] : null);
+  const subtitle =
+    user?.status_message ?? (status ? USER_STATUS_LABEL[status] : null);
 
   return (
-    <header className={cn('flex h-12 shrink-0 items-center gap-2 px-4', className)}>
+    <header
+      className={cn('flex h-12 shrink-0 items-center gap-2 px-4', className)}
+    >
       <UserAvatar user={user} size={24} ringClassName="ring-background" />
-      <h1 className="typography-label-small text-on-surface shrink-0">
+      <h1 className="shrink-0 typography-label-small text-on-surface">
         {user ? (user.nickname ?? user.name) : ''}
       </h1>
 
       {subtitle && (
         <>
-          <span aria-hidden className="bg-outline-variant h-5 w-px shrink-0" />
-          <p className="typography-subtext-medium text-on-surface-variant min-w-0 flex-1 truncate">
+          <span aria-hidden className="h-5 w-px shrink-0 bg-outline-variant" />
+          <p className="min-w-0 flex-1 truncate typography-subtext-medium text-on-surface-variant">
             {subtitle}
           </p>
         </>

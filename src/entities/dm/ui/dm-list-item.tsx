@@ -42,20 +42,20 @@ export function DmListItem({
       <span className="flex min-w-0 flex-1 flex-col">
         <span
           className={cn(
-            'typography-label-small truncate',
+            'truncate typography-label-small',
             hasUnread && !active && 'text-on-surface',
           )}
         >
           {name}
         </span>
         {preview && (
-          <span className="typography-subtext-small text-on-surface-variant truncate">
+          <span className="truncate typography-subtext-small text-on-surface-variant">
             {preview}
           </span>
         )}
       </span>
       {hasUnread && (
-        <span className="typography-subtext-small bg-primary text-on-primary inline-flex h-[22px] min-w-[22px] shrink-0 items-center justify-center rounded-full px-[7px]">
+        <span className="inline-flex h-[22px] min-w-[22px] shrink-0 items-center justify-center rounded-full bg-primary px-[7px] typography-subtext-small text-on-primary">
           {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}

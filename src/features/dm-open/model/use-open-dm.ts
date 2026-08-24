@@ -12,8 +12,13 @@ export function useOpenDm() {
   return useMutation({
     mutationFn: postDm,
     onSuccess: (channel) => {
-      queryClient.setQueryData(channelQueries.detail(channel.id).queryKey, channel);
-      return queryClient.invalidateQueries({ queryKey: dmQueries.list().queryKey });
+      queryClient.setQueryData(
+        channelQueries.detail(channel.id).queryKey,
+        channel,
+      );
+      return queryClient.invalidateQueries({
+        queryKey: dmQueries.list().queryKey,
+      });
     },
   });
 }

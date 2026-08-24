@@ -30,16 +30,23 @@ export function ProfileCard({ user, onEdit, className }: ProfileCardProps) {
 
   return (
     <div className={cn('flex flex-col gap-5', className)}>
-      <section className="bg-surface flex flex-col overflow-hidden rounded-2xl">
-        <div className="from-cowork-red-500 to-cowork-blue-500 h-[120px] bg-gradient-to-r" />
+      <section className="flex flex-col overflow-hidden rounded-2xl bg-surface">
+        <div className="h-[120px] bg-gradient-to-r from-cowork-red-500 to-cowork-blue-500" />
         <div className="flex items-end justify-between gap-4 px-6 pt-4 pb-5">
           <div className="flex min-w-0 items-end gap-4">
-            <span className="bg-surface shrink-0 rounded-full p-1">
-              <UserAvatar user={user} size={88} ringClassName="ring-surface" loading="eager" />
+            <span className="shrink-0 rounded-full bg-surface p-1">
+              <UserAvatar
+                user={user}
+                size={88}
+                ringClassName="ring-surface"
+                loading="eager"
+              />
             </span>
             <div className="flex min-w-0 flex-col gap-1.5 pb-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="typography-title-medium text-on-surface">{user.name}</h2>
+                <h2 className="typography-title-medium text-on-surface">
+                  {user.name}
+                </h2>
                 {user.roles.map((role) => (
                   <Badge key={role} color="brand">
                     {role}
@@ -48,7 +55,9 @@ export function ProfileCard({ user, onEdit, className }: ProfileCardProps) {
                 {user.major && <Badge color="green">{user.major}</Badge>}
               </div>
               {subtitle && (
-                <p className="text-on-surface-variant truncate text-[0.875rem]">{subtitle}</p>
+                <p className="truncate text-[0.875rem] text-on-surface-variant">
+                  {subtitle}
+                </p>
               )}
             </div>
           </div>
@@ -56,7 +65,7 @@ export function ProfileCard({ user, onEdit, className }: ProfileCardProps) {
             <button
               type="button"
               onClick={onEdit}
-              className="bg-surface-container text-on-surface-variant typography-label-small flex h-9 shrink-0 cursor-pointer items-center justify-center rounded-[10px] px-3.5"
+              className="flex h-9 shrink-0 cursor-pointer items-center justify-center rounded-[10px] bg-surface-container px-3.5 typography-label-small text-on-surface-variant"
             >
               프로필 편집
             </button>
@@ -68,7 +77,7 @@ export function ProfileCard({ user, onEdit, className }: ProfileCardProps) {
           {chips.map((chip) => (
             <span
               key={chip}
-              className="bg-surface-container-low text-on-surface-variant typography-subtext-medium flex items-center rounded-lg px-2.5 py-[5px] font-medium"
+              className="flex items-center rounded-lg bg-surface-container-low px-2.5 py-[5px] typography-subtext-medium font-medium text-on-surface-variant"
             >
               {chip}
             </span>

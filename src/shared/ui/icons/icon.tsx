@@ -1,4 +1,4 @@
-import { type ReactNode, type SVGProps } from "react";
+import { type ReactNode, type SVGProps } from 'react';
 
 export interface IconProps extends SVGProps<SVGSVGElement> {
   /** width/height를 동시에 지정 (기본 24) */

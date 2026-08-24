@@ -12,7 +12,9 @@ export function useCreateTeam() {
     mutationFn: postTeam,
     onSuccess: (team) => {
       queryClient.setQueryData(teamQueries.detail(team.id).queryKey, team);
-      return queryClient.invalidateQueries({ queryKey: teamQueries.list().queryKey });
+      return queryClient.invalidateQueries({
+        queryKey: teamQueries.list().queryKey,
+      });
     },
   });
 }

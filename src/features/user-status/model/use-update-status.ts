@@ -4,7 +4,11 @@ import { useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { patchMyStatus } from '@/entities/user/api/patch-my-status';
-import { cancelMyUserQueries, readMyUser, writeMyUser } from '@/entities/user/lib/user-cache';
+import {
+  cancelMyUserQueries,
+  readMyUser,
+  writeMyUser,
+} from '@/entities/user/lib/user-cache';
 
 export function useUpdateStatus() {
   const queryClient = useQueryClient();

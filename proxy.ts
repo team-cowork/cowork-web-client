@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { isPublicPath } from '@/shared/model/routes';
 import { REFRESH_TOKEN_COOKIE } from '@/shared/model/token';
-import { clearTokenCookies } from '@/shared/auth/lib/cookies';
+import { clearTokenCookies } from '@/shared/lib/cookies';
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

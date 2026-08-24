@@ -25,10 +25,10 @@ export function ChannelListItem({
 }: ChannelListItemProps) {
   const content = (
     <>
-      <span className="text-on-surface-variant shrink-0">{prefix}</span>
-      <span className="typography-label-small flex-1 truncate">{name}</span>
+      <span className="shrink-0 text-on-surface-variant">{prefix}</span>
+      <span className="flex-1 truncate typography-label-small">{name}</span>
       {unreadCount != null && unreadCount > 0 && (
-        <span className="typography-subtext-small bg-primary text-on-primary inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full px-[7px]">
+        <span className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-primary px-[7px] typography-subtext-small text-on-primary">
           {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}

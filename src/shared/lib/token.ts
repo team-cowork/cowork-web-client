@@ -1,5 +1,5 @@
-import { type ApiResponse, type TokenPairResponse } from "@/shared/model/token";
-import { instance } from "@/shared/auth/api/instance";
+import { serverInstance } from '@/shared/api/instance';
+import { type ApiResponse, type TokenPairResponse } from '@/shared/model/token';
 
 export async function exchangeCodeForTokens(input: {
   code: string;
@@ -7,8 +7,8 @@ export async function exchangeCodeForTokens(input: {
   redirectUri: string;
 }): Promise<TokenPairResponse | null> {
   try {
-    const response = await instance.post<ApiResponse<TokenPairResponse>>(
-      "/auth/token",
+    const response = await serverInstance.post<ApiResponse<TokenPairResponse>>(
+      '/auth/token',
       {
         code: input.code,
         code_verifier: input.verifier,
@@ -28,8 +28,8 @@ export async function refreshTokens(
   refreshToken: string,
 ): Promise<TokenPairResponse | null> {
   try {
-    const response = await instance.post<ApiResponse<TokenPairResponse>>(
-      "/auth/refresh",
+    const response = await serverInstance.post<ApiResponse<TokenPairResponse>>(
+      '/auth/refresh',
       {
         refresh_token: refreshToken,
       },
@@ -48,8 +48,8 @@ export async function revokeTokens(input: {
   refreshToken: string;
 }): Promise<void> {
   try {
-    await instance.post(
-      "/auth/signout",
+    await serverInstance.post(
+      '/auth/signout',
       { refresh_token: input.refreshToken },
       { headers: { Authorization: `Bearer ${input.accessToken}` } },
     );

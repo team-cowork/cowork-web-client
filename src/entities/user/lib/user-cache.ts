@@ -1,7 +1,7 @@
-import { type QueryClient, type QueryKey } from "@tanstack/react-query";
+import { type QueryClient, type QueryKey } from '@tanstack/react-query';
 
-import { userQueries } from "@/entities/user/api/user-queries";
-import { type User } from "@/entities/user/model/user";
+import { userQueries } from '@/entities/user/api/user-queries';
+import { type User } from '@/entities/user/model/user';
 
 export function readMyUser(queryClient: QueryClient): User | undefined {
   return queryClient.getQueryData<User>(userQueries.me().queryKey);
