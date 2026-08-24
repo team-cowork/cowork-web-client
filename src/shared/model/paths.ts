@@ -11,3 +11,7 @@ export function channelPath(teamId: number, channelId: number): string {
 export function dmPath(channelId: number): string {
   return `/dms/${channelId}`;
 }
+
+export function teamSettingsProfilePath(teamId: number): string {
+  return `/teams/${teamId}/settings/profile`;
+}
