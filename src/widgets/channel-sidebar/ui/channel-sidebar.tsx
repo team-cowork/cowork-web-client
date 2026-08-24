@@ -64,15 +64,7 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
         <h2 className="min-w-0 flex-1 truncate typography-label-small text-on-surface">
           {team?.name ?? ''}
         </h2>
-        <button
-          type="button"
-          aria-label="팀원 초대"
-          aria-haspopup="dialog"
-          onClick={() => setInviteOpen(true)}
-          className="shrink-0 cursor-pointer text-on-surface-variant hover:text-on-surface"
-        >
-          <UserPlusIcon size={18} />
-        </button>
+
         <button
           type="button"
           aria-label="채널 찾기"
@@ -81,6 +73,15 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
           className="shrink-0 cursor-pointer text-on-surface-variant hover:text-on-surface"
         >
           <SearchIcon size={18} />
+        </button>
+        <button
+          type="button"
+          aria-label="팀원 초대"
+          aria-haspopup="dialog"
+          onClick={() => setInviteOpen(true)}
+          className="shrink-0 cursor-pointer text-on-surface-variant hover:text-on-surface"
+        >
+          <UserPlusIcon size={18} />
         </button>
         <TeamMenu teamId={teamId} />
       </div>
