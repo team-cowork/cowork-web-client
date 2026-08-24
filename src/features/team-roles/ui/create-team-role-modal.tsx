@@ -1,10 +1,9 @@
 'use client';
 
-import { type KeyboardEvent, type SyntheticEvent, useState } from 'react';
+import { type SyntheticEvent, useState } from 'react';
 
 import { useCreateTeamRole } from '@/features/team-roles/model/use-create-team-role';
 import { Button } from '@/shared/ui/button';
-import { CloseIcon } from '@/shared/ui/icons/close-icon';
 import { Modal } from '@/shared/ui/modal';
 import { SettingRow } from '@/shared/ui/setting-row';
 import { Switch } from '@/shared/ui/switch';
@@ -48,8 +47,6 @@ function CreateTeamRoleForm({
   const [colorHex, setColorHex] = useState(DEFAULT_COLOR_HEX);
   const [priority, setPriority] = useState('0');
   const [mentionable, setMentionable] = useState(false);
-  const [permissions, setPermissions] = useState<string[]>([]);
-  const [permissionInput, setPermissionInput] = useState('');
 
   const createRole = useCreateTeamRole(teamId);
 
@@ -69,30 +66,10 @@ function CreateTeamRoleForm({
         colorHex,
         priority: priorityNumber,
         mentionable,
-        permissions,
+        permissions: [],
       },
       { onSuccess: onClose },
     );
-  };
-
-  const addPermission = () => {
-    const value = permissionInput.trim();
-    if (!value || permissions.includes(value)) {
-      setPermissionInput('');
-      return;
-    }
-    setPermissions((prev) => [...prev, value]);
-    setPermissionInput('');
-  };
-
-  const handlePermissionKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key !== 'Enter') return;
-    event.preventDefault();
-    addPermission();
-  };
-
-  const removePermission = (value: string) => {
-    setPermissions((prev) => prev.filter((p) => p !== value));
   };
 
   return (
@@ -142,48 +119,6 @@ function CreateTeamRoleForm({
       >
         <Switch checked={mentionable} onCheckedChange={setMentionable} />
       </SettingRow>
-
-      <div className="flex flex-col gap-2">
-        <label className="typography-label-x-small text-on-surface-variant">
-          권한
-        </label>
-        {permissions.length > 0 && (
-          <ul className="flex flex-wrap gap-1.5">
-            {permissions.map((permission) => (
-              <li key={permission}>
-                <button
-                  type="button"
-                  onClick={() => removePermission(permission)}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-full bg-surface-container py-1 pr-2 pl-2.5 text-on-surface hover:bg-surface-container-high"
-                >
-                  <span className="typography-subtext-medium">
-                    {permission}
-                  </span>
-                  <CloseIcon size={12} className="text-on-surface-variant" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-        <div className="flex gap-2">
-          <TextField
-            value={permissionInput}
-            onChange={(event) => setPermissionInput(event.target.value)}
-            onKeyDown={handlePermissionKeyDown}
-            placeholder="권한 코드를 입력하고 Enter"
-            className="flex-1"
-          />
-          <Button
-            type="button"
-            size="S"
-            variant="weak"
-            color="neutral"
-            onClick={addPermission}
-          >
-            추가
-          </Button>
-        </div>
-      </div>
 
       {createRole.isError && (
         <p className="typography-subtext-medium text-error">
