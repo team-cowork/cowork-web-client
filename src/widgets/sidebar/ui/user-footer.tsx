@@ -95,7 +95,7 @@ export function UserFooter({ className }: UserFooterProps) {
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
         title="프로필"
-        className="max-h-[85vh] w-[800px] overflow-y-auto"
+        className="w-[800px]"
       >
         <MyProfile onEdit={handleEdit} />
       </Modal>
@@ -104,7 +104,7 @@ export function UserFooter({ className }: UserFooterProps) {
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         title="설정 · 프로필"
-        className="max-h-[85vh] w-[680px] overflow-y-auto"
+        className="w-[680px]"
       >
         <ProfileSettings />
       </Modal>
