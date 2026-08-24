@@ -3,6 +3,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 
 import { TeamIconField } from '@/features/team-icon/ui/team-icon-field';
+import { DeleteTeamSection } from '@/features/team-settings/ui/delete-team-section';
 import { TeamProfileForm } from '@/features/team-settings/ui/team-profile-form';
 import { teamQueries } from '@/entities/team/api/team-queries';
 import { ErrorState } from '@/shared/ui/error-state';
@@ -46,6 +47,7 @@ function TeamProfileSettingsContent({ teamId }: { teamId: number }) {
       <SettingsCard title="기본 정보">
         <TeamProfileForm team={team} />
       </SettingsCard>
+      <DeleteTeamSection team={team} />
     </div>
   );
 }
