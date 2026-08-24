@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { CODE_VERIFIER_COOKIE, OAUTH_STATE_COOKIE } from "@/shared/model/token";
-import { exchangeCodeForTokens } from "@/shared/auth/api/token";
-import { clearPkceCookies, setRefreshTokenCookie } from "@/shared/auth/lib/cookies";
+import { exchangeCodeForTokens } from "@/shared/lib/token";
+import { clearPkceCookies, setRefreshTokenCookie } from "@/shared/lib/cookies";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

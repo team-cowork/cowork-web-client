@@ -2,8 +2,9 @@
 
 import { notFound } from "next/navigation";
 
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
+import { type FallbackProps } from "react-error-boundary";
 
 import { teamQueries } from "@/entities/team/api/team-queries";
 import { useRouteIds } from "@/shared/lib/use-route-ids";
@@ -12,45 +13,48 @@ import { EmptyState } from "@/shared/ui/empty-state";
 import { ErrorState } from "@/shared/ui/error-state";
 import { ChatIcon } from "@/shared/ui/icons/chat-icon";
 import { LoadingPane } from "@/shared/ui/loading-pane";
+import { QueryBoundary } from "@/shared/ui/query-boundary";
+
+function TeamPageError({ error, resetErrorBoundary }: FallbackProps) {
+  if (isAxiosError(error) && error.response?.status === 404) notFound();
+
+  return (
+    <div className="flex flex-1 items-center justify-center p-6">
+      <ErrorState
+        title="팀을 불러오지 못했습니다"
+        description="잠시 후 다시 시도해 주세요"
+        action={
+          <Button size="S" variant="weak" onClick={resetErrorBoundary}>
+            다시 시도
+          </Button>
+        }
+      />
+    </div>
+  );
+}
 
 export default function TeamPage() {
   const { teamId } = useRouteIds();
 
   if (teamId === null) notFound();
 
-  return <TeamView teamId={teamId} />;
+  return (
+    <QueryBoundary
+      loadingFallback={
+        <div className="flex flex-1 items-center justify-center p-6">
+          <LoadingPane label="팀을 불러오는 중…" />
+        </div>
+      }
+      errorFallback={TeamPageError}
+      resetKeys={[teamId]}
+    >
+      <TeamView teamId={teamId} />
+    </QueryBoundary>
+  );
 }
 
 function TeamView({ teamId }: { teamId: number }) {
-  const { isPending, isError, error, refetch } = useQuery(teamQueries.detail(teamId));
-
-  if (isError && isAxiosError(error) && error.response?.status === 404) {
-    notFound();
-  }
-
-  if (isPending) {
-    return (
-      <div className="flex flex-1 items-center justify-center p-6">
-        <LoadingPane label="팀을 불러오는 중…" />
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="flex flex-1 items-center justify-center p-6">
-        <ErrorState
-          title="팀을 불러오지 못했습니다"
-          description="잠시 후 다시 시도해 주세요"
-          action={
-            <Button size="S" variant="weak" onClick={() => refetch()}>
-              다시 시도
-            </Button>
-          }
-        />
-      </div>
-    );
-  }
+  useSuspenseQuery(teamQueries.detail(teamId));
 
   return (
     <div className="bg-background flex flex-1 items-center justify-center p-6">

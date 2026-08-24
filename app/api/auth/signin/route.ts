@@ -1,12 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { setPkceCookies } from "@/shared/auth/lib/cookies";
-import { buildAuthorizeUrl } from "@/shared/auth/lib/oauth";
+import { setPkceCookies } from "@/shared/lib/cookies";
+import { buildAuthorizeUrl } from "@/shared/lib/oauth";
 import {
   generateCodeChallenge,
   generateCodeVerifier,
   generateState,
-} from "@/shared/auth/lib/pkce";
+} from "@/shared/lib/pkce";
 
 export async function GET(request: NextRequest) {
   const verifier = generateCodeVerifier();
