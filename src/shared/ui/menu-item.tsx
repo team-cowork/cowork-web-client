@@ -23,8 +23,10 @@ export function MenuItem({
     <button
       type={type}
       className={cn(
-        'typography-subtext-large flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-colors',
-        danger ? 'text-error hover:bg-error/10' : 'text-on-surface hover:bg-surface-container',
+        'flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-left typography-subtext-large transition-colors',
+        danger
+          ? 'text-error hover:bg-error/10'
+          : 'text-on-surface hover:bg-surface-container',
         className,
       )}
       {...props}
@@ -40,7 +42,9 @@ export function MenuItem({
         </span>
       )}
       <span className="flex-1 truncate">{children}</span>
-      {hasSubmenu && <ChevronRightIcon className="text-on-surface-variant size-3.5 shrink-0" />}
+      {hasSubmenu && (
+        <ChevronRightIcon className="size-3.5 shrink-0 text-on-surface-variant" />
+      )}
     </button>
   );
 }

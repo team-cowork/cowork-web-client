@@ -34,11 +34,16 @@ interface VoiceSessionContextValue {
   toggleAudio: () => void;
 }
 
-const VoiceSessionContext = createContext<VoiceSessionContextValue | null>(null);
+const VoiceSessionContext = createContext<VoiceSessionContextValue | null>(
+  null,
+);
 
 export function useVoiceSession() {
   const ctx = useContext(VoiceSessionContext);
-  if (!ctx) throw new Error('useVoiceSession은 VoiceSessionProvider 내부에서만 사용할 수 있습니다');
+  if (!ctx)
+    throw new Error(
+      'useVoiceSession은 VoiceSessionProvider 내부에서만 사용할 수 있습니다',
+    );
   return ctx;
 }
 
@@ -205,7 +210,10 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     [joinChannel, runExclusive],
   );
 
-  const leave = useCallback(() => runExclusive(disconnect), [disconnect, runExclusive]);
+  const leave = useCallback(
+    () => runExclusive(disconnect),
+    [disconnect, runExclusive],
+  );
 
   const toggleMic = useCallback(async () => {
     const room = roomRef.current;
@@ -266,5 +274,9 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <VoiceSessionContext.Provider value={value}>{children}</VoiceSessionContext.Provider>;
+  return (
+    <VoiceSessionContext.Provider value={value}>
+      {children}
+    </VoiceSessionContext.Provider>
+  );
 }

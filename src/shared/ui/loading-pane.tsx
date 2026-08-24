@@ -5,17 +5,20 @@ export interface LoadingPaneProps {
   className?: string;
 }
 
-export function LoadingPane({ label = '불러오는 중…', className }: LoadingPaneProps) {
+export function LoadingPane({
+  label = '불러오는 중…',
+  className,
+}: LoadingPaneProps) {
   return (
     <div
       role="status"
       aria-live="polite"
       className={cn(
-        'border-outline-variant bg-surface flex flex-col items-center justify-center gap-4 rounded-[24px] border px-4 py-3',
+        'flex flex-col items-center justify-center gap-4 rounded-[24px] border border-outline-variant bg-surface px-4 py-3',
         className,
       )}
     >
-      <span className="border-outline border-t-primary size-11 animate-spin rounded-full border-[3px]" />
+      <span className="size-11 animate-spin rounded-full border-[3px] border-outline border-t-primary" />
       <p className="typography-label-small text-on-surface-variant">{label}</p>
     </div>
   );

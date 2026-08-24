@@ -17,7 +17,9 @@ export function ProfileBasicForm({ user }: ProfileBasicFormProps) {
   const [saved, setSaved] = useState(false);
   const updateProfile = useUpdateProfile();
 
-  const dirty = nickname !== (user.nickname ?? '') || description !== (user.description ?? '');
+  const dirty =
+    nickname !== (user.nickname ?? '') ||
+    description !== (user.description ?? '');
 
   const handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
@@ -49,12 +51,12 @@ export function ProfileBasicForm({ user }: ProfileBasicFormProps) {
         placeholder="자신을 한 줄로 소개해 보세요"
       />
       {updateProfile.isError && (
-        <p className="text-error typography-subtext-medium">
+        <p className="typography-subtext-medium text-error">
           저장하지 못했어요. 다시 시도해 주세요.
         </p>
       )}
       {saved && !dirty && (
-        <p className="text-success typography-subtext-medium">저장했어요.</p>
+        <p className="typography-subtext-medium text-success">저장했어요.</p>
       )}
       <div className="flex justify-end gap-2.5">
         <Button

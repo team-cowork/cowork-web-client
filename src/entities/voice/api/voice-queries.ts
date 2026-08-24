@@ -10,6 +10,7 @@ export const voiceQueries = {
       queryFn: () => getVoiceParticipants(channelId),
       staleTime: 0,
       retry: 1,
-      refetchInterval: (query) => (query.state.status === 'error' ? false : 15 * 1000),
+      refetchInterval: (query) =>
+        query.state.status === 'error' ? false : 15 * 1000,
     }),
 } as const;

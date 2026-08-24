@@ -34,7 +34,7 @@ export function VoiceControls({
   return (
     <div
       className={cn(
-        'bg-surface flex items-center justify-center gap-3 rounded-full px-4 py-3',
+        'flex items-center justify-center gap-3 rounded-full bg-surface px-4 py-3',
         className,
       )}
     >
@@ -73,7 +73,10 @@ export function VoiceControls({
         aria-label="화면 공유"
         onClick={onShareScreen}
         disabled={!onShareScreen}
-        className={cn(buttonClass, 'bg-surface-container text-on-surface-variant')}
+        className={cn(
+          buttonClass,
+          'bg-surface-container text-on-surface-variant',
+        )}
       >
         <MonitorIcon size={22} />
       </button>
@@ -83,7 +86,10 @@ export function VoiceControls({
         aria-label="음성 채널 나가기"
         onClick={onLeave}
         disabled={!onLeave}
-        className={cn(buttonClass, 'bg-error text-on-error hover:bg-cowork-red-800')}
+        className={cn(
+          buttonClass,
+          'bg-error text-on-error hover:bg-cowork-red-800',
+        )}
       >
         <PhoneIcon size={22} />
       </button>

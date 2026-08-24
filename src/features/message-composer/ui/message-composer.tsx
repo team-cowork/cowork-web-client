@@ -36,7 +36,7 @@ export function MessageComposer({
   return (
     <div
       className={cn(
-        'border-outline-variant bg-surface focus-within:border-primary flex items-center gap-3 rounded-[20px] border p-4',
+        'flex items-center gap-3 rounded-[20px] border border-outline-variant bg-surface p-4 focus-within:border-primary',
         className,
       )}
     >
@@ -47,7 +47,7 @@ export function MessageComposer({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="typography-subtext-large text-on-surface placeholder:text-on-surface-variant max-h-32 flex-1 resize-none bg-transparent py-2.5 focus:outline-none"
+        className="max-h-32 flex-1 resize-none bg-transparent py-2.5 typography-subtext-large text-on-surface placeholder:text-on-surface-variant focus:outline-none"
       />
       <IconButton
         size="M"

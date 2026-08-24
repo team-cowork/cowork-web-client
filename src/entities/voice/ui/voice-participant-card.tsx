@@ -19,13 +19,14 @@ export function VoiceParticipantCard({
   muted = false,
   className,
 }: VoiceParticipantCardProps) {
-  const displayName = user?.nickname ?? user?.name ?? fallbackName ?? '알 수 없음';
+  const displayName =
+    user?.nickname ?? user?.name ?? fallbackName ?? '알 수 없음';
   const MicStateIcon = muted ? MicOffIcon : MicIcon;
 
   return (
     <div
       className={cn(
-        'bg-surface-container-low flex h-49 w-70 flex-col items-center justify-center gap-3.5 rounded-2xl pt-6 pb-5',
+        'flex h-49 w-70 flex-col items-center justify-center gap-3.5 rounded-2xl bg-surface-container-low pt-6 pb-5',
         className,
       )}
     >
@@ -47,9 +48,14 @@ export function VoiceParticipantCard({
         <MicStateIcon
           size={16}
           aria-label={muted ? '마이크 꺼짐' : '마이크 켜짐'}
-          className={cn('shrink-0', muted ? 'text-primary' : 'text-on-surface-variant')}
+          className={cn(
+            'shrink-0',
+            muted ? 'text-primary' : 'text-on-surface-variant',
+          )}
         />
-        <span className="typography-label-small text-on-surface truncate">{displayName}</span>
+        <span className="truncate typography-label-small text-on-surface">
+          {displayName}
+        </span>
       </span>
     </div>
   );

@@ -26,7 +26,8 @@ export function ChannelGroup({
   onCreateChannel,
 }: ChannelGroupProps) {
   const [expanded, setExpanded] = useState(true);
-  const label = projectId === null ? '프로젝트 미소속' : `프로젝트 #${projectId}`;
+  const label =
+    projectId === null ? '프로젝트 미소속' : `프로젝트 #${projectId}`;
   const canCreate = projectId === null && onCreateChannel !== undefined;
 
   return (
@@ -36,18 +37,26 @@ export function ChannelGroup({
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
           aria-expanded={expanded}
-          className="text-on-surface-variant hover:text-on-surface flex min-w-0 flex-1 cursor-pointer items-center gap-1"
+          className="flex min-w-0 flex-1 cursor-pointer items-center gap-1 text-on-surface-variant hover:text-on-surface"
         >
-          {expanded ? <ChevronDownIcon size={12} /> : <ChevronRightIcon size={12} />}
-          <span className="typography-subtext-small truncate">{label}</span>
+          {expanded ? (
+            <ChevronDownIcon size={12} />
+          ) : (
+            <ChevronRightIcon size={12} />
+          )}
+          <span className="truncate typography-subtext-small">{label}</span>
         </button>
         <button
           type="button"
           aria-label={`${label}에 채널 추가`}
-          title={canCreate ? undefined : '채널을 프로젝트에 배정하는 API가 아직 없습니다'}
+          title={
+            canCreate
+              ? undefined
+              : '채널을 프로젝트에 배정하는 API가 아직 없습니다'
+          }
           disabled={!canCreate}
           onClick={onCreateChannel}
-          className="text-on-surface-variant hover:text-on-surface shrink-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+          className="shrink-0 cursor-pointer text-on-surface-variant hover:text-on-surface disabled:cursor-not-allowed disabled:opacity-50"
         >
           <PlusIcon size={16} />
         </button>

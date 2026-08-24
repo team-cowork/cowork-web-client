@@ -1,20 +1,26 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from 'next/server';
 
-import { REFRESH_TOKEN_COOKIE } from "@/shared/model/token";
-import { refreshTokens } from "@/shared/lib/token";
-import { clearTokenCookies, setRefreshTokenCookie } from "@/shared/lib/cookies";
+import { REFRESH_TOKEN_COOKIE } from '@/shared/model/token';
+import { refreshTokens } from '@/shared/lib/token';
+import { clearTokenCookies, setRefreshTokenCookie } from '@/shared/lib/cookies';
 
 export async function POST(request: NextRequest) {
   const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
 
   if (!refreshToken) {
-    return NextResponse.json({ message: "로그인이 필요합니다" }, { status: 401 });
+    return NextResponse.json(
+      { message: '로그인이 필요합니다' },
+      { status: 401 },
+    );
   }
 
   const tokens = await refreshTokens(refreshToken);
 
   if (!tokens) {
-    const response = NextResponse.json({ message: "세션이 만료되었습니다" }, { status: 401 });
+    const response = NextResponse.json(
+      { message: '세션이 만료되었습니다' },
+      { status: 401 },
+    );
     clearTokenCookies(response);
     return response;
   }

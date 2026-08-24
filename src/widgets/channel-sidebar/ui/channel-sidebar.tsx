@@ -28,7 +28,13 @@ export function ChannelSidebar({ className }: ChannelSidebarProps) {
 
   if (teamId === null) return <div className={cn('flex-1', className)} />;
 
-  return <TeamChannels teamId={teamId} currentChannelId={channelId} className={className} />;
+  return (
+    <TeamChannels
+      teamId={teamId}
+      currentChannelId={channelId}
+      className={className}
+    />
+  );
 }
 
 interface TeamChannelsProps {
@@ -54,23 +60,30 @@ const CHANNEL_LIST_SKELETON = (
   <ul className="flex flex-col gap-1">
     {Array.from({ length: 5 }, (_, index) => (
       <li key={index}>
-        <span className="bg-surface-container block h-13 animate-pulse rounded-xl" />
+        <span className="block h-13 animate-pulse rounded-xl bg-surface-container" />
       </li>
     ))}
   </ul>
 );
 
-function TeamChannels({ teamId, currentChannelId, className }: TeamChannelsProps) {
+function TeamChannels({
+  teamId,
+  currentChannelId,
+  className,
+}: TeamChannelsProps) {
   const { data: team } = useQuery(teamQueries.detail(teamId));
   const [createOpen, setCreateOpen] = useState(false);
 
   return (
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
       <div className="flex h-12 shrink-0 items-center gap-2 px-4">
-        <h2 className="typography-label-small text-on-surface min-w-0 flex-1 truncate">
+        <h2 className="min-w-0 flex-1 truncate typography-label-small text-on-surface">
           {team?.name ?? ''}
         </h2>
-        <ChevronDownIcon size={18} className="text-on-surface-variant shrink-0" />
+        <ChevronDownIcon
+          size={18}
+          className="shrink-0 text-on-surface-variant"
+        />
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 py-3">
@@ -102,7 +115,11 @@ interface ChannelListProps {
   onCreateChannel: () => void;
 }
 
-function ChannelList({ teamId, currentChannelId, onCreateChannel }: ChannelListProps) {
+function ChannelList({
+  teamId,
+  currentChannelId,
+  onCreateChannel,
+}: ChannelListProps) {
   const { data: channels } = useSuspenseQuery(channelQueries.byTeam(teamId));
   const groups = groupChannelsByProject(channels);
 

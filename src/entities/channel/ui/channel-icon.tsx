@@ -1,6 +1,9 @@
 import { type ReactElement } from 'react';
 
-import { type ChannelViewType, toChannelViewType } from '@/entities/channel/model/channel';
+import {
+  type ChannelViewType,
+  toChannelViewType,
+} from '@/entities/channel/model/channel';
 import { BellIcon } from '@/shared/ui/icons/bell-icon';
 import { EditIcon } from '@/shared/ui/icons/edit-icon';
 import { FolderIcon } from '@/shared/ui/icons/folder-icon';
@@ -9,7 +12,10 @@ import { HeadphonesIcon } from '@/shared/ui/icons/headphones-icon';
 import { LockIcon } from '@/shared/ui/icons/lock-icon';
 import { type IconProps } from '@/shared/ui/icons/icon';
 
-const CHANNEL_VIEW_TYPE_ICON: Record<ChannelViewType, (props: IconProps) => ReactElement> = {
+const CHANNEL_VIEW_TYPE_ICON: Record<
+  ChannelViewType,
+  (props: IconProps) => ReactElement
+> = {
   TEXT: HashIcon,
   VOICE: HeadphonesIcon,
   WEBHOOK: BellIcon,

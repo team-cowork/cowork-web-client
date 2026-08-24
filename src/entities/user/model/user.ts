@@ -1,4 +1,9 @@
-export const USER_STATUSES = ['ONLINE', 'AWAY', 'DO_NOT_DISTURB', 'OFFLINE'] as const;
+export const USER_STATUSES = [
+  'ONLINE',
+  'AWAY',
+  'DO_NOT_DISTURB',
+  'OFFLINE',
+] as const;
 
 export type UserStatus = (typeof USER_STATUSES)[number];
 

@@ -27,15 +27,32 @@ export interface CreateChannelModalProps {
   onClose: () => void;
 }
 
-export function CreateChannelModal({ open, teamId, onClose }: CreateChannelModalProps) {
+export function CreateChannelModal({
+  open,
+  teamId,
+  onClose,
+}: CreateChannelModalProps) {
   return (
-    <Modal open={open} onClose={onClose} title="채널 만들기" className="w-[520px]">
-      {open ? <CreateChannelForm teamId={teamId} onClose={onClose} /> : undefined}
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="채널 만들기"
+      className="w-[520px]"
+    >
+      {open ? (
+        <CreateChannelForm teamId={teamId} onClose={onClose} />
+      ) : undefined}
     </Modal>
   );
 }
 
-function CreateChannelForm({ teamId, onClose }: { teamId: number; onClose: () => void }) {
+function CreateChannelForm({
+  teamId,
+  onClose,
+}: {
+  teamId: number;
+  onClose: () => void;
+}) {
   const router = useRouter();
   const createChannel = useCreateChannel(teamId);
   const [viewType, setViewType] = useState<ChannelViewType>('TEXT');
@@ -71,7 +88,9 @@ function CreateChannelForm({ teamId, onClose }: { teamId: number; onClose: () =>
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <fieldset className="flex flex-col gap-2">
-        <legend className="typography-label-x-small text-on-surface-variant mb-2">채널 유형</legend>
+        <legend className="mb-2 typography-label-x-small text-on-surface-variant">
+          채널 유형
+        </legend>
         <div className="grid grid-cols-2 gap-2">
           {CHANNEL_VIEW_TYPES.map((candidate) => (
             <OptionCard
@@ -104,7 +123,9 @@ function CreateChannelForm({ teamId, onClose }: { teamId: number; onClose: () =>
       />
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="typography-label-x-small text-on-surface-variant mb-2">공개 범위</legend>
+        <legend className="mb-2 typography-label-x-small text-on-surface-variant">
+          공개 범위
+        </legend>
         <div className="grid grid-cols-2 gap-2">
           <OptionCard
             label="공개"
@@ -124,7 +145,7 @@ function CreateChannelForm({ teamId, onClose }: { teamId: number; onClose: () =>
       </fieldset>
 
       {createChannel.isError && (
-        <p className="text-error typography-subtext-medium">
+        <p className="typography-subtext-medium text-error">
           채널을 만들지 못했어요. 다시 시도해 주세요.
         </p>
       )}
