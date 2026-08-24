@@ -74,7 +74,11 @@ function TeamChannels({ teamId, currentChannelId, className }: TeamChannelsProps
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 py-3">
-        <QueryBoundary loadingFallback={CHANNEL_LIST_SKELETON} errorFallback={ChannelSidebarError}>
+        <QueryBoundary
+          loadingFallback={CHANNEL_LIST_SKELETON}
+          errorFallback={ChannelSidebarError}
+          resetKeys={[teamId]}
+        >
           <ChannelList
             teamId={teamId}
             currentChannelId={currentChannelId}

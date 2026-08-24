@@ -9,13 +9,19 @@ export interface QueryBoundaryProps {
   children: ReactNode;
   loadingFallback: ReactNode;
   errorFallback: ComponentType<FallbackProps>;
+  resetKeys?: unknown[];
 }
 
 function subscribe() {
   return () => {};
 }
 
-export function QueryBoundary({ children, loadingFallback, errorFallback }: QueryBoundaryProps) {
+export function QueryBoundary({
+  children,
+  loadingFallback,
+  errorFallback,
+  resetKeys,
+}: QueryBoundaryProps) {
   const isMounted = useSyncExternalStore(
     subscribe,
     () => true,
@@ -26,7 +32,7 @@ export function QueryBoundary({ children, loadingFallback, errorFallback }: Quer
   if (!isMounted) return loadingFallback;
 
   return (
-    <ErrorBoundary onReset={reset} FallbackComponent={errorFallback}>
+    <ErrorBoundary onReset={reset} FallbackComponent={errorFallback} resetKeys={resetKeys}>
       <Suspense fallback={loadingFallback}>{children}</Suspense>
     </ErrorBoundary>
   );

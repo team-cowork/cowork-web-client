@@ -51,7 +51,11 @@ export function MemberPanel({ channelId, className }: MemberPanelProps) {
       aria-label="채널 멤버"
       className={cn('bg-surface w-60 shrink-0 overflow-y-auto p-2', className)}
     >
-      <QueryBoundary loadingFallback={MEMBER_SKELETON} errorFallback={MemberPanelError}>
+      <QueryBoundary
+        loadingFallback={MEMBER_SKELETON}
+        errorFallback={MemberPanelError}
+        resetKeys={[channelId]}
+      >
         <MemberList channelId={channelId} />
       </QueryBoundary>
     </aside>

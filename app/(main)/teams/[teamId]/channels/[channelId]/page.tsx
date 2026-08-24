@@ -52,6 +52,7 @@ export default function ChannelPage() {
         </div>
       }
       errorFallback={ChannelPageError}
+      resetKeys={[teamId, channelId]}
     >
       <ChannelView teamId={teamId} channelId={channelId} />
     </QueryBoundary>

@@ -46,6 +46,7 @@ export default function TeamPage() {
         </div>
       }
       errorFallback={TeamPageError}
+      resetKeys={[teamId]}
     >
       <TeamView teamId={teamId} />
     </QueryBoundary>
