@@ -4,9 +4,11 @@ import { useState } from 'react';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 
+import { CreateTeamRoleModal } from '@/features/team-roles/ui/create-team-role-modal';
 import { EditTeamRoleModal } from '@/features/team-roles/ui/edit-team-role-modal';
 import { teamQueries } from '@/entities/team/api/team-queries';
 import { type TeamRole } from '@/entities/team/model/team';
+import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { UsersIcon } from '@/shared/ui/icons/users-icon';
@@ -37,20 +39,43 @@ function TeamRoleSettingsError() {
 }
 
 export function TeamRoleSettings({ teamId }: TeamRoleSettingsProps) {
+  const [createOpen, setCreateOpen] = useState(false);
+
   return (
     <SettingsCard title="역할">
+      <div className="flex justify-end">
+        <Button size="S" variant="weak" onClick={() => setCreateOpen(true)}>
+          역할 만들기
+        </Button>
+      </div>
+
       <QueryBoundary
         loadingFallback={ROLE_LIST_SKELETON}
         errorFallback={TeamRoleSettingsError}
         resetKeys={[teamId]}
       >
-        <TeamRoleList teamId={teamId} />
+        <TeamRoleList
+          teamId={teamId}
+          onCreateRole={() => setCreateOpen(true)}
+        />
       </QueryBoundary>
+
+      <CreateTeamRoleModal
+        open={createOpen}
+        teamId={teamId}
+        onClose={() => setCreateOpen(false)}
+      />
     </SettingsCard>
   );
 }
 
-function TeamRoleList({ teamId }: { teamId: number }) {
+function TeamRoleList({
+  teamId,
+  onCreateRole,
+}: {
+  teamId: number;
+  onCreateRole: () => void;
+}) {
   const { data: roles } = useSuspenseQuery(teamQueries.roles(teamId));
   const [editingRole, setEditingRole] = useState<TeamRole | null>(null);
 
@@ -59,7 +84,12 @@ function TeamRoleList({ teamId }: { teamId: number }) {
       <EmptyState
         icon={<UsersIcon />}
         title="아직 만들어진 역할이 없습니다"
-        description="역할은 팀원 초대·API를 통해 생성할 수 있어요"
+        description="역할을 만들어 멤버에게 부여해 보세요"
+        action={
+          <Button size="S" onClick={onCreateRole}>
+            역할 만들기
+          </Button>
+        }
       />
     );
   }

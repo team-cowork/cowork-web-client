@@ -51,14 +51,20 @@ export function TeamMemberSettings({ teamId }: TeamMemberSettingsProps) {
 
 function TeamMemberList({ teamId }: { teamId: number }) {
   const { data: members } = useSuspenseQuery(teamQueries.members(teamId));
-  const results = useQueries({
+  const userResults = useQueries({
     queries: members.map((member) => userQueries.detail(member.userId)),
+  });
+  const roleResults = useQueries({
+    queries: members.map((member) =>
+      teamQueries.memberRoles(teamId, member.userId),
+    ),
   });
 
   return (
     <ul className="flex flex-col gap-1">
       {members.map((member, index) => {
-        const user = results[index]?.data;
+        const user = userResults[index]?.data;
+        const customRoles = roleResults[index]?.data ?? [];
         const role = toTeamMemberRole(member.role) ?? 'MEMBER';
 
         return (
@@ -75,6 +81,25 @@ function TeamMemberList({ teamId }: { teamId: number }) {
                   {user?.email ?? `${formatDate(member.joinedAt)} 가입`}
                 </span>
               </div>
+              {customRoles.length > 0 && (
+                <div className="flex max-w-[200px] flex-wrap justify-end gap-1">
+                  {customRoles.map((customRole) => (
+                    <span
+                      key={customRole.id}
+                      className="flex items-center gap-1 rounded-full bg-surface-container px-2 py-1"
+                    >
+                      <span
+                        aria-hidden
+                        className="size-2 shrink-0 rounded-full"
+                        style={{ backgroundColor: customRole.colorHex }}
+                      />
+                      <span className="truncate typography-subtext-small text-on-surface-variant">
+                        {customRole.name}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              )}
               <TeamMemberRoleMenu
                 teamId={teamId}
                 targetUserId={member.userId}
