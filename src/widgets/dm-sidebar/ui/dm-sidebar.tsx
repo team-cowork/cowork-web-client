@@ -6,6 +6,7 @@ import { useQueries, useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { NewDmModal } from '@/features/dm-open/ui/new-dm-modal';
+import { JoinTeamModal } from '@/features/team-join/ui/join-team-modal';
 import { dmQueries } from '@/entities/dm/api/dm-queries';
 import { DmListItem } from '@/entities/dm/ui/dm-list-item';
 import { userQueries } from '@/entities/user/api/user-queries';
@@ -16,6 +17,7 @@ import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { ChatIcon } from '@/shared/ui/icons/chat-icon';
+import { GlobeIcon } from '@/shared/ui/icons/globe-icon';
 import { PlusIcon } from '@/shared/ui/icons/plus-icon';
 import { SearchIcon } from '@/shared/ui/icons/search-icon';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
@@ -50,6 +52,7 @@ const DM_LIST_SKELETON = (
 export function DmSidebar({ className }: DmSidebarProps) {
   const { channelId: currentChannelId } = useRouteIds();
   const [newDmOpen, setNewDmOpen] = useState(false);
+  const [joinTeamOpen, setJoinTeamOpen] = useState(false);
 
   return (
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
@@ -63,6 +66,20 @@ export function DmSidebar({ className }: DmSidebarProps) {
           <SearchIcon size={16} className="shrink-0" />
           <span className="truncate typography-subtext-small">
             대화 찾기 또는 시작하기
+          </span>
+        </button>
+      </div>
+
+      <div className="px-2 pb-2">
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          onClick={() => setJoinTeamOpen(true)}
+          className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-lg px-2 text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+        >
+          <GlobeIcon size={16} className="shrink-0" />
+          <span className="truncate typography-subtext-small">
+            초대 코드로 참여하기
           </span>
         </button>
       </div>
@@ -95,6 +112,10 @@ export function DmSidebar({ className }: DmSidebarProps) {
       </div>
 
       <NewDmModal open={newDmOpen} onClose={() => setNewDmOpen(false)} />
+      <JoinTeamModal
+        open={joinTeamOpen}
+        onClose={() => setJoinTeamOpen(false)}
+      />
     </div>
   );
 }
