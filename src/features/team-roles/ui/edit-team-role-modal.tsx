@@ -1,6 +1,6 @@
 'use client';
 
-import { type KeyboardEvent, type SyntheticEvent, useState } from 'react';
+import { type SyntheticEvent, useState } from 'react';
 
 import { useQueries, useQuery } from '@tanstack/react-query';
 
@@ -14,7 +14,6 @@ import { userQueries } from '@/entities/user/api/user-queries';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { Button } from '@/shared/ui/button';
 import { Dialog } from '@/shared/ui/dialog';
-import { CloseIcon } from '@/shared/ui/icons/close-icon';
 import { Modal } from '@/shared/ui/modal';
 import { SettingRow } from '@/shared/ui/setting-row';
 import { Switch } from '@/shared/ui/switch';
@@ -58,8 +57,6 @@ function EditTeamRoleForm({
   const [colorHex, setColorHex] = useState(role.colorHex);
   const [priority, setPriority] = useState(String(role.priority));
   const [mentionable, setMentionable] = useState(role.mentionable);
-  const [permissions, setPermissions] = useState(role.permissions);
-  const [permissionInput, setPermissionInput] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const updateRole = useUpdateTeamRole(teamId);
@@ -72,9 +69,7 @@ function EditTeamRoleForm({
     trimmedName !== role.name ||
     colorHex !== role.colorHex ||
     priorityNumber !== role.priority ||
-    mentionable !== role.mentionable ||
-    permissions.length !== role.permissions.length ||
-    permissions.some((p, i) => p !== role.permissions[i]);
+    mentionable !== role.mentionable;
   const canSubmit =
     trimmedName.length > 0 && validPriority && dirty && !updateRole.isPending;
 
@@ -89,29 +84,8 @@ function EditTeamRoleForm({
         colorHex,
         priority: priorityNumber,
         mentionable,
-        permissions,
       },
     });
-  };
-
-  const addPermission = () => {
-    const value = permissionInput.trim();
-    if (!value || permissions.includes(value)) {
-      setPermissionInput('');
-      return;
-    }
-    setPermissions((prev) => [...prev, value]);
-    setPermissionInput('');
-  };
-
-  const handlePermissionKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key !== 'Enter') return;
-    event.preventDefault();
-    addPermission();
-  };
-
-  const removePermission = (value: string) => {
-    setPermissions((prev) => prev.filter((p) => p !== value));
   };
 
   const handleDelete = () => {
@@ -165,48 +139,6 @@ function EditTeamRoleForm({
           <Switch checked={mentionable} onCheckedChange={setMentionable} />
         </SettingRow>
 
-        <div className="flex flex-col gap-2">
-          <label className="typography-label-x-small text-on-surface-variant">
-            권한
-          </label>
-          {permissions.length > 0 && (
-            <ul className="flex flex-wrap gap-1.5">
-              {permissions.map((permission) => (
-                <li key={permission}>
-                  <button
-                    type="button"
-                    onClick={() => removePermission(permission)}
-                    className="flex cursor-pointer items-center gap-1.5 rounded-full bg-surface-container py-1 pr-2 pl-2.5 text-on-surface hover:bg-surface-container-high"
-                  >
-                    <span className="typography-subtext-medium">
-                      {permission}
-                    </span>
-                    <CloseIcon size={12} className="text-on-surface-variant" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="flex gap-2">
-            <TextField
-              value={permissionInput}
-              onChange={(event) => setPermissionInput(event.target.value)}
-              onKeyDown={handlePermissionKeyDown}
-              placeholder="권한 코드를 입력하고 Enter"
-              className="flex-1"
-            />
-            <Button
-              type="button"
-              size="S"
-              variant="weak"
-              color="neutral"
-              onClick={addPermission}
-            >
-              추가
-            </Button>
-          </div>
-        </div>
-
         {updateRole.isError && (
           <p className="typography-subtext-medium text-error">
             저장하지 못했어요. 다시 시도해 주세요.
@@ -234,7 +166,6 @@ function EditTeamRoleForm({
                 setColorHex(role.colorHex);
                 setPriority(String(role.priority));
                 setMentionable(role.mentionable);
-                setPermissions(role.permissions);
               }}
             >
               취소
