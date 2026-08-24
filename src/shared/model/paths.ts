@@ -15,3 +15,7 @@ export function dmPath(channelId: number): string {
 export function teamSettingsProfilePath(teamId: number): string {
   return `/teams/${teamId}/settings/profile`;
 }
+
+export function teamSettingsInvitesPath(teamId: number): string {
+  return `/teams/${teamId}/settings/invites`;
+}
