@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode } from 'react';
 
 import { notFound, useRouter } from 'next/navigation';
 
@@ -24,17 +24,6 @@ export default function TeamSettingsLayout({
     enabled: teamId !== null,
   });
 
-  useEffect(() => {
-    if (teamId === null) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') router.push(teamPath(teamId));
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [teamId, router]);
-
   if (teamId === null) notFound();
 
   return (
@@ -48,12 +37,9 @@ export default function TeamSettingsLayout({
           type="button"
           aria-label="설정 닫기"
           onClick={() => router.push(teamPath(teamId))}
-          className="fixed top-6 right-6 flex flex-col items-center gap-1.5 text-on-surface-variant hover:text-on-surface"
+          className="fixed top-6 right-6 flex size-9 cursor-pointer items-center justify-center rounded-full border border-outline-variant text-on-surface-variant hover:border-outline hover:text-on-surface"
         >
-          <span className="flex size-9 cursor-pointer items-center justify-center rounded-full border border-outline-variant hover:border-outline">
-            <CloseIcon size={18} />
-          </span>
-          <span className="typography-subtext-small">ESC</span>
+          <CloseIcon size={18} />
         </button>
       </div>
     </div>
