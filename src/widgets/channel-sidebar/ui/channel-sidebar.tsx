@@ -5,41 +5,26 @@ import { useState } from 'react';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
 
+import { ChannelSearchModal } from '@/features/channel-search/ui/channel-search-modal';
 import { CreateChannelModal } from '@/features/channel-create/ui/create-channel-modal';
+import { InviteTeamMembersModal } from '@/features/team-members/ui/invite-team-members-modal';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { teamQueries } from '@/entities/team/api/team-queries';
 import { groupChannelsByProject } from '@/widgets/channel-sidebar/lib/group-channels-by-project';
 import { ChannelGroup } from '@/widgets/channel-sidebar/ui/channel-group';
+import { TeamMenu } from '@/widgets/channel-sidebar/ui/team-menu';
 import { cn } from '@/shared/lib/cn';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { ChatIcon } from '@/shared/ui/icons/chat-icon';
-import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
+import { SearchIcon } from '@/shared/ui/icons/search-icon';
+import { UserPlusIcon } from '@/shared/ui/icons/user-plus-icon';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 export interface ChannelSidebarProps {
-  className?: string;
-}
-
-export function ChannelSidebar({ className }: ChannelSidebarProps) {
-  const { teamId, channelId } = useRouteIds();
-
-  if (teamId === null) return <div className={cn('flex-1', className)} />;
-
-  return (
-    <TeamChannels
-      teamId={teamId}
-      currentChannelId={channelId}
-      className={className}
-    />
-  );
-}
-
-interface TeamChannelsProps {
   teamId: number;
-  currentChannelId: number | null;
   className?: string;
 }
 
@@ -66,13 +51,12 @@ const CHANNEL_LIST_SKELETON = (
   </ul>
 );
 
-function TeamChannels({
-  teamId,
-  currentChannelId,
-  className,
-}: TeamChannelsProps) {
+export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
+  const { channelId: currentChannelId } = useRouteIds();
   const { data: team } = useQuery(teamQueries.detail(teamId));
   const [createOpen, setCreateOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   return (
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
@@ -80,10 +64,26 @@ function TeamChannels({
         <h2 className="min-w-0 flex-1 truncate typography-label-small text-on-surface">
           {team?.name ?? ''}
         </h2>
-        <ChevronDownIcon
-          size={18}
-          className="shrink-0 text-on-surface-variant"
-        />
+
+        <button
+          type="button"
+          aria-label="채널 찾기"
+          aria-haspopup="dialog"
+          onClick={() => setSearchOpen(true)}
+          className="shrink-0 cursor-pointer text-on-surface-variant hover:text-on-surface"
+        >
+          <SearchIcon size={18} />
+        </button>
+        <button
+          type="button"
+          aria-label="팀원 초대"
+          aria-haspopup="dialog"
+          onClick={() => setInviteOpen(true)}
+          className="shrink-0 cursor-pointer text-on-surface-variant hover:text-on-surface"
+        >
+          <UserPlusIcon size={18} />
+        </button>
+        <TeamMenu teamId={teamId} />
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 py-3">
@@ -104,6 +104,16 @@ function TeamChannels({
         open={createOpen}
         teamId={teamId}
         onClose={() => setCreateOpen(false)}
+      />
+      <ChannelSearchModal
+        open={searchOpen}
+        teamId={teamId}
+        onClose={() => setSearchOpen(false)}
+      />
+      <InviteTeamMembersModal
+        open={inviteOpen}
+        teamId={teamId}
+        onClose={() => setInviteOpen(false)}
       />
     </div>
   );

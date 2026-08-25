@@ -7,3 +7,44 @@ export function teamPath(teamId: number): string {
 export function channelPath(teamId: number, channelId: number): string {
   return `/teams/${teamId}/channels/${channelId}`;
 }
+
+export function dmPath(channelId: number): string {
+  return `/dms/${channelId}`;
+}
+
+export function teamSettingsProfilePath(teamId: number): string {
+  return `/teams/${teamId}/settings/profile`;
+}
+
+export function teamSettingsInvitesPath(teamId: number): string {
+  return `/teams/${teamId}/settings/invites`;
+}
+
+export function teamSettingsMembersPath(teamId: number): string {
+  return `/teams/${teamId}/settings/members`;
+}
+
+export function teamSettingsRolesPath(teamId: number): string {
+  return `/teams/${teamId}/settings/roles`;
+}
+
+export function teamSettingsRoleDetailPath(
+  teamId: number,
+  roleId: number,
+): string {
+  return `/teams/${teamId}/settings/roles/${roleId}`;
+}
+
+export function channelSettingsOverviewPath(
+  teamId: number,
+  channelId: number,
+): string {
+  return `/teams/${teamId}/channels/${channelId}/settings/overview`;
+}
+
+export function channelSettingsMembersPath(
+  teamId: number,
+  channelId: number,
+): string {
+  return `/teams/${teamId}/channels/${channelId}/settings/members`;
+}

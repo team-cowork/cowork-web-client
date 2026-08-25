@@ -54,7 +54,8 @@ export function TeamRail({ className }: TeamRailProps) {
     >
       <Link
         href={HOME_PATH}
-        aria-label="홈"
+        title="다이렉트 메시지"
+        aria-label="다이렉트 메시지"
         aria-current={currentTeamId === null ? 'page' : undefined}
         className={cn(
           'flex size-12 items-center justify-center rounded-2xl transition-colors',
