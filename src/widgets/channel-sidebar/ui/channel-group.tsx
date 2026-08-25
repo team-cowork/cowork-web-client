@@ -2,13 +2,20 @@
 
 import { useState } from 'react';
 
+import Link from 'next/link';
+
+import { Draggable, Droppable } from '@hello-pangea/dnd';
+
 import { type Channel } from '@/entities/channel/model/channel';
 import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
 import { ChannelListItem } from '@/entities/channel/ui/channel-list-item';
-import { channelPath } from '@/shared/model/paths';
+import { groupDroppableId } from '@/features/channel-reorder/lib/reorder-channels';
+import { cn } from '@/shared/lib/cn';
+import { channelPath, channelSettingsOverviewPath } from '@/shared/model/paths';
 import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
 import { ChevronRightIcon } from '@/shared/ui/icons/chevron-right-icon';
 import { PlusIcon } from '@/shared/ui/icons/plus-icon';
+import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 
 export interface ChannelGroupProps {
   teamId: number;
@@ -63,18 +70,57 @@ export function ChannelGroup({
       </div>
 
       {expanded && (
-        <ul className="mt-0.5 flex flex-col gap-0.5">
-          {channels.map((channel) => (
-            <li key={channel.id}>
-              <ChannelListItem
-                name={channel.name}
-                href={channelPath(teamId, channel.id)}
-                active={channel.id === activeChannelId}
-                prefix={<ChannelIcon viewType={channel.viewType} size={18} />}
-              />
-            </li>
-          ))}
-        </ul>
+        <Droppable droppableId={groupDroppableId(projectId)}>
+          {(droppable) => (
+            <ul
+              ref={droppable.innerRef}
+              {...droppable.droppableProps}
+              className="mt-0.5 flex flex-col gap-0.5"
+            >
+              {channels.map((channel, index) => (
+                <Draggable
+                  key={channel.id}
+                  draggableId={String(channel.id)}
+                  index={index}
+                >
+                  {(draggable, snapshot) => (
+                    <li
+                      ref={draggable.innerRef}
+                      {...draggable.draggableProps}
+                      {...draggable.dragHandleProps}
+                    >
+                      <ChannelListItem
+                        name={channel.name}
+                        href={channelPath(teamId, channel.id)}
+                        active={channel.id === activeChannelId}
+                        prefix={
+                          <ChannelIcon viewType={channel.viewType} size={18} />
+                        }
+                        className={cn(
+                          snapshot.isDragging &&
+                            'bg-surface-container-high text-on-surface shadow-lg',
+                        )}
+                        action={
+                          <Link
+                            href={channelSettingsOverviewPath(
+                              teamId,
+                              channel.id,
+                            )}
+                            aria-label={`${channel.name} 채널 설정`}
+                            className="flex size-6 cursor-pointer items-center justify-center rounded hover:bg-surface-container-high hover:text-on-surface"
+                          >
+                            <SettingsIcon size={14} />
+                          </Link>
+                        }
+                      />
+                    </li>
+                  )}
+                </Draggable>
+              ))}
+              {droppable.placeholder}
+            </ul>
+          )}
+        </Droppable>
       )}
     </section>
   );

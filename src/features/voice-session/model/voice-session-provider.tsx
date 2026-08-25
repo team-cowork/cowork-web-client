@@ -170,7 +170,8 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
 
             reset();
 
-            if (leftChannelId !== null) void notifyLeave(leftChannelId).catch(() => undefined);
+            if (leftChannelId !== null)
+              void notifyLeave(leftChannelId).catch(() => undefined);
           });
 
         await room.connect(session.livekit_url, session.token);
@@ -197,7 +198,8 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
 
         await room?.disconnect();
 
-        if (sessionStarted) await notifyLeave(nextChannelId).catch(() => undefined);
+        if (sessionStarted)
+          await notifyLeave(nextChannelId).catch(() => undefined);
 
         throw error;
       }

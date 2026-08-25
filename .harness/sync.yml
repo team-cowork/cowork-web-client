@@ -20,6 +20,21 @@ overrides:
   codex/agents/kotlin-convention-validator: false
   codex/agents/kotlin-test-fixer: false
 
+  # ── Next.js FSD 스킬 제외 (우리 아키텍처와 불일치) ──────────
+  # views 레이어·src/app·Turborepo 멀티앱·shadcn·zod 등 미사용 전제를 가정함
+  claude/skills/nextjs-fsd-architecture: false
+  claude/skills/nextjs-package-boundaries: false
+  claude/skills/nextjs-turborepo-fsd: false
+  claude/skills/tailwind-shadcn: false
+  claude/skills/tanstack-query-zod: false
+  claude/agents/frontend-convention-validator: false
+  codex/skills/nextjs-fsd-architecture: false
+  codex/skills/nextjs-package-boundaries: false
+  codex/skills/nextjs-turborepo-fsd: false
+  codex/skills/tailwind-shadcn: false
+  codex/skills/tanstack-query-zod: false
+  codex/agents/frontend-convention-validator: false
+
   # ── 훅/설정 활성화 (opt-in) ────────────────────────────────
   claude/hooks/dispatcher: true
   claude/settings: true

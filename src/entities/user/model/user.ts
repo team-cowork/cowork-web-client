@@ -1,24 +1,24 @@
 export const USER_STATUSES = [
-  'ONLINE',
-  'AWAY',
-  'DO_NOT_DISTURB',
-  'OFFLINE',
+  'online',
+  'away',
+  'do_not_disturb',
+  'offline',
 ] as const;
 
 export type UserStatus = (typeof USER_STATUSES)[number];
 
 export const USER_STATUS_LABEL: Record<UserStatus, string> = {
-  ONLINE: '온라인',
-  AWAY: '자리 비움',
-  DO_NOT_DISTURB: '방해 금지',
-  OFFLINE: '오프라인',
+  online: '온라인',
+  away: '자리 비움',
+  do_not_disturb: '방해 금지',
+  offline: '오프라인',
 };
 
 export const USER_STATUS_DOT_CLASS: Record<UserStatus, string> = {
-  ONLINE: 'bg-success',
-  AWAY: 'bg-cowork-amber-500',
-  DO_NOT_DISTURB: 'bg-primary',
-  OFFLINE: 'bg-cowork-neutral-300',
+  online: 'bg-success',
+  away: 'bg-cowork-amber-500',
+  do_not_disturb: 'bg-primary',
+  offline: 'bg-cowork-neutral-300',
 };
 
 export function toUserStatus(status: string): UserStatus | null {
@@ -43,6 +43,27 @@ export interface User {
   account_description: string | null;
   github_id: string | null;
   profile_image_url: string | null;
+}
+
+export interface SearchUsersParams {
+  name?: string;
+  nickname?: string;
+  major?: string;
+  student_role?: string;
+  status?: UserStatus;
+  role?: string;
+  page?: number;
+  page_size?: number;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+}
+
+export interface UserSearchResult {
+  items: User[];
+  page: number;
+  page_size: number;
+  total_count: number;
+  has_next: boolean;
 }
 
 export interface UpdateMeRequest {

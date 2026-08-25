@@ -71,6 +71,14 @@ export interface ChannelMember {
   joinedAt: string;
 }
 
+export interface OpenDmRequest {
+  targetUserId: number;
+}
+
+export interface AddChannelMemberRequest {
+  userId: number;
+}
+
 export interface CreateChannelRequest {
   teamId: number;
   name: string;
@@ -78,4 +86,20 @@ export interface CreateChannelRequest {
   viewType: string;
   isPrivate: boolean;
   description?: string | null;
+}
+
+export interface UpdateChannelRequest {
+  name?: string | null;
+  description?: string | null;
+  isPrivate?: boolean | null;
+  projectId?: number | null;
+}
+
+export interface ReorderChannelsRequest {
+  orderedChannelIds: number[];
+}
+
+export interface SearchChannelsParams {
+  teamId: number;
+  q: string;
 }

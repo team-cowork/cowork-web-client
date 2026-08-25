@@ -19,7 +19,7 @@ export interface MemberPanelProps {
 function isOnline(user: User): boolean {
   const status = toUserStatus(user.status);
 
-  return status !== null && status !== 'OFFLINE';
+  return status !== null && status !== 'offline';
 }
 
 const MEMBER_SKELETON = (
