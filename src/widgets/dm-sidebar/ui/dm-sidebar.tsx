@@ -129,9 +129,10 @@ function DmList({ currentChannelId, onStartDm }: DmListProps) {
   const { data: conversations } = useSuspenseQuery(dmQueries.list());
 
   const users = useQueries({
-    queries: conversations.map((conversation) =>
-      userQueries.detail(conversation.targetUserId),
-    ),
+    queries: conversations.map((conversation) => ({
+      ...userQueries.detail(conversation.otherUserId ?? 0),
+      enabled: conversation.otherUserId !== null,
+    })),
   });
 
   if (conversations.length === 0) {

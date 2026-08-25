@@ -6,7 +6,7 @@ export interface DmLastMessage {
 
 export interface DmConversation {
   channelId: number;
-  targetUserId: number;
+  otherUserId: number | null;
   unreadCount: number;
   lastMessage: DmLastMessage | null;
 }
