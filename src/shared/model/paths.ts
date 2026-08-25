@@ -34,3 +34,17 @@ export function teamSettingsRoleDetailPath(
 ): string {
   return `/teams/${teamId}/settings/roles/${roleId}`;
 }
+
+export function channelSettingsOverviewPath(
+  teamId: number,
+  channelId: number,
+): string {
+  return `/teams/${teamId}/channels/${channelId}/settings/overview`;
+}
+
+export function channelSettingsMembersPath(
+  teamId: number,
+  channelId: number,
+): string {
+  return `/teams/${teamId}/channels/${channelId}/settings/members`;
+}

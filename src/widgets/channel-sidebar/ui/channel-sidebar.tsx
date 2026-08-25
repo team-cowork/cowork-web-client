@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
 
+import { ChannelSearchModal } from '@/features/channel-search/ui/channel-search-modal';
 import { CreateChannelModal } from '@/features/channel-create/ui/create-channel-modal';
 import { InviteTeamMembersModal } from '@/features/team-members/ui/invite-team-members-modal';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
@@ -18,6 +19,7 @@ import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { ChatIcon } from '@/shared/ui/icons/chat-icon';
+import { SearchIcon } from '@/shared/ui/icons/search-icon';
 import { UserPlusIcon } from '@/shared/ui/icons/user-plus-icon';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
@@ -53,6 +55,7 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
   const { channelId: currentChannelId } = useRouteIds();
   const { data: team } = useQuery(teamQueries.detail(teamId));
   const [createOpen, setCreateOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
 
   return (
@@ -61,6 +64,16 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
         <h2 className="min-w-0 flex-1 truncate typography-label-small text-on-surface">
           {team?.name ?? ''}
         </h2>
+
+        <button
+          type="button"
+          aria-label="채널 찾기"
+          aria-haspopup="dialog"
+          onClick={() => setSearchOpen(true)}
+          className="shrink-0 cursor-pointer text-on-surface-variant hover:text-on-surface"
+        >
+          <SearchIcon size={18} />
+        </button>
         <button
           type="button"
           aria-label="팀원 초대"
@@ -91,6 +104,11 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
         open={createOpen}
         teamId={teamId}
         onClose={() => setCreateOpen(false)}
+      />
+      <ChannelSearchModal
+        open={searchOpen}
+        teamId={teamId}
+        onClose={() => setSearchOpen(false)}
       />
       <InviteTeamMembersModal
         open={inviteOpen}
