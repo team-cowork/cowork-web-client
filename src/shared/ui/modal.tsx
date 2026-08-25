@@ -44,11 +44,12 @@ export function Modal({
         if (e.target === ref.current) onClose();
       }}
       className={cn(
-        'm-auto w-[480px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[20px] bg-surface text-on-surface backdrop:bg-black/55',
+        'm-auto max-h-[85vh] w-[480px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[20px] bg-surface text-on-surface backdrop:bg-black/55',
+        open ? 'flex' : 'hidden',
         className,
       )}
     >
-      <div className="flex items-center justify-between border-b border-outline-variant py-[18px] pr-5 pl-6">
+      <div className="flex shrink-0 items-center justify-between border-b border-outline-variant py-[18px] pr-5 pl-6">
         <h2 className="typography-title-small text-on-surface">{title}</h2>
         <button
           type="button"
@@ -60,10 +61,12 @@ export function Modal({
         </button>
       </div>
       {children && (
-        <div className="flex flex-col gap-3 px-6 py-5">{children}</div>
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-6 py-5 [scrollbar-gutter:stable_both-edges] [&>*]:shrink-0">
+          {children}
+        </div>
       )}
       {footer && (
-        <div className="flex justify-end gap-2.5 border-t border-outline-variant px-6 pt-4 pb-5">
+        <div className="flex shrink-0 justify-end gap-2.5 border-t border-outline-variant px-6 pt-4 pb-5">
           {footer}
         </div>
       )}
