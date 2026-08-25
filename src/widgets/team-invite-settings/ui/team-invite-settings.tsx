@@ -10,7 +10,9 @@ import {
   INVITE_DURATION_LABEL,
   type Invite,
   type InviteDuration,
+  toTeamMemberRole,
 } from '@/entities/team/model/team';
+import { userQueries } from '@/entities/user/api/user-queries';
 import { formatDate } from '@/shared/lib/format-date';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -63,12 +65,22 @@ export function TeamInviteSettings({ teamId }: TeamInviteSettingsProps) {
 
 function TeamInviteList({ teamId }: { teamId: number }) {
   const { data: invites } = useSuspenseQuery(teamQueries.invites(teamId));
+  const { data: me } = useSuspenseQuery(userQueries.me());
+  const { data: members } = useSuspenseQuery(teamQueries.members(teamId));
   const revokeInvite = useRevokeTeamInvite(teamId);
   const [revokingCode, setRevokingCode] = useState<string | null>(null);
+  const [failedCode, setFailedCode] = useState<string | null>(null);
+
+  const myRole = toTeamMemberRole(
+    members.find((member) => member.userId === me.id)?.role ?? '',
+  );
+  const isTeamManager = myRole === 'OWNER' || myRole === 'ADMIN';
 
   const handleRevoke = (inviteCode: string) => {
     setRevokingCode(inviteCode);
+    setFailedCode(null);
     revokeInvite.mutate(inviteCode, {
+      onError: () => setFailedCode(inviteCode),
       onSettled: () => setRevokingCode(null),
     });
   };
@@ -88,9 +100,10 @@ function TeamInviteList({ teamId }: { teamId: number }) {
       {invites.map((invite: Invite) => {
         const revoking =
           revokeInvite.isPending && revokingCode === invite.inviteCode;
+        const canRevoke = isTeamManager || invite.createdBy === me.id;
 
         return (
-          <li key={invite.inviteCode}>
+          <li key={invite.inviteCode} className="flex flex-col gap-1">
             <div className="flex items-center gap-3 rounded-xl bg-surface-container px-4 py-3">
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <div className="flex items-center gap-2">
@@ -106,17 +119,24 @@ function TeamInviteList({ teamId }: { teamId: number }) {
                     ` · ${formatDate(invite.expiresAt)} 만료`}
                 </span>
               </div>
-              <Button
-                type="button"
-                size="S"
-                variant="weak"
-                color="danger"
-                disabled={invite.expired || revoking}
-                onClick={() => handleRevoke(invite.inviteCode)}
-              >
-                {revoking ? '무효화하는 중…' : '무효화'}
-              </Button>
+              {canRevoke && (
+                <Button
+                  type="button"
+                  size="S"
+                  variant="weak"
+                  color="danger"
+                  disabled={invite.expired || revoking}
+                  onClick={() => handleRevoke(invite.inviteCode)}
+                >
+                  {revoking ? '무효화하는 중…' : '무효화'}
+                </Button>
+              )}
             </div>
+            {failedCode === invite.inviteCode && (
+              <p className="px-1 typography-subtext-medium text-error">
+                초대 링크를 무효화하지 못했어요. 잠시 후 다시 시도해 주세요.
+              </p>
+            )}
           </li>
         );
       })}
