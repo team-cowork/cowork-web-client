@@ -25,6 +25,7 @@ export default function ChannelSettingsLayout({
   });
 
   if (teamId === null || channelId === null) notFound();
+  if (channel && channel.teamId !== teamId) notFound();
 
   return (
     <div className="flex min-h-screen bg-surface-container-low">
