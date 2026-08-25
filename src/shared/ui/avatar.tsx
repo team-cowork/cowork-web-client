@@ -54,11 +54,11 @@ export function Avatar({
       {src ? (
         <Image
           src={src}
-          alt={name ?? ''}
+          alt={initials ?? ''}
           width={size}
           height={size}
           loading={loading}
-          className="size-full object-cover"
+          className="flex size-full items-center justify-center object-cover text-center"
         />
       ) : (
         initials
