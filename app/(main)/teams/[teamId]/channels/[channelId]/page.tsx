@@ -11,13 +11,12 @@ import { type FallbackProps } from 'react-error-boundary';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-badge';
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
+import { MockChatPanel } from '@/widgets/chat-panel/ui/mock-chat-panel';
 import { MemberPanel } from '@/widgets/member-panel/ui/member-panel';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
-import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
-import { ChatIcon } from '@/shared/ui/icons/chat-icon';
 import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
@@ -92,14 +91,7 @@ function ChannelView({
         {isVoice ? (
           <VoiceStage channelId={channelId} />
         ) : (
-          <div className="flex flex-1 items-center justify-center p-6">
-            <EmptyState
-              icon={<ChatIcon />}
-              title="채팅 기능 준비 중"
-              description="메시지 API 연동 후 이 영역에 대화가 표시됩니다"
-              className="max-w-md"
-            />
-          </div>
+          <MockChatPanel channelId={channelId} />
         )}
       </div>
 
