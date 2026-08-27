@@ -9,6 +9,7 @@ import { MessageItem } from '@/entities/message/ui/message-item';
 import { cn } from '@/shared/lib/cn';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ChatIcon } from '@/shared/ui/icons/chat-icon';
+import { Markdown } from '@/shared/ui/markdown';
 
 export interface MessageListProps {
   messages: Message[];
@@ -55,7 +56,7 @@ export function MessageList({
             <MessageItem
               author={message.authorName}
               timestamp={formatMessageTime(message.createdAt)}
-              content={message.content}
+              content={<Markdown>{message.content}</Markdown>}
               avatarSrc={message.authorImageUrl ?? undefined}
               tone={toAuthorTone(message.authorName)}
             />
