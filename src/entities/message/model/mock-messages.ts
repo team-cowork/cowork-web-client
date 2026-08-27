@@ -72,3 +72,59 @@ export function createMockMessages(
     };
   });
 }
+
+interface MockReplySeed {
+  authorId: number;
+  authorName: string;
+  hour: number;
+  minute: number;
+  content: string;
+}
+
+const MOCK_REPLY_SEEDS: MockReplySeed[] = [
+  {
+    authorId: 2,
+    authorName: '도윤',
+    hour: 14,
+    minute: 22,
+    content: '확인했어요. socket 인스턴스가 의존성 배열에서 빠진 것 같아요.',
+  },
+  {
+    authorId: 1,
+    authorName: 'junjuny',
+    hour: 14,
+    minute: 24,
+    content: '오 맞네요. 수정해서 다시 푸시할게요.',
+  },
+  {
+    authorId: 3,
+    authorName: '서연',
+    hour: 14,
+    minute: 26,
+    content: '리뷰 끝나면 머지 부탁드려요!',
+  },
+];
+
+/**
+ * 스레드 답글용 목 데이터. 원본 메시지 id를 기준으로 id가 겹치지 않게 만든다.
+ */
+export function createMockReplies(
+  rootMessage: Message,
+  now = new Date(),
+): Message[] {
+  return MOCK_REPLY_SEEDS.map((seed, index) => {
+    const createdAt = new Date(now);
+
+    createdAt.setHours(seed.hour, seed.minute, 0, 0);
+
+    return {
+      id: rootMessage.id * 1000 + index + 1,
+      channelId: rootMessage.channelId,
+      authorId: seed.authorId,
+      authorName: seed.authorName,
+      authorImageUrl: null,
+      content: seed.content,
+      createdAt: createdAt.toISOString(),
+    };
+  });
+}
