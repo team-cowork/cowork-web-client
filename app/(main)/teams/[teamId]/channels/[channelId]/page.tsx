@@ -9,10 +9,12 @@ import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
+import { type Message } from '@/entities/message/model/message';
 import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-badge';
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
 import { MockChatPanel } from '@/widgets/chat-panel/ui/mock-chat-panel';
 import { MemberPanel } from '@/widgets/member-panel/ui/member-panel';
+import { MockThreadPanel } from '@/widgets/thread-panel/ui/mock-thread-panel';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
@@ -53,7 +55,7 @@ export default function ChannelPage() {
       errorFallback={ChannelPageError}
       resetKeys={[teamId, channelId]}
     >
-      <ChannelView teamId={teamId} channelId={channelId} />
+      <ChannelView key={channelId} teamId={teamId} channelId={channelId} />
     </QueryBoundary>
   );
 }
@@ -66,6 +68,7 @@ function ChannelView({
   channelId: number;
 }) {
   const [membersOpen, setMembersOpen] = useState(true);
+  const [threadRoot, setThreadRoot] = useState<Message | null>(null);
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
 
   if (channel.teamId !== teamId) {
@@ -91,11 +94,22 @@ function ChannelView({
         {isVoice ? (
           <VoiceStage channelId={channelId} />
         ) : (
-          <MockChatPanel channelId={channelId} />
+          <MockChatPanel
+            channelId={channelId}
+            onSelectMessage={setThreadRoot}
+          />
         )}
       </div>
 
-      {membersOpen && <MemberPanel channelId={channelId} />}
+      {threadRoot ? (
+        <MockThreadPanel
+          subtitle={`# ${channel.name}`}
+          rootMessage={threadRoot}
+          onClose={() => setThreadRoot(null)}
+        />
+      ) : (
+        membersOpen && <MemberPanel channelId={channelId} />
+      )}
     </div>
   );
 }

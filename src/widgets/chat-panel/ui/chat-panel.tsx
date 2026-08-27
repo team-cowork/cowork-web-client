@@ -12,6 +12,7 @@ import { cn } from '@/shared/lib/cn';
 export interface ChatPanelProps {
   messages: Message[];
   onSendMessage: (content: string) => void;
+  onSelectMessage?: (message: Message) => void;
   placeholder?: string;
   emptyState?: ReactNode;
   onAttach?: () => void;
@@ -25,6 +26,7 @@ export interface ChatPanelProps {
 export function ChatPanel({
   messages,
   onSendMessage,
+  onSelectMessage,
   placeholder,
   emptyState,
   onAttach,
@@ -34,7 +36,11 @@ export function ChatPanel({
 
   return (
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
-      <MessageList messages={messages} emptyState={emptyState} />
+      <MessageList
+        messages={messages}
+        onSelectMessage={onSelectMessage}
+        emptyState={emptyState}
+      />
 
       <div className="shrink-0 px-4 pb-6">
         <MessageComposer
