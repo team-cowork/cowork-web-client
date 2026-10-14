@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 
 import { cn } from '@/shared/lib/cn';
+import { useScrollLock } from '@/shared/lib/use-scroll-lock';
 
 export interface DialogProps {
   open: boolean;
@@ -28,11 +29,9 @@ export function Dialog({
     if (!dialog) return;
     if (open && !dialog.open) dialog.showModal();
     if (!open && dialog.open) dialog.close();
-    document.body.style.overflow = open ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
-    };
   }, [open]);
+
+  useScrollLock(open);
 
   return (
     <dialog

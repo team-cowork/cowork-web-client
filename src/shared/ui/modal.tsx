@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 
 import { cn } from '@/shared/lib/cn';
+import { useScrollLock } from '@/shared/lib/use-scroll-lock';
 import { CloseIcon } from '@/shared/ui/icons/close-icon';
 
 export interface ModalProps {
@@ -30,11 +31,9 @@ export function Modal({
     if (!dialog) return;
     if (open && !dialog.open) dialog.showModal();
     if (!open && dialog.open) dialog.close();
-    document.body.style.overflow = open ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
-    };
   }, [open]);
+
+  useScrollLock(open);
 
   return (
     <dialog
