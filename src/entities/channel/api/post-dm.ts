@@ -6,7 +6,10 @@ import {
 } from '@/entities/channel/model/channel';
 
 export async function postDm(request: OpenDmRequest): Promise<Channel> {
-  const { data } = await instance.post<ApiResponse<Channel>>('/dms', request);
+  const { data } = await instance.post<ApiResponse<Channel>>(
+    '/channel/dms',
+    request,
+  );
 
   return data.data;
 }

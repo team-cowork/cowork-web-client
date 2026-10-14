@@ -9,7 +9,7 @@ export async function postChannel(
   request: CreateChannelRequest,
 ): Promise<Channel> {
   const { data } = await instance.post<ApiResponse<Channel>>(
-    '/channels',
+    '/channel/channels',
     request,
   );
 

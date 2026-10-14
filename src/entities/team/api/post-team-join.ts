@@ -6,7 +6,7 @@ export async function postTeamJoin(
   inviteCode: string,
 ): Promise<JoinTeamResult> {
   const { data } = await instance.post<ApiResponse<JoinTeamResult>>(
-    `/teams/join/${inviteCode}`,
+    `/team/teams/join/${inviteCode}`,
   );
 
   return data.data;

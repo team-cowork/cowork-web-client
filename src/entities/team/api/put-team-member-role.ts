@@ -8,7 +8,7 @@ export async function putTeamMemberRole(
   roleId: number,
 ): Promise<TeamRole> {
   const { data } = await instance.put<ApiResponse<TeamRole>>(
-    `/teams/${teamId}/members/${targetUserId}/roles/${roleId}`,
+    `/team/teams/${teamId}/members/${targetUserId}/roles/${roleId}`,
   );
 
   return data.data;

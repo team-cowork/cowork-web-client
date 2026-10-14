@@ -4,5 +4,5 @@ export async function deleteChannelMember(
   channelId: number,
   memberId: number,
 ): Promise<void> {
-  await instance.delete(`/channels/${channelId}/members/${memberId}`);
+  await instance.delete(`/channel/channels/${channelId}/members/${memberId}`);
 }
