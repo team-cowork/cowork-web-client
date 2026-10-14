@@ -9,7 +9,7 @@ export async function patchMyStatus(
   body: UpdateMyStatusRequest,
 ): Promise<User> {
   const { data } = await instance.patch<ApiResponse<User>>(
-    '/users/me/status',
+    '/user/users/me/status',
     body,
   );
 
