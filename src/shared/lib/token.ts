@@ -8,7 +8,7 @@ export async function exchangeCodeForTokens(input: {
 }): Promise<TokenPairResponse | null> {
   try {
     const response = await serverInstance.post<ApiResponse<TokenPairResponse>>(
-      '/auth/token',
+      '/authorization/auth/token',
       {
         code: input.code,
         code_verifier: input.verifier,
@@ -29,7 +29,7 @@ export async function refreshTokens(
 ): Promise<TokenPairResponse | null> {
   try {
     const response = await serverInstance.post<ApiResponse<TokenPairResponse>>(
-      '/auth/refresh',
+      '/authorization/auth/refresh',
       {
         refresh_token: refreshToken,
       },
@@ -49,7 +49,7 @@ export async function revokeTokens(input: {
 }): Promise<void> {
   try {
     await serverInstance.post(
-      '/auth/signout',
+      '/authorization/auth/signout',
       { refresh_token: input.refreshToken },
       { headers: { Authorization: `Bearer ${input.accessToken}` } },
     );
