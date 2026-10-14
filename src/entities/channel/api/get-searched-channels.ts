@@ -9,7 +9,7 @@ export async function getSearchedChannels(
   params: SearchChannelsParams,
 ): Promise<Channel[]> {
   const { data } = await instance.get<ApiResponse<Channel[]>>(
-    '/search/channels',
+    '/channel/search/channels',
     { params },
   );
 

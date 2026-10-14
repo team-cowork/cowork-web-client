@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { REFRESH_TOKEN_COOKIE } from '@/shared/model/token';
-import { appUrl } from '@/shared/lib/app-url';
 import { refreshTokens, revokeTokens } from '@/shared/lib/token';
 import { clearTokenCookies } from '@/shared/lib/cookies';
 
@@ -18,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const response = NextResponse.redirect(appUrl('/signin', request));
+  const response = new NextResponse(null, { status: 204 });
   clearTokenCookies(response);
   return response;
 }

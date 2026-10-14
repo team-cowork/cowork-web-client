@@ -7,7 +7,7 @@ export async function getTeamMemberRoles(
   userId: number,
 ): Promise<TeamRole[]> {
   const { data } = await instance.get<ApiResponse<TeamRole[]>>(
-    `/teams/${teamId}/members/${userId}/roles`,
+    `/team/teams/${teamId}/members/${userId}/roles`,
   );
 
   return data.data;

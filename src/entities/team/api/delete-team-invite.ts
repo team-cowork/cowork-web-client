@@ -4,5 +4,5 @@ export async function deleteTeamInvite(
   teamId: number,
   inviteCode: string,
 ): Promise<void> {
-  await instance.delete(`/teams/${teamId}/invites/${inviteCode}`);
+  await instance.delete(`/team/teams/${teamId}/invites/${inviteCode}`);
 }

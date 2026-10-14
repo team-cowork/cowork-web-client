@@ -10,7 +10,7 @@ export async function postTeamRole(
   request: CreateTeamRoleRequest,
 ): Promise<TeamRole> {
   const { data } = await instance.post<ApiResponse<TeamRole>>(
-    `/teams/${teamId}/roles`,
+    `/team/teams/${teamId}/roles`,
     request,
   );
 

@@ -6,7 +6,7 @@ export async function postTeamIconConfirm(
   objectKey: string,
 ): Promise<TeamIconConfirmResponse> {
   const { data } = await instance.post<ApiResponse<TeamIconConfirmResponse>>(
-    '/teams/icon/confirm',
+    '/team/teams/icon/confirm',
     { objectKey },
   );
 

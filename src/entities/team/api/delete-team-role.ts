@@ -4,5 +4,5 @@ export async function deleteTeamRole(
   teamId: number,
   roleId: number,
 ): Promise<void> {
-  await instance.delete(`/teams/${teamId}/roles/${roleId}`);
+  await instance.delete(`/team/teams/${teamId}/roles/${roleId}`);
 }

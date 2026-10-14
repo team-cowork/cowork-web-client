@@ -11,7 +11,7 @@ export async function patchTeamRole(
   request: UpdateTeamRoleRequest,
 ): Promise<TeamRole> {
   const { data } = await instance.patch<ApiResponse<TeamRole>>(
-    `/teams/${teamId}/roles/${roleId}`,
+    `/team/teams/${teamId}/roles/${roleId}`,
     request,
   );
 

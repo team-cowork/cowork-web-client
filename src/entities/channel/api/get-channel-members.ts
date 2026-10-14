@@ -6,7 +6,7 @@ export async function getChannelMembers(
   channelId: number,
 ): Promise<ChannelMember[]> {
   const { data } = await instance.get<ApiResponse<ChannelMember[]>>(
-    `/channels/${channelId}/members`,
+    `/channel/channels/${channelId}/members`,
   );
 
   return data.data;
