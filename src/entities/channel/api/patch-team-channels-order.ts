@@ -10,7 +10,7 @@ export async function patchTeamChannelsOrder(
   request: ReorderChannelsRequest,
 ): Promise<Channel[]> {
   const { data } = await instance.patch<ApiResponse<Channel[]>>(
-    `/teams/${teamId}/channels/reorder`,
+    `/channel/teams/${teamId}/channels/reorder`,
     request,
   );
 
