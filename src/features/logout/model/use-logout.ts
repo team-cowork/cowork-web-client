@@ -10,7 +10,7 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: () => axios.post('/api/auth/signout'),
-    onSettled: () => {
+    onSuccess: () => {
       sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
       queryClient.clear();
       window.location.replace('/signin');
