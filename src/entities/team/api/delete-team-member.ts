@@ -4,5 +4,5 @@ export async function deleteTeamMember(
   teamId: number,
   targetUserId: number,
 ): Promise<void> {
-  await instance.delete(`/teams/${teamId}/members/${targetUserId}`);
+  await instance.delete(`/team/teams/${teamId}/members/${targetUserId}`);
 }

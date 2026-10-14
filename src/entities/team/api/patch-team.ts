@@ -7,7 +7,7 @@ export async function patchTeam(
   request: UpdateTeamRequest,
 ): Promise<Team> {
   const { data } = await instance.patch<ApiResponse<Team>>(
-    `/teams/${teamId}`,
+    `/team/teams/${teamId}`,
     request,
   );
 

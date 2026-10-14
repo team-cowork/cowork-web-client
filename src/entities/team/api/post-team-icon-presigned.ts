@@ -6,7 +6,7 @@ export async function postTeamIconPresigned(
   contentType: string,
 ): Promise<TeamIconPresignedResponse> {
   const { data } = await instance.post<ApiResponse<TeamIconPresignedResponse>>(
-    '/teams/icon/presigned',
+    '/team/teams/icon/presigned',
     { contentType },
   );
 
