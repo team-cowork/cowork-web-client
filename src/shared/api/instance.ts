@@ -1,5 +1,6 @@
 import axios, { HttpStatusCode } from 'axios';
 
+import { applyDevCredential } from '@/shared/api/dev-credential';
 import { isPublicPath } from '@/shared/model/routes';
 import { ACCESS_TOKEN_STORAGE_KEY } from '@/shared/model/token';
 
@@ -14,6 +15,9 @@ export const serverInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
+
+instance.interceptors.request.use(applyDevCredential);
+serverInstance.interceptors.request.use(applyDevCredential);
 
 let refreshPromise: Promise<string> | null = null;
 
