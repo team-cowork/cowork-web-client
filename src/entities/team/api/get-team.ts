@@ -3,7 +3,9 @@ import { type ApiResponse } from '@/shared/model/token';
 import { type Team } from '@/entities/team/model/team';
 
 export async function getTeam(teamId: number): Promise<Team> {
-  const { data } = await instance.get<ApiResponse<Team>>(`/teams/${teamId}`);
+  const { data } = await instance.get<ApiResponse<Team>>(
+    `/team/teams/${teamId}`,
+  );
 
   return data.data;
 }

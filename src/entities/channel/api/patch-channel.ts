@@ -10,7 +10,7 @@ export async function patchChannel(
   request: UpdateChannelRequest,
 ): Promise<Channel> {
   const { data } = await instance.patch<ApiResponse<Channel>>(
-    `/channels/${channelId}`,
+    `/channel/channels/${channelId}`,
     request,
   );
 

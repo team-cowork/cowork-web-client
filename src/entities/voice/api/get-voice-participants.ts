@@ -6,7 +6,7 @@ export async function getVoiceParticipants(
   channelId: number,
 ): Promise<VoiceParticipants> {
   const { data } = await instance.get<ApiResponse<VoiceParticipants>>(
-    `/voice/channels/${channelId}/participants`,
+    `/voice/voice/channels/${channelId}/participants`,
   );
 
   return data.data;

@@ -10,7 +10,7 @@ export async function patchTeamIcon(
   request: UpdateTeamIconRequest,
 ): Promise<TeamIconConfirmResponse> {
   const { data } = await instance.patch<ApiResponse<TeamIconConfirmResponse>>(
-    `/teams/${teamId}/icon`,
+    `/team/teams/${teamId}/icon`,
     request,
   );
 

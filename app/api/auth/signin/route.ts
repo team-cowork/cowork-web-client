@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { appUrl } from '@/shared/lib/app-url';
 import { setPkceCookies } from '@/shared/lib/cookies';
 import { buildAuthorizeUrl } from '@/shared/lib/oauth';
 import {
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
   const challenge = await generateCodeChallenge(verifier);
   const state = generateState();
 
-  const redirectUri = new URL('/api/auth/callback', request.url).toString();
+  const redirectUri = appUrl('/api/auth/callback', request).toString();
   const authorizeUrl = buildAuthorizeUrl({
     clientId: process.env.DATAGSM_CLIENT_ID ?? '',
     redirectUri,

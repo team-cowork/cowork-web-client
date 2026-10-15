@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const response = NextResponse.redirect(new URL('/signin', request.url));
+  const response = new NextResponse(null, { status: 204 });
   clearTokenCookies(response);
   return response;
 }

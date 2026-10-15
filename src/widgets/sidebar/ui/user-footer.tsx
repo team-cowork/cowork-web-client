@@ -54,7 +54,13 @@ export function UserFooter({ className }: UserFooterProps) {
             onClick={() => setOpen(false)}
           />
           <div className="absolute bottom-full left-2 z-50 mb-2">
-            <UserStatusPopover user={user} />
+            <UserStatusPopover
+              user={user}
+              onAvatarClick={() => {
+                setOpen(false);
+                setProfileOpen(true);
+              }}
+            />
           </div>
         </>
       )}
@@ -83,8 +89,8 @@ export function UserFooter({ className }: UserFooterProps) {
         </button>
         <button
           type="button"
-          aria-label="내 프로필"
-          onClick={() => setProfileOpen(true)}
+          aria-label="설정"
+          onClick={() => setSettingsOpen(true)}
           className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg hover:bg-surface-container-high"
         >
           <SettingsIcon size={20} className="text-on-surface-variant" />
@@ -104,7 +110,7 @@ export function UserFooter({ className }: UserFooterProps) {
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         title="설정 · 프로필"
-        className="w-[680px]"
+        className="w-[760px]"
       >
         <ProfileSettings />
       </Modal>

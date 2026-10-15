@@ -10,7 +10,7 @@ export async function postChannelMember(
   request: AddChannelMemberRequest,
 ): Promise<ChannelMember> {
   const { data } = await instance.post<ApiResponse<ChannelMember>>(
-    `/channels/${channelId}/members`,
+    `/channel/channels/${channelId}/members`,
     request,
   );
 

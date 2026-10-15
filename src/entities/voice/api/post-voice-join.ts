@@ -6,7 +6,7 @@ export async function postVoiceJoin(
   channelId: number,
 ): Promise<VoiceJoinResponse> {
   const { data } = await instance.post<ApiResponse<VoiceJoinResponse>>(
-    `/voice/channels/${channelId}/join`,
+    `/voice/voice/channels/${channelId}/join`,
   );
 
   return data.data;

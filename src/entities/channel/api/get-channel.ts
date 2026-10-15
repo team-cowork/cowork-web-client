@@ -4,7 +4,7 @@ import { type Channel } from '@/entities/channel/model/channel';
 
 export async function getChannel(channelId: number): Promise<Channel> {
   const { data } = await instance.get<ApiResponse<Channel>>(
-    `/channels/${channelId}`,
+    `/channel/channels/${channelId}`,
   );
 
   return data.data;

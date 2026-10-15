@@ -10,7 +10,7 @@ export async function postTeamMembers(
   request: InviteMembersRequest,
 ): Promise<TeamMember[]> {
   const { data } = await instance.post<ApiResponse<TeamMember[]>>(
-    `/teams/${teamId}/members`,
+    `/team/teams/${teamId}/members`,
     request,
   );
 

@@ -1,0 +1,19 @@
+services:
+  web:
+    image: ghcr.io/team-cowork/cowork-web-client:${IMAGE_TAG:-latest}
+    container_name: cowork-web-client
+    init: true
+    restart: unless-stopped
+    ports:
+      - '80:3000'
+    environment:
+      DATAGSM_CLIENT_ID: ${DATAGSM_CLIENT_ID:?DATAGSM_CLIENT_ID is required}
+      APP_ORIGIN: ${APP_ORIGIN:?APP_ORIGIN is required}
+    networks:
+      - gsmsv-net
+
+networks:
+  gsmsv-net:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: '1400'

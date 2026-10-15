@@ -7,7 +7,7 @@ export async function patchTeamMemberRole(
   request: ChangeMemberRoleRequest,
 ): Promise<void> {
   await instance.patch(
-    `/teams/${teamId}/members/${targetUserId}/role`,
+    `/team/teams/${teamId}/members/${targetUserId}/role`,
     request,
   );
 }

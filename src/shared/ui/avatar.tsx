@@ -1,3 +1,7 @@
+'use client';
+
+import { useState } from 'react';
+
 import Image from 'next/image';
 
 import { cn } from '@/shared/lib/cn';
@@ -35,6 +39,7 @@ export function Avatar({
   loading = 'lazy',
   className,
 }: AvatarProps) {
+  const [failedSrc, setFailedSrc] = useState<string>();
   const initials = name ? name.trim().slice(0, 2).toUpperCase() : '';
 
   return (
@@ -51,13 +56,14 @@ export function Avatar({
         className,
       )}
     >
-      {src ? (
+      {src && src !== failedSrc ? (
         <Image
           src={src}
           alt={name ?? ''}
           width={size}
           height={size}
           loading={loading}
+          onError={() => setFailedSrc(src)}
           className="size-full object-cover"
         />
       ) : (

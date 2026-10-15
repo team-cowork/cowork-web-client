@@ -9,7 +9,7 @@ export async function getUsers(
   params: SearchUsersParams = {},
 ): Promise<UserSearchResult> {
   const { data } = await instance.get<ApiResponse<UserSearchResult>>(
-    '/users/search',
+    '/user/users/search',
     {
       params,
     },
