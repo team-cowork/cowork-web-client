@@ -19,12 +19,14 @@ RELEASE = {
 }
 
 
-def pr(number, sha, merged=True):
-    return {"number": number, "title": f"PR {number}", "body": "Description", "html_url": f"https://github.com/team/repo/pull/{number}", "merged_at": "2026-09-01T00:00:00Z" if merged else None, "merge_commit_sha": sha, "base": {"ref": "main"}, "head": {"ref": "develop"}}
+def pr(number, sha, merged=True, updated="2026-09-02T00:00:00Z"):
+    return {"number": number, "title": f"PR {number}", "body": "Description", "html_url": f"https://github.com/team/repo/pull/{number}", "merged_at": "2026-09-01T00:00:00Z" if merged else None, "updated_at": updated, "merge_commit_sha": sha, "base": {"ref": "main"}, "head": {"ref": "develop"}}
 
 
 class CollectionTests(unittest.TestCase):
     def test_paginated_ancestry_excludes_unmerged_and_out_of_range_prs(self):
+        requested = []
+
         def response(endpoint, paginate=False):
             if "/releases/tags/" in endpoint:
                 return RELEASE
@@ -34,14 +36,17 @@ class CollectionTests(unittest.TestCase):
                 return pr(1, "base")
             if endpoint.endswith("/pulls/4"):
                 return pr(4, "target")
-            self.assertTrue(paginate)
             if "/compare/" in endpoint:
-                return [{"status": "ahead", "total_commits": 2, "commits": [{"sha": sha, "html_url": f"https://github.com/team/repo/commit/{sha}", "commit": {"message": sha}}]} for sha in ("feature", "target")]
-            return [[pr(2, "feature"), pr(3, "unrelated")], [pr(4, "target"), pr(5, "feature", merged=False)]]
+                self.assertTrue(paginate)
+                return [{"status": "ahead", "total_commits": 2, "commits": [{"sha": sha, "html_url": f"https://github.com/team/repo/commit/{sha}", "commit": {"message": sha, "committer": {"date": "2026-09-01T00:00:00Z"}}}]} for sha in ("feature", "target")]
+            self.assertIn("sort=updated&direction=desc", endpoint)
+            requested.append(endpoint)
+            return {1: [pr(2, "feature"), pr(3, "unrelated")], 2: [pr(4, "target"), pr(5, "feature", merged=False, updated="2026-08-01T00:00:00Z")]}[int(endpoint.rsplit("page=", 1)[1])]
 
         with tempfile.TemporaryDirectory() as directory, patch.object(helper, "api", side_effect=response):
             result = helper.collect("team/repo", "v2", 1, 4, Path(directory) / "snapshot")
             context = json.loads(Path(result["context"]).read_text())
+            self.assertEqual(len(requested), 2)
             self.assertEqual([item["number"] for item in context["prs"]], [2, 4])
             self.assertEqual(context["base_sha"], "base")
             self.assertEqual(context["target_sha"], "target")

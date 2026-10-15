@@ -12,7 +12,7 @@ The collector requires a previous release PR and optionally verifies the current
 
 ## Coverage checks
 
-- GitHub's comparison endpoint is limited without pagination; the helper paginates and checks `total_commits`. Its PR listing also paginates, so it has no fixed `gh pr list --limit` cutoff.
+- GitHub's comparison endpoint is limited without pagination; the helper paginates and checks `total_commits`. Its PR listing pages through closed PRs by most recent update and stops once a page predates the oldest commit in the comparison, so it has no fixed `gh pr list --limit` cutoff and does not scan the full PR history.
 - Matching merge SHAs works for PRs whose merge commits survive in the tagged ancestry. Squash-merging an enclosing release, rebasing, or cherry-picking can erase those associations. Review the release PR's referenced PRs and full diff; compare candidate PR changes with the tagged code. Document any unresolved coverage instead of calling the inventory exhaustive.
 - Review the listed commits too: direct pushes may have no PR. Keep their commit evidence in the working notes and review conversation. A verified consumer outcome still qualifies for a plain release bullet without a PR reference; do not invent one or append a commit-link section. The comparison API's file list is capped; it is not a substitute for a full Git diff or per-file inspection when coverage matters.
 - Exclude net-reverted behavior. Describe the final supported behavior and avoid repeating it for each follow-up fix. Release merge PRs are containers, not user-facing features.

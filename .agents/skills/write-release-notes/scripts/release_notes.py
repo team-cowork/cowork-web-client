@@ -38,6 +38,17 @@ def summarize_pr(pr):
     }
 
 
+def closed_prs_updated_since(prefix, since):
+    # A PR merged in the comparison was updated no earlier than its merge commit, so older pages cannot hold one.
+    prs, page = [], 1
+    while True:
+        batch = api(f"{prefix}/pulls?state=closed&sort=updated&direction=desc&per_page=100&page={page}")
+        prs.extend(batch)
+        if not batch or batch[-1]["updated_at"] < since:
+            return prs
+        page += 1
+
+
 def collect(repo, tag, previous_pr, release_pr, output):
     prefix = repo_path(repo)
     destination = Path(output).resolve()
@@ -64,9 +75,9 @@ def collect(repo, tag, previous_pr, release_pr, output):
     shas = {commit["sha"] for commit in commits}
     if len(commits) != len(shas) or len(shas) != pages[0]["total_commits"]:
         raise ValueError("Incomplete or inconsistent commit pagination; do not publish from this inventory.")
-    pr_pages = api(f"{prefix}/pulls?state=closed&per_page=100", paginate=True)
+    since = min(commit["commit"]["committer"]["date"] for commit in commits)
     prs = sorted(
-        [summarize_pr(pr) for page in pr_pages for pr in page
+        [summarize_pr(pr) for pr in closed_prs_updated_since(prefix, since)
          if pr.get("merged_at") and pr.get("merge_commit_sha") in shas],
         key=lambda pr: (pr["merged_at"], pr["number"]),
     )
