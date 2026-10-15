@@ -52,3 +52,43 @@ jobs:
             NEXT_PUBLIC_BASE_URL=${{ vars.NEXT_PUBLIC_BASE_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    concurrency:
+      group: web-client-deploy
+      cancel-in-progress: false
+    steps:
+      - uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+          DEPLOY_GHCR_USER: ${{ github.actor }}
+          DEPLOY_GHCR_TOKEN: ${{ github.token }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+          command_timeout: 10m
+          envs: DEPLOY_SHA,DEPLOY_GHCR_USER,DEPLOY_GHCR_TOKEN
+          script: |
+            set -euo pipefail
+            umask 077
+            export -n DEPLOY_GHCR_TOKEN
+            cd ~/cowork-web-client
+            docker_config="$(mktemp -d)"
+            trap 'rm -rf -- "$docker_config"' EXIT
+            export DOCKER_CONFIG="$docker_config"
+            printf '%s' "$DEPLOY_GHCR_TOKEN" | docker login ghcr.io \
+              --username "$DEPLOY_GHCR_USER" --password-stdin
+            unset DEPLOY_GHCR_TOKEN DEPLOY_GHCR_USER
+            curl -fsSL -o compose.yml \
+              "https://raw.githubusercontent.com/${{ github.repository }}/${DEPLOY_SHA}/compose.yml"
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -f
