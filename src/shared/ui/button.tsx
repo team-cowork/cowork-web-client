@@ -17,17 +17,26 @@ const button = cva(
       color: { brand: '', neutral: '', danger: '' },
     },
     compoundVariants: [
-      { variant: 'fill', color: 'brand', class: 'bg-primary text-on-primary hover:opacity-90' },
+      {
+        variant: 'fill',
+        color: 'brand',
+        class: 'bg-primary text-on-primary hover:opacity-90',
+      },
       {
         variant: 'fill',
         color: 'neutral',
         class: 'bg-inverse-surface text-inverse-on-surface hover:opacity-90',
       },
-      { variant: 'fill', color: 'danger', class: 'bg-error text-on-error hover:opacity-90' },
+      {
+        variant: 'fill',
+        color: 'danger',
+        class: 'bg-error text-on-error hover:opacity-90',
+      },
       {
         variant: 'weak',
         color: 'brand',
-        class: 'bg-primary-container text-on-primary-container hover:opacity-90',
+        class:
+          'bg-primary-container text-on-primary-container hover:opacity-90',
       },
       {
         variant: 'weak',
@@ -45,7 +54,9 @@ const button = cva(
 );
 
 export interface ButtonProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'>, VariantProps<typeof button> {
+  extends
+    Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'>,
+    VariantProps<typeof button> {
   ref?: Ref<HTMLButtonElement>;
 }
 

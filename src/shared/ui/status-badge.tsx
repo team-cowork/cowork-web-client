@@ -2,7 +2,8 @@ import { type ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
 
-export type StatusBadgeStatus = 'planned' | 'inProgress' | 'done' | 'open' | 'closed';
+export type StatusBadgeStatus =
+  'planned' | 'inProgress' | 'done' | 'open' | 'closed';
 
 const dotColor: Record<StatusBadgeStatus, string> = {
   planned: 'bg-on-surface-variant',
@@ -22,7 +23,7 @@ export function StatusBadge({ status, children, className }: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        'bg-surface-container text-on-surface inline-flex items-center gap-1.5 rounded-full py-1 pr-2.5 pl-2 text-[0.6875rem] font-semibold whitespace-nowrap',
+        'inline-flex items-center gap-1.5 rounded-full bg-surface-container py-1 pr-2.5 pl-2 text-[0.6875rem] font-semibold whitespace-nowrap text-on-surface',
         className,
       )}
     >

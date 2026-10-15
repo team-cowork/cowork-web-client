@@ -1,6 +1,13 @@
+'use client';
+
+import { useState } from 'react';
+
+import Image from 'next/image';
+
 import { cn } from '@/shared/lib/cn';
 
-export type AvatarTone = 'default' | 'blue' | 'green' | 'amber' | 'red' | 'neutral';
+export type AvatarTone =
+  'default' | 'blue' | 'green' | 'amber' | 'red' | 'neutral';
 
 const toneClass: Record<AvatarTone, string> = {
   default: 'bg-tertiary-container text-on-tertiary-container',
@@ -11,15 +18,28 @@ const toneClass: Record<AvatarTone, string> = {
   neutral: 'bg-cowork-neutral-500 text-white',
 };
 
+export type AvatarShape = 'circle' | 'squircle';
+
 export interface AvatarProps {
   src?: string;
   name?: string;
   size?: number;
+  shape?: AvatarShape;
   tone?: AvatarTone;
+  loading?: 'eager' | 'lazy';
   className?: string;
 }
 
-export function Avatar({ src, name, size = 40, tone = 'default', className }: AvatarProps) {
+export function Avatar({
+  src,
+  name,
+  size = 40,
+  shape = 'squircle',
+  tone = 'default',
+  loading = 'lazy',
+  className,
+}: AvatarProps) {
+  const [failedSrc, setFailedSrc] = useState<string>();
   const initials = name ? name.trim().slice(0, 2).toUpperCase() : '';
 
   return (
@@ -27,7 +47,7 @@ export function Avatar({ src, name, size = 40, tone = 'default', className }: Av
       style={{
         width: size,
         height: size,
-        borderRadius: size * 0.28,
+        borderRadius: shape === 'circle' ? '9999px' : size * 0.28,
         fontSize: Math.round(size * 0.33),
       }}
       className={cn(
@@ -36,7 +56,19 @@ export function Avatar({ src, name, size = 40, tone = 'default', className }: Av
         className,
       )}
     >
-      {src ? <img src={src} alt={name ?? ''} className="size-full object-cover" /> : initials}
+      {src && src !== failedSrc ? (
+        <Image
+          src={src}
+          alt={name ?? ''}
+          width={size}
+          height={size}
+          loading={loading}
+          onError={() => setFailedSrc(src)}
+          className="size-full object-cover"
+        />
+      ) : (
+        initials
+      )}
     </span>
   );
 }

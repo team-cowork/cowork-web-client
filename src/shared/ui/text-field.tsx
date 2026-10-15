@@ -26,7 +26,10 @@ export function TextField({
   return (
     <div className={cn('flex flex-col gap-2', className)}>
       {label && (
-        <label htmlFor={inputId} className="typography-label-x-small text-on-surface-variant">
+        <label
+          htmlFor={inputId}
+          className="typography-label-x-small text-on-surface-variant"
+        >
           {label}
         </label>
       )}
@@ -37,8 +40,10 @@ export function TextField({
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
         className={cn(
-          'bg-surface text-on-surface typography-subtext-large placeholder:text-on-surface-variant focus:ring-primary/50 h-12 w-full rounded-xl border px-4 focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40',
-          error ? 'border-error focus:ring-error/50' : 'border-outline focus:border-primary',
+          'h-12 w-full rounded-xl border bg-surface px-4 typography-subtext-large text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40',
+          error
+            ? 'border-error focus:ring-error/50'
+            : 'border-outline focus:border-primary',
         )}
         {...props}
       />

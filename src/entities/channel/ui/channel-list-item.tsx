@@ -1,5 +1,7 @@
 import { type ReactNode } from 'react';
 
+import Link from 'next/link';
+
 import { cn } from '@/shared/lib/cn';
 
 export interface ChannelListItemProps {
@@ -7,7 +9,9 @@ export interface ChannelListItemProps {
   prefix?: ReactNode;
   unreadCount?: number;
   active?: boolean;
+  href?: string;
   onClick?: () => void;
+  action?: ReactNode;
   className?: string;
 }
 
@@ -16,29 +20,63 @@ export function ChannelListItem({
   prefix = '#',
   unreadCount,
   active,
+  href,
   onClick,
+  action,
   className,
 }: ChannelListItemProps) {
+  const linkContent = (
+    <>
+      <span className="shrink-0 text-on-surface-variant">{prefix}</span>
+      <span className="flex-1 truncate typography-label-small">{name}</span>
+    </>
+  );
+
+  const linkClassName =
+    'flex h-full min-w-0 flex-1 cursor-pointer items-center gap-3 text-left';
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-current={active ? 'true' : undefined}
+    <div
       className={cn(
-        'flex h-[52px] w-full cursor-pointer items-center gap-3 rounded-xl px-3 text-left transition-colors',
+        'group flex h-[52px] w-full items-center gap-1 rounded-xl py-1 pr-2 pl-3 transition-colors',
         active
           ? 'bg-surface-container text-on-surface'
           : 'text-on-surface-variant hover:bg-surface-container/60 hover:text-on-surface',
         className,
       )}
     >
-      <span className="text-on-surface-variant shrink-0">{prefix}</span>
-      <span className="typography-label-small flex-1 truncate">{name}</span>
+      {href ? (
+        <Link
+          href={href}
+          onClick={onClick}
+          draggable={false}
+          aria-current={active ? 'page' : undefined}
+          className={linkClassName}
+        >
+          {linkContent}
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={onClick}
+          aria-current={active ? 'true' : undefined}
+          className={linkClassName}
+        >
+          {linkContent}
+        </button>
+      )}
+
       {unreadCount != null && unreadCount > 0 && (
-        <span className="typography-subtext-small bg-primary text-on-primary inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full px-[7px]">
+        <span className="inline-flex h-[22px] min-w-[22px] shrink-0 items-center justify-center rounded-full bg-primary px-[7px] typography-subtext-small text-on-primary">
           {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}
-    </button>
+
+      {action && (
+        <span className="shrink-0 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+          {action}
+        </span>
+      )}
+    </div>
   );
 }
