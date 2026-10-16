@@ -9,7 +9,7 @@ Describe what changes for the people using the product or consuming its API. Use
 
 ## Select consumer outcomes before formatting
 
-Default to product users and API consumers. Include a change only when the evidence establishes what they can now do, what problem they no longer encounter, or what behavior, restriction, or required action changes for them. Maintainer convenience alone does not qualify; use an operator or maintainer audience when the user requests it.
+Default to the web app's end users. Include a change only when the evidence establishes what they can now do, what problem they no longer encounter, or what behavior, restriction, or required action changes for them. Maintainer convenience alone does not qualify; use an operator or maintainer audience when the user requests it.
 
 For each candidate, identify the affected consumer, their task, the behavior before and after, and the supporting tagged code or PR evidence. Inspect unclear effects before drafting. Omit work with no demonstrated consumer change, regardless of its size, effort, PR title, or technical importance. Do not invent a benefit to justify inclusion or turn an internal refactor into a generic claim of improved usability, performance, reliability, or security.
 
@@ -19,12 +19,12 @@ Lead each sentence with the affected task or experience and describe its concret
 
 ## Preserve the historical presentation
 
-Read two or three earlier, manually written release notes with `gh release view TAG --json body,tagName`. Use the user's accepted historical style as the reference, not GitHub's generated PR list or a recently rejected rewrite. The confirmed examples `v20260818.0` and `v20260727.0` use:
+This repository has no manually written release notes yet. Read two or three from the sibling server repository with `gh release view v20260818.0 --repo team-cowork/cowork-server --json body,tagName` (also `v20260727.0`), and reuse that accepted style, not GitHub's generated PR list or a recently rejected rewrite. Once this repository has manually written releases, prefer them. The confirmed examples use:
 
 ```markdown
 ## 수정내역
 
-- #253 에서 인증되지 않은 요청이 사용자 식별 헤더(`X-User-Id`)를 위조하지 못하도록 보안 조치를 추가하였습니다.
+- #31 에서 설정 화면에서 로그아웃할 수 있도록 지원하였습니다.
 ```
 
 Match the heading, blank line, bare PR references, concise Korean sentence, and formal ending. The published body contains only `## 수정내역` and a flat bullet list. Use `- #PR_NUMBER 에서 …하였습니다.` for one supporting PR or `- #PR_A, #PR_B 에서 …하였습니다.` for a shared outcome. PR references provide attribution; they do not define the writing unit. For a verified consumer change made without a PR, use a plain bullet without inventing a reference. Do not copy historical content or PR numbers. Keep these instructions in English while writing the release body in the established Korean style.
@@ -34,7 +34,7 @@ Do not add bold feature labels, category headings, introductions, migration or c
 ## Establish the release boundary
 
 1. Resolve the repository with `gh repo view --json nameWithOwner`, inspect `gh release list`, and read the target body with `gh release view TAG --json body,tagName,url`. Use the historical notes selected above as the formatting reference.
-2. Read `.github/workflows/cowork-prod-cd.yml` to confirm how the target release was created, using its tagged version when it differs from the working tree. The workflow generates the initial notes with `gh release create ... --generate-notes`. This skill updates the existing body.
+2. Read `.github/workflows/build-image.yml` to confirm what a push to `main` does here: it builds and deploys the image and does not create a GitHub Release or tag. Releases in this repository therefore exist only when someone creates one for the release PR's merge commit (title `vYYYYMMDD.N`, matching the release PR title). This skill only updates the body of such an existing release.
 3. Find the target release PR and the immediately preceding **merged release PR** on its production branch. Inspect their bodies, base branches, merge SHAs, and ancestry. Use paginated `gh api repos/OWNER/REPO/pulls?state=closed&base=main&per_page=100 --paginate --slurp` when a short `gh pr list` does not establish the boundary. A version-like title is a candidate, not sufficient proof of a release PR.
 4. Report the target tag, previous/current release PRs, and comparison range in the conversation, not in the release body. The previous published GitHub Release can be older than the previous release PR. Default to the user's requested PR-to-PR interval; explain this difference when the generated notes cover a wider interval. Follow an explicit request for a published-release-to-release interval instead; do not silently substitute one boundary for the other.
 
@@ -70,7 +70,7 @@ Apply the consumer-outcome criteria to the collected evidence before selecting i
    ```
 
    The helper rechecks the saved release and tag, runs only `gh release edit TAG --notes-file FILE`, and reads back the body and metadata. If another writer changed the release, review the fresh body and collect a new snapshot before retrying. After an uncertain write, inspect the current body before any retry.
-4. After read-back verification, perform the cleanup below and return the release URL with a short explanation of the improvements. Do not link to deleted scratch files or claim that a body update redeployed the service. If Actions has not created the release yet or API access fails, report the concrete blocker and any useful draft in the conversation, then clean up; do not create a replacement release.
+4. After read-back verification, perform the cleanup below and return the release URL with a short explanation of the improvements. Do not link to deleted scratch files or claim that a body update redeployed the service. If the release does not exist yet (the expected state here until one is created for the release PR) or API access fails, report the concrete blocker and any useful draft in the conversation, then clean up; do not create a replacement release.
 
 ## Clean up temporary files
 

@@ -2,9 +2,13 @@
 
 ## Repository-specific behavior
 
-Production release PRs usually merge `develop` into `main` and use a version title. Confirm this against the live PR and workflow on each run. Resolve tags through the commit API rather than treating a release's `target_commitish` as an immutable SHA; older releases can store a branch name there.
+Production release PRs merge `develop` into `main`. Recent ones use a version title (`v20261014.1`, PR #36), while the first (PR #11) was titled `[global] develop 브랜치 main 반영`. Confirm this against the live PR on each run. Resolve tags through the commit API rather than treating a release's `target_commitish` as an immutable SHA.
 
-An observed example explains why release PRs and published releases must be distinguished: `v20260903.0` was created for PR #326, while the immediately preceding release PR was #313 (`v20260828.0`). The generated notes compared against the older published release `v20260818.0`. For a request for changes since the previous release PR, the boundary was therefore #313 to #326. These numbers are historical examples, not defaults for future runs.
+Pushing to `main` runs `.github/workflows/build-image.yml`, which builds and deploys the image but creates no GitHub Release or tag, so this repository currently has none. A release must exist before the collector can run; otherwise stop and report that blocker. When one is created, its tag should name the release PR's merge commit.
+
+Release PRs and published releases still need to be distinguished. For the first run, the boundary is PR #11 (previous, merged 2026-07-22) to PR #36 (current, `v20261014.1`), because no earlier release exists. These numbers are historical examples, not defaults for future runs.
+
+For the server-style notes format that this skill reuses, see the accepted releases in `team-cowork/cowork-server` (`v20260818.0`, `v20260727.0`).
 
 Find the nearest preceding release PR by production-branch ancestry and confirm it is merged. Timestamp and title searches only discover candidates. Feature PRs can merge into `develop` or directly into `main`; collect both when their changes reach the target tag. PR numbering is repository-wide, so open, unmerged, unrelated, or later PRs inside a numeric interval are not automatically included.
 
@@ -32,7 +36,7 @@ Preserve an externally meaningful limit, error response, permission change, or r
 
 ## Writing decisions
 
-The user's accepted historical notes, including `v20260818.0` and `v20260727.0`, are the format reference. Both contain only the heading `## 수정내역`, a blank line, and a flat list of short Korean sentences beginning with a bare PR number. Read the actual historical bodies before drafting; do not treat a rejected rewrite of the current release as the new convention.
+The accepted historical notes in `team-cowork/cowork-server`, including `v20260818.0` and `v20260727.0`, are the format reference until this repository has its own. Both contain only the heading `## 수정내역`, a blank line, and a flat list of short Korean sentences beginning with a bare PR number. Read the actual historical bodies before drafting; do not treat a rejected rewrite of the current release as the new convention.
 
 Use `- #PR_NUMBER 에서 …하였습니다.` for an outcome supported by one PR, or `- #PR_A, #PR_B 에서 …하였습니다.` when related PRs support the same outcome. Cite the PRs needed to substantiate the sentence; attribution must not force separate bullets for one change. Keep each item to one concise sentence explaining what consumers can do or experience differently. Use inline code for a consumer-facing identifier when it helps. Do not replace bare PR references with Markdown links or add bold feature labels.
 
