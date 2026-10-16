@@ -15,13 +15,21 @@ const DISALLOWED_ELEMENTS: Record<MarkdownVariant, string[]> = {
   document: ['input'],
 };
 
-const HEADING_CLASS: Record<MarkdownVariant, [string, string, string]> = {
+type HeadingClasses = [h1: string, h2: string, h3: string, minor: string];
+
+/**
+ * 제목은 본문(채팅 15px)보다 한 단계 이상 커야 제목으로 읽힌다.
+ * h1~h3과 그 이하(h4~h6) 네 단계로 나눈다.
+ */
+const HEADING_CLASS: Record<MarkdownVariant, HeadingClasses> = {
   chat: [
+    'typography-title-medium',
+    'typography-title-small',
+    'typography-label-large',
     'typography-label-medium',
-    'typography-label-small',
-    'typography-label-small',
   ],
   document: [
+    'typography-display-small',
     'typography-title-medium',
     'typography-title-small',
     'typography-label-large',
@@ -29,7 +37,7 @@ const HEADING_CLASS: Record<MarkdownVariant, [string, string, string]> = {
 };
 
 function createComponents(variant: MarkdownVariant): Components {
-  const [h1Class, h2Class, h3Class] = HEADING_CLASS[variant];
+  const [h1Class, h2Class, h3Class, minorHeadingClass] = HEADING_CLASS[variant];
 
   return {
     p: ({ children }) => <p className="my-0.5">{children}</p>,
@@ -69,12 +77,24 @@ function createComponents(variant: MarkdownVariant): Components {
     ),
     li: ({ children }) => <li className="my-0.5">{children}</li>,
     hr: () => <hr className="my-2 border-outline-variant" />,
-    h1: ({ children }) => <h1 className={cn('my-1', h1Class)}>{children}</h1>,
-    h2: ({ children }) => <h2 className={cn('my-1', h2Class)}>{children}</h2>,
-    h3: ({ children }) => <h3 className={cn('my-1', h3Class)}>{children}</h3>,
-    h4: ({ children }) => <h4 className={cn('my-1', h3Class)}>{children}</h4>,
-    h5: ({ children }) => <h5 className={cn('my-1', h3Class)}>{children}</h5>,
-    h6: ({ children }) => <h6 className={cn('my-1', h3Class)}>{children}</h6>,
+    h1: ({ children }) => (
+      <h1 className={cn('mt-2 mb-1', h1Class)}>{children}</h1>
+    ),
+    h2: ({ children }) => (
+      <h2 className={cn('mt-2 mb-1', h2Class)}>{children}</h2>
+    ),
+    h3: ({ children }) => (
+      <h3 className={cn('mt-2 mb-1', h3Class)}>{children}</h3>
+    ),
+    h4: ({ children }) => (
+      <h4 className={cn('mt-2 mb-1', minorHeadingClass)}>{children}</h4>
+    ),
+    h5: ({ children }) => (
+      <h5 className={cn('mt-2 mb-1', minorHeadingClass)}>{children}</h5>
+    ),
+    h6: ({ children }) => (
+      <h6 className={cn('mt-2 mb-1', minorHeadingClass)}>{children}</h6>
+    ),
   };
 }
 
