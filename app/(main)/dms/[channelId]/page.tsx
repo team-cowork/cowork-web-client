@@ -70,7 +70,7 @@ function DmView({ channelId }: { channelId: number }) {
   }
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col bg-background">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
       <DmHeader user={peerResults[0]?.data} />
 
       <MockChatPanel channelId={channelId} />

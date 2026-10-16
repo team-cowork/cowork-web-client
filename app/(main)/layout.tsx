@@ -8,7 +8,7 @@ import { TeamRail } from '@/widgets/team-rail/ui/team-rail';
 export default function MainLayout({ children }: { children: ReactNode }) {
   return (
     <VoiceSessionProvider>
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex h-screen overflow-hidden">
         <TeamRail />
         <aside className="flex w-60 shrink-0 flex-col bg-surface">
           <SidebarNav />
