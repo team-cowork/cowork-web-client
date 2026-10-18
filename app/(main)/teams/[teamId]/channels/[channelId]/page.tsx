@@ -9,12 +9,13 @@ import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
+import { toThreadRoot } from '@/entities/message/lib/to-thread-root';
 import { type Message } from '@/entities/message/model/message';
 import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-badge';
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
-import { MockChatPanel } from '@/widgets/chat-panel/ui/mock-chat-panel';
+import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { MemberPanel } from '@/widgets/member-panel/ui/member-panel';
-import { MockThreadPanel } from '@/widgets/thread-panel/ui/mock-thread-panel';
+import { ChannelThreadPanel } from '@/widgets/thread-panel/ui/channel-thread-panel';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
@@ -94,15 +95,18 @@ function ChannelView({
         {isVoice ? (
           <VoiceStage channelId={channelId} />
         ) : (
-          <MockChatPanel
+          <ChannelChatPanel
             channelId={channelId}
-            onSelectMessage={setThreadRoot}
+            placeholder={`#${channel.name}에 메시지 보내기`}
+            onSelectMessage={(message) => setThreadRoot(toThreadRoot(message))}
           />
         )}
       </div>
 
       {threadRoot ? (
-        <MockThreadPanel
+        <ChannelThreadPanel
+          key={threadRoot._id}
+          channelId={channelId}
           subtitle={`# ${channel.name}`}
           rootMessage={threadRoot}
           onClose={() => setThreadRoot(null)}

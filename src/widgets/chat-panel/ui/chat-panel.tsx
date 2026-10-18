@@ -10,9 +10,14 @@ import { MessageList } from '@/widgets/message-list/ui/message-list';
 import { cn } from '@/shared/lib/cn';
 
 export interface ChatPanelProps {
+  /** 오래된 메시지부터 순서대로 */
   messages: Message[];
   onSendMessage: (content: string) => void;
+  onRetryMessage?: (message: Message) => void;
   onSelectMessage?: (message: Message) => void;
+  hasOlder?: boolean;
+  isLoadingOlder?: boolean;
+  onLoadOlder?: () => void;
   placeholder?: string;
   emptyState?: ReactNode;
   onAttach?: () => void;
@@ -26,7 +31,11 @@ export interface ChatPanelProps {
 export function ChatPanel({
   messages,
   onSendMessage,
+  onRetryMessage,
   onSelectMessage,
+  hasOlder,
+  isLoadingOlder,
+  onLoadOlder,
   placeholder,
   emptyState,
   onAttach,
@@ -39,6 +48,10 @@ export function ChatPanel({
       <MessageList
         messages={messages}
         onSelectMessage={onSelectMessage}
+        onRetryMessage={onRetryMessage}
+        hasOlder={hasOlder}
+        isLoadingOlder={isLoadingOlder}
+        onLoadOlder={onLoadOlder}
         emptyState={emptyState}
       />
 

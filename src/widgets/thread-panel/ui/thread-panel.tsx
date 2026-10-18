@@ -1,5 +1,7 @@
 'use client';
 
+import { useLayoutEffect, useRef } from 'react';
+
 import { type Message } from '@/entities/message/model/message';
 import { MessageView } from '@/entities/message/ui/message-view';
 import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
@@ -11,12 +13,19 @@ import { CloseIcon } from '@/shared/ui/icons/close-icon';
 export interface ThreadPanelProps {
   subtitle: string;
   rootMessage: Message;
-  replies: Message[];
+  /** 오래된 답글부터 순서대로. 불러오는 중이면 비어 있다. */
+  replies: Message[] | undefined;
+  isRepliesError?: boolean;
+  onReloadReplies?: () => void;
   onSendReply: (content: string) => void;
+  onRetryReply?: (message: Message) => void;
   onClose: () => void;
   onAttach?: () => void;
   className?: string;
 }
+
+const STATUS_TEXT_CLASS =
+  'py-2 pl-2 typography-subtext-medium text-on-surface-variant';
 
 /**
  * 원본 메시지와 답글을 보여주는 스레드 패널.
@@ -26,12 +35,25 @@ export function ThreadPanel({
   subtitle,
   rootMessage,
   replies,
+  isRepliesError = false,
+  onReloadReplies,
   onSendReply,
+  onRetryReply,
   onClose,
   onAttach,
   className,
 }: ThreadPanelProps) {
   const draft = useMessageDraft({ onSubmit: onSendReply });
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const lastReplyId = replies?.at(-1)?._id;
+
+  // 새 답글이 달리면 맨 아래로 내려 방금 단 답글이 보이게 한다.
+  useLayoutEffect(() => {
+    const container = scrollRef.current;
+    if (!container || lastReplyId === undefined) return;
+
+    container.scrollTop = container.scrollHeight;
+  }, [lastReplyId]);
 
   return (
     <aside
@@ -58,23 +80,52 @@ export function ThreadPanel({
         </button>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pt-3 pr-3 pl-2">
-        <MessageView message={rootMessage} timestampFormat="clock" />
+      <div
+        ref={scrollRef}
+        className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pt-3 pr-3 pl-2"
+      >
+        <MessageView
+          message={rootMessage}
+          timestampFormat="clock"
+          showQuote={false}
+        />
 
         <div className="flex shrink-0 items-center gap-2 py-1 pl-2">
           <span className="shrink-0 typography-label-x-small text-on-surface-variant">
-            답글 {replies.length}
+            답글 {replies?.length ?? ''}
           </span>
           <span aria-hidden className="h-px flex-1 bg-outline-variant" />
         </div>
 
-        <ol className="flex flex-col gap-2.5">
-          {replies.map((reply) => (
-            <li key={reply.id}>
-              <MessageView message={reply} timestampFormat="clock" />
-            </li>
-          ))}
-        </ol>
+        {isRepliesError ? (
+          <p className={cn(STATUS_TEXT_CLASS, 'flex items-center gap-2')}>
+            답글을 불러오지 못했어요
+            {onReloadReplies && (
+              <button
+                type="button"
+                onClick={onReloadReplies}
+                className="cursor-pointer typography-label-x-small underline"
+              >
+                다시 시도
+              </button>
+            )}
+          </p>
+        ) : replies === undefined ? (
+          <p className={STATUS_TEXT_CLASS}>답글을 불러오는 중…</p>
+        ) : (
+          <ol className="flex flex-col gap-2.5">
+            {replies.map((reply) => (
+              <li key={reply.clientMessageId ?? reply._id}>
+                <MessageView
+                  message={reply}
+                  timestampFormat="clock"
+                  showQuote={false}
+                  onRetry={onRetryReply}
+                />
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
 
       <div className="shrink-0 px-3 pt-1 pb-4">

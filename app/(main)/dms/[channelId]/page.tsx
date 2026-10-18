@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import { notFound } from 'next/navigation';
 
 import { useQueries, useSuspenseQuery } from '@tanstack/react-query';
@@ -7,9 +9,12 @@ import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
+import { toThreadRoot } from '@/entities/message/lib/to-thread-root';
+import { type Message } from '@/entities/message/model/message';
 import { userQueries } from '@/entities/user/api/user-queries';
-import { MockChatPanel } from '@/widgets/chat-panel/ui/mock-chat-panel';
+import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { DmHeader } from '@/widgets/dm-header/ui/dm-header';
+import { ChannelThreadPanel } from '@/widgets/thread-panel/ui/channel-thread-panel';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
 import { ErrorState } from '@/shared/ui/error-state';
@@ -49,12 +54,13 @@ export default function DmPage() {
       errorFallback={DmPageError}
       resetKeys={[channelId]}
     >
-      <DmView channelId={channelId} />
+      <DmView key={channelId} channelId={channelId} />
     </QueryBoundary>
   );
 }
 
 function DmView({ channelId }: { channelId: number }) {
+  const [threadRoot, setThreadRoot] = useState<Message | null>(null);
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
   const { data: me } = useSuspenseQuery(userQueries.me());
   const { data: members } = useSuspenseQuery(channelQueries.members(channelId));
@@ -69,11 +75,30 @@ function DmView({ channelId }: { channelId: number }) {
     notFound();
   }
 
-  return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
-      <DmHeader user={peerResults[0]?.data} />
+  const peer = peerResults[0]?.data;
 
-      <MockChatPanel channelId={channelId} />
+  return (
+    <div className="flex min-h-0 min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 flex-col bg-background">
+        <DmHeader user={peer} />
+
+        <ChannelChatPanel
+          channelId={channelId}
+          onSelectMessage={(message) => setThreadRoot(toThreadRoot(message))}
+        />
+      </div>
+
+      {threadRoot && (
+        <ChannelThreadPanel
+          key={threadRoot._id}
+          channelId={channelId}
+          subtitle={
+            peer ? `@ ${peer.nickname ?? peer.name}` : '다이렉트 메시지'
+          }
+          rootMessage={threadRoot}
+          onClose={() => setThreadRoot(null)}
+        />
+      )}
     </div>
   );
 }
