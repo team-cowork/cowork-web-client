@@ -5,10 +5,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 import { Draggable, Droppable } from '@hello-pangea/dnd';
+import { useQuery } from '@tanstack/react-query';
 
 import { type Channel } from '@/entities/channel/model/channel';
 import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
 import { ChannelListItem } from '@/entities/channel/ui/channel-list-item';
+import { messageQueries } from '@/entities/message/api/message-queries';
 import { groupDroppableId } from '@/features/channel-reorder/lib/reorder-channels';
 import { cn } from '@/shared/lib/cn';
 import { channelPath, channelSettingsOverviewPath } from '@/shared/model/paths';
@@ -33,6 +35,11 @@ export function ChannelGroup({
   onCreateChannel,
 }: ChannelGroupProps) {
   const [expanded, setExpanded] = useState(true);
+  const { data: unreadByChannel } = useQuery({
+    ...messageQueries.teamUnread(teamId),
+    select: (unread) =>
+      new Map(unread.map((item) => [item.channelId, item.unreadCount])),
+  });
   const label =
     projectId === null ? '프로젝트 미소속' : `프로젝트 #${projectId}`;
   const canCreate = projectId === null && onCreateChannel !== undefined;
@@ -93,6 +100,11 @@ export function ChannelGroup({
                         name={channel.name}
                         href={channelPath(teamId, channel.id)}
                         active={channel.id === activeChannelId}
+                        unreadCount={
+                          channel.id === activeChannelId
+                            ? undefined
+                            : unreadByChannel?.get(channel.id)
+                        }
                         prefix={
                           <ChannelIcon viewType={channel.viewType} size={18} />
                         }
