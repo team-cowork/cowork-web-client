@@ -15,6 +15,7 @@ import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-bad
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
 import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { MemberPanel } from '@/widgets/member-panel/ui/member-panel';
+import { PinnedMessagesPanel } from '@/widgets/pinned-panel/ui/pinned-messages-panel';
 import { ChannelThreadPanel } from '@/widgets/thread-panel/ui/channel-thread-panel';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
@@ -61,6 +62,8 @@ export default function ChannelPage() {
   );
 }
 
+type SidePanel = 'members' | 'pins';
+
 function ChannelView({
   teamId,
   channelId,
@@ -68,7 +71,7 @@ function ChannelView({
   teamId: number;
   channelId: number;
 }) {
-  const [membersOpen, setMembersOpen] = useState(true);
+  const [sidePanel, setSidePanel] = useState<SidePanel | null>('members');
   const [threadRoot, setThreadRoot] = useState<Message | null>(null);
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
 
@@ -77,6 +80,12 @@ function ChannelView({
   }
 
   const isVoice = channel.type === 'VOICE';
+
+  // 스레드가 열려 있으면 오른쪽 패널 자리를 스레드가 쓴다. 다른 패널을 열면 스레드는 닫는다.
+  const toggleSidePanel = (panel: SidePanel) => {
+    setThreadRoot(null);
+    setSidePanel((prev) => (prev === panel && !threadRoot ? null : panel));
+  };
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1">
@@ -89,7 +98,8 @@ function ChannelView({
               <VoiceParticipantBadge channelId={channelId} />
             ) : undefined
           }
-          onToggleMembers={() => setMembersOpen((prev) => !prev)}
+          onToggleMembers={() => toggleSidePanel('members')}
+          onTogglePins={isVoice ? undefined : () => toggleSidePanel('pins')}
         />
 
         {isVoice ? (
@@ -111,8 +121,14 @@ function ChannelView({
           rootMessage={threadRoot}
           onClose={() => setThreadRoot(null)}
         />
+      ) : sidePanel === 'pins' && !isVoice ? (
+        <PinnedMessagesPanel
+          channelId={channelId}
+          subtitle={`# ${channel.name}`}
+          onClose={() => setSidePanel(null)}
+        />
       ) : (
-        membersOpen && <MemberPanel channelId={channelId} />
+        sidePanel === 'members' && <MemberPanel channelId={channelId} />
       )}
     </div>
   );

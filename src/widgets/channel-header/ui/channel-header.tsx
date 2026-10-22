@@ -9,6 +9,7 @@ import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
 import { cn } from '@/shared/lib/cn';
 import { channelSettingsOverviewPath } from '@/shared/model/paths';
 import { LockIcon } from '@/shared/ui/icons/lock-icon';
+import { PinIcon } from '@/shared/ui/icons/pin-icon';
 import { SearchIcon } from '@/shared/ui/icons/search-icon';
 import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 import { UsersIcon } from '@/shared/ui/icons/users-icon';
@@ -18,6 +19,8 @@ export interface ChannelHeaderProps {
   channel: Channel;
   meta?: ReactNode;
   onToggleMembers?: () => void;
+  /** 없으면 고정 메시지 버튼을 숨긴다(예: 음성 채널) */
+  onTogglePins?: () => void;
   className?: string;
 }
 
@@ -26,6 +29,7 @@ export function ChannelHeader({
   channel,
   meta,
   onToggleMembers,
+  onTogglePins,
   className,
 }: ChannelHeaderProps) {
   return (
@@ -68,6 +72,16 @@ export function ChannelHeader({
         >
           <SearchIcon size={20} />
         </button>
+        {onTogglePins && (
+          <button
+            type="button"
+            aria-label="고정된 메시지"
+            onClick={onTogglePins}
+            className="cursor-pointer text-on-surface-variant hover:text-on-surface"
+          >
+            <PinIcon size={20} />
+          </button>
+        )}
         <button
           type="button"
           aria-label="멤버 목록"
