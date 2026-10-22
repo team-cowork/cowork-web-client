@@ -13,6 +13,8 @@ export interface ChatPanelProps {
   /** 오래된 메시지부터 순서대로 */
   messages: Message[];
   onSendMessage: (content: string) => void;
+  /** 입력값이 바뀔 때마다 불린다(예: 입력 중 알림) */
+  onDraftChange?: (value: string) => void;
   onRetryMessage?: (message: Message) => void;
   onSelectMessage?: (message: Message) => void;
   hasOlder?: boolean;
@@ -38,6 +40,7 @@ export interface ChatPanelProps {
 export function ChatPanel({
   messages,
   onSendMessage,
+  onDraftChange,
   onRetryMessage,
   onSelectMessage,
   hasOlder,
@@ -73,7 +76,10 @@ export function ChatPanel({
         {attachmentDrafts}
         <MessageComposer
           value={draft.value}
-          onChange={draft.onChange}
+          onChange={(value) => {
+            draft.onChange(value);
+            onDraftChange?.(value);
+          }}
           onSend={draft.onSend}
           placeholder={placeholder}
           canSendEmpty={canSendEmpty}

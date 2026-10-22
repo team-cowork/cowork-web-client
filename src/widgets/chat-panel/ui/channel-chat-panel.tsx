@@ -12,6 +12,8 @@ import { useAttachmentUploads } from '@/features/message-attachment/model/use-at
 import { AttachmentDrafts } from '@/features/message-attachment/ui/attachment-drafts';
 import { useSlashCommand } from '@/features/message-command/model/use-slash-command';
 import { useSendMessage } from '@/features/message-send/model/use-send-message';
+import { useTyping } from '@/features/typing-indicator/model/use-typing';
+import { TypingIndicator } from '@/features/typing-indicator/ui/typing-indicator';
 import { ChatPanel } from '@/widgets/chat-panel/ui/chat-panel';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/button';
@@ -99,6 +101,7 @@ function ChannelChatBody({
   const { send, retry } = useSendMessage(channelId);
   const attachments = useAttachmentUploads(channelId);
   const command = useSlashCommand(channelId, projectId);
+  const typing = useTyping(channelId);
 
   // 페이지와 페이지 안의 메시지 모두 최신순이라 뒤집어 오래된 순으로 그린다.
   const messages = data.pages.flat().reverse();
@@ -112,7 +115,12 @@ function ChannelChatBody({
   return (
     <ChatPanel
       messages={messages}
+      onDraftChange={(value) => {
+        if (value.trim().length > 0) typing.notify();
+        else typing.stop();
+      }}
       onSendMessage={(content) => {
+        typing.stop();
         if (attachments.confirmedFiles.length === 0 && command.run(content)) {
           return;
         }
@@ -124,6 +132,7 @@ function ChannelChatBody({
       onAttachFiles={attachments.add}
       attachmentDrafts={
         <>
+          <TypingIndicator userIds={typing.typingUserIds} />
           {command.status !== 'idle' && (
             <p
               role="status"
