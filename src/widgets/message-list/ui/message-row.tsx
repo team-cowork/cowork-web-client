@@ -10,6 +10,7 @@ import {
   type MessageTimestampFormat,
 } from '@/entities/message/ui/message-view';
 import { userQueries } from '@/entities/user/api/user-queries';
+import { useOpenAttachment } from '@/features/attachment-download/model/use-open-attachment';
 import { DeleteMessageDialog } from '@/features/message-delete/ui/delete-message-dialog';
 import { MessageEditForm } from '@/features/message-edit/ui/message-edit-form';
 import { useTogglePin } from '@/features/message-pin/model/use-toggle-pin';
@@ -52,6 +53,7 @@ export function MessageRow({
   const { data: me } = useQuery(userQueries.me());
   const toggleReaction = useToggleReaction(message);
   const togglePin = useTogglePin(message);
+  const openAttachment = useOpenAttachment();
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -68,6 +70,16 @@ export function MessageRow({
         showQuote={showQuote}
         onRetry={onRetry}
         onToggleReaction={interactive ? toggleReaction : undefined}
+        onOpenAttachment={
+          interactive
+            ? (attachmentIndex) =>
+                openAttachment({
+                  channelId: message.channelId,
+                  messageId: message._id,
+                  attachmentIndex,
+                })
+            : undefined
+        }
         actionsVisible={pickerOpen}
         actions={
           interactive &&

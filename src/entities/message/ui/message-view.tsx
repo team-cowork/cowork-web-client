@@ -10,6 +10,7 @@ import {
 import { type Message } from '@/entities/message/model/message';
 import { useMessageAuthor } from '@/entities/message/model/use-message-author';
 import { MessageItem } from '@/entities/message/ui/message-item';
+import { MessageAttachments } from '@/entities/message/ui/message-attachments';
 import { MessageQuote } from '@/entities/message/ui/message-quote';
 import { MessageReactions } from '@/entities/message/ui/message-reactions';
 import { cn } from '@/shared/lib/cn';
@@ -26,6 +27,8 @@ export interface MessageViewProps {
   onRetry?: (message: Message) => void;
   /** 반응 칩을 눌렀을 때 내 반응을 켜고 끈다 */
   onToggleReaction?: (emoji: string) => void;
+  /** 첨부 순번으로 파일을 연다 */
+  onOpenAttachment?: (attachmentIndex: number) => void;
   /** 마우스를 올리면 뜨는 도구 모음 */
   actions?: ReactNode;
   actionsVisible?: boolean;
@@ -73,6 +76,7 @@ function UserMessageView({
   showQuote = true,
   onRetry,
   onToggleReaction,
+  onOpenAttachment,
   actions,
   actionsVisible,
   editor,
@@ -88,7 +92,18 @@ function UserMessageView({
     <MessageItem
       author={author.name}
       timestamp={timestamp}
-      content={editor ?? <Markdown>{message.content}</Markdown>}
+      content={
+        editor ?? (
+          <>
+            {message.content && <Markdown>{message.content}</Markdown>}
+            <MessageAttachments
+              attachments={message.attachments}
+              onOpen={onOpenAttachment}
+              className={message.content ? 'mt-2' : undefined}
+            />
+          </>
+        )
+      }
       avatarSrc={author.imageUrl}
       tone={toAuthorTone(message.authorId)}
       quote={
