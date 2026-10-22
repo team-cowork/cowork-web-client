@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { type Message } from '@/entities/message/model/message';
@@ -24,17 +24,27 @@ export function ChannelThreadPanel({
   rootMessage,
   ...props
 }: ChannelThreadPanelProps) {
+  // 선택할 때 받은 원본은 그 시점 값이라, 채널 캐시에 있으면 수정·반응이 반영된 최신 값을 쓴다.
+  const { data: cachedRoot } = useInfiniteQuery({
+    ...messageQueries.byChannel(channelId),
+    // 채널 화면이 이미 불러온 캐시만 읽는다. 패널을 열 때마다 목록을 다시 받지 않게 한다.
+    refetchOnMount: false,
+    select: (pages) =>
+      pages.pages.flat().find((message) => message._id === rootMessage._id),
+  });
+  const root = cachedRoot ?? rootMessage;
+
   const { data, isError, refetch } = useQuery(
-    messageQueries.replies(channelId, rootMessage._id),
+    messageQueries.replies(channelId, root._id),
   );
-  const { send, retry } = useSendMessage(channelId, rootMessage);
+  const { send, retry } = useSendMessage(channelId, root);
 
   // 서버가 최신순으로 주므로 뒤집어 오래된 순으로 그린다.
   const replies = data && [...data].reverse();
 
   return (
     <ThreadPanel
-      rootMessage={rootMessage}
+      rootMessage={root}
       replies={replies}
       isRepliesError={isError && !data}
       onReloadReplies={() => void refetch()}

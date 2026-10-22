@@ -10,7 +10,7 @@ import {
 } from 'react';
 
 import { type Message } from '@/entities/message/model/message';
-import { MessageView } from '@/entities/message/ui/message-view';
+import { MessageRow } from '@/widgets/message-list/ui/message-row';
 import { cn } from '@/shared/lib/cn';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ChatIcon } from '@/shared/ui/icons/chat-icon';
@@ -175,7 +175,7 @@ export function MessageList({
                     'cursor-pointer hover:bg-surface focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none',
                 )}
               >
-                <MessageView message={message} onRetry={onRetryMessage} />
+                <MessageRow message={message} onRetry={onRetryMessage} />
               </li>
             );
           })}

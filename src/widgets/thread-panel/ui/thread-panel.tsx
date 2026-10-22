@@ -3,10 +3,10 @@
 import { useLayoutEffect, useRef } from 'react';
 
 import { type Message } from '@/entities/message/model/message';
-import { MessageView } from '@/entities/message/ui/message-view';
 import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
 import { AttachButton } from '@/features/message-composer/ui/attach-button';
 import { MessageComposer } from '@/features/message-composer/ui/message-composer';
+import { MessageRow } from '@/widgets/message-list/ui/message-row';
 import { cn } from '@/shared/lib/cn';
 import { CloseIcon } from '@/shared/ui/icons/close-icon';
 
@@ -84,7 +84,7 @@ export function ThreadPanel({
         ref={scrollRef}
         className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pt-3 pr-3 pl-2"
       >
-        <MessageView
+        <MessageRow
           message={rootMessage}
           timestampFormat="clock"
           showQuote={false}
@@ -116,7 +116,7 @@ export function ThreadPanel({
           <ol className="flex flex-col gap-2.5">
             {replies.map((reply) => (
               <li key={reply.clientMessageId ?? reply._id}>
-                <MessageView
+                <MessageRow
                   message={reply}
                   timestampFormat="clock"
                   showQuote={false}

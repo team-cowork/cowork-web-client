@@ -1,5 +1,7 @@
 'use client';
 
+import { type ReactNode } from 'react';
+
 import { toAuthorTone } from '@/entities/message/lib/author-tone';
 import {
   formatMessageClock,
@@ -9,6 +11,7 @@ import { type Message } from '@/entities/message/model/message';
 import { useMessageAuthor } from '@/entities/message/model/use-message-author';
 import { MessageItem } from '@/entities/message/ui/message-item';
 import { MessageQuote } from '@/entities/message/ui/message-quote';
+import { MessageReactions } from '@/entities/message/ui/message-reactions';
 import { cn } from '@/shared/lib/cn';
 import { Markdown } from '@/shared/ui/markdown';
 
@@ -21,6 +24,13 @@ export interface MessageViewProps {
   showQuote?: boolean;
   /** 전송에 실패한 메시지를 다시 보낸다 */
   onRetry?: (message: Message) => void;
+  /** 반응 칩을 눌렀을 때 내 반응을 켜고 끈다 */
+  onToggleReaction?: (emoji: string) => void;
+  /** 마우스를 올리면 뜨는 도구 모음 */
+  actions?: ReactNode;
+  actionsVisible?: boolean;
+  /** 수정 중이면 본문 대신 보여줄 입력 폼 */
+  editor?: ReactNode;
   className?: string;
 }
 
@@ -62,6 +72,10 @@ function UserMessageView({
   timestampFormat = 'day',
   showQuote = true,
   onRetry,
+  onToggleReaction,
+  actions,
+  actionsVisible,
+  editor,
   className,
 }: MessageViewProps) {
   const author = useMessageAuthor(message.authorId);
@@ -74,7 +88,7 @@ function UserMessageView({
     <MessageItem
       author={author.name}
       timestamp={timestamp}
-      content={<Markdown>{message.content}</Markdown>}
+      content={editor ?? <Markdown>{message.content}</Markdown>}
       avatarSrc={author.imageUrl}
       tone={toAuthorTone(message.authorId)}
       quote={
@@ -84,6 +98,14 @@ function UserMessageView({
         )
       }
       meta={message.isEdited && '(수정됨)'}
+      reactions={
+        <MessageReactions
+          reactions={message.reactions}
+          onToggle={onToggleReaction}
+        />
+      }
+      actions={actions}
+      actionsVisible={actionsVisible}
       footer={
         message.sendStatus === 'failed' && (
           <p className="flex items-center gap-2 typography-subtext-medium text-error">
