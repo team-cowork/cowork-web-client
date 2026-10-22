@@ -16,6 +16,7 @@ import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
 import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { FileSharePanel } from '@/widgets/file-share/ui/file-share-panel';
 import { MemberPanel } from '@/widgets/member-panel/ui/member-panel';
+import { MessageSearchPanel } from '@/widgets/message-search/ui/message-search-panel';
 import { PinnedMessagesPanel } from '@/widgets/pinned-panel/ui/pinned-messages-panel';
 import { ChannelThreadPanel } from '@/widgets/thread-panel/ui/channel-thread-panel';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
@@ -31,11 +32,11 @@ function ChannelPageError({ error, resetErrorBoundary }: FallbackProps) {
   return (
     <div className="flex flex-1 items-center justify-center p-6">
       <ErrorState
-        title="ì±„ë„ì„ ë¶ˆëŸ¬ì˜¤ì§€ ëª»í–ˆìŠµë‹ˆë‹¤"
-        description="ì ì‹œ í›„ ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”"
+        title="Ã¤³ÎÀ» ºÒ·¯¿ÀÁö ¸øÇß½À´Ï´Ù"
+        description="Àá½Ã ÈÄ ´Ù½Ã ½ÃµµÇØ ÁÖ¼¼¿ä"
         action={
           <Button size="S" variant="weak" onClick={resetErrorBoundary}>
-            ë‹¤ì‹œ ì‹œë„
+            ´Ù½Ã ½Ãµµ
           </Button>
         }
       />
@@ -52,7 +53,7 @@ export default function ChannelPage() {
     <QueryBoundary
       loadingFallback={
         <div className="flex flex-1 items-center justify-center p-6">
-          <LoadingPane label="ì±„ë„ì„ ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘â€¦" />
+          <LoadingPane label="Ã¤³ÎÀ» ºÒ·¯¿À´Â Áß¡¦" />
         </div>
       }
       errorFallback={ChannelPageError}
@@ -63,7 +64,7 @@ export default function ChannelPage() {
   );
 }
 
-type SidePanel = 'members' | 'pins';
+type SidePanel = 'members' | 'pins' | 'search';
 
 function ChannelView({
   teamId,
@@ -82,7 +83,7 @@ function ChannelView({
 
   const isVoice = channel.type === 'VOICE';
 
-  // ìŠ¤ë ˆë“œê°€ ì—´ë ¤ ìˆìœ¼ë©´ ì˜¤ë¥¸ìª½ íŒ¨ë„ ìë¦¬ë¥¼ ìŠ¤ë ˆë“œê°€ ì“´ë‹¤. ë‹¤ë¥¸ íŒ¨ë„ì„ ì—´ë©´ ìŠ¤ë ˆë“œëŠ” ë‹«ëŠ”ë‹¤.
+  // ½º·¹µå°¡ ¿­·Á ÀÖÀ¸¸é ¿À¸¥ÂÊ ÆĞ³Î ÀÚ¸®¸¦ ½º·¹µå°¡ ¾´´Ù. ´Ù¸¥ ÆĞ³ÎÀ» ¿­¸é ½º·¹µå´Â ´İ´Â´Ù.
   const toggleSidePanel = (panel: SidePanel) => {
     setThreadRoot(null);
     setSidePanel((prev) => (prev === panel && !threadRoot ? null : panel));
@@ -101,6 +102,7 @@ function ChannelView({
           }
           onToggleMembers={() => toggleSidePanel('members')}
           onTogglePins={isVoice ? undefined : () => toggleSidePanel('pins')}
+          onToggleSearch={isVoice ? undefined : () => toggleSidePanel('search')}
         />
 
         {isVoice ? (
@@ -110,7 +112,7 @@ function ChannelView({
         ) : (
           <ChannelChatPanel
             channelId={channelId}
-            placeholder={`#${channel.name}ì— ë©”ì‹œì§€ ë³´ë‚´ê¸°`}
+            placeholder={`#${channel.name}¿¡ ¸Ş½ÃÁö º¸³»±â`}
             onSelectMessage={(message) => setThreadRoot(toThreadRoot(message))}
           />
         )}
@@ -123,6 +125,13 @@ function ChannelView({
           subtitle={`# ${channel.name}`}
           rootMessage={threadRoot}
           onClose={() => setThreadRoot(null)}
+        />
+      ) : sidePanel === 'search' && !isVoice ? (
+        <MessageSearchPanel
+          teamId={teamId}
+          channelId={channelId}
+          projectId={channel.projectId}
+          onClose={() => setSidePanel(null)}
         />
       ) : sidePanel === 'pins' && !isVoice ? (
         <PinnedMessagesPanel

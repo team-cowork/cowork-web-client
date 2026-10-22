@@ -2,11 +2,14 @@ import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 
 import { getChannelFiles } from '@/entities/message/api/get-channel-files';
 import { getPins } from '@/entities/message/api/get-pins';
+import { getProjectMessageSearch } from '@/entities/message/api/get-project-message-search';
+import { getTeamMessageSearch } from '@/entities/message/api/get-team-message-search';
 import { getTeamUnread } from '@/entities/message/api/get-team-unread';
 import {
   getMessages,
   MESSAGE_PAGE_SIZE,
 } from '@/entities/message/api/get-messages';
+import { type SearchMessagesParams } from '@/entities/message/model/message';
 
 const UNREAD_REFETCH_INTERVAL_MS = 30 * 1000;
 
@@ -50,6 +53,24 @@ export const messageQueries = {
       queryFn: ({ pageParam }) => getChannelFiles(channelId, pageParam),
       initialPageParam: undefined as string | undefined,
       getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    }),
+  /** `projectId`가 있으면 프로젝트 범위, 없으면 팀 전체에서 검색한다. */
+  search: (
+    scope: { teamId: number; projectId?: number },
+    params: Omit<SearchMessagesParams, 'before'>,
+  ) =>
+    infiniteQueryOptions({
+      queryKey: [...messageQueries.all(), 'search', scope, params],
+      queryFn: ({ pageParam }) =>
+        scope.projectId === undefined
+          ? getTeamMessageSearch(scope.teamId, { ...params, before: pageParam })
+          : getProjectMessageSearch(scope.projectId, {
+              ...params,
+              before: pageParam,
+            }),
+      initialPageParam: undefined as string | undefined,
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      enabled: params.q.trim().length > 0,
     }),
   // 다른 채널에 새 메시지가 와도 서버가 알려주지 않아 주기적으로 다시 받는다.
   teamUnread: (teamId: number) =>

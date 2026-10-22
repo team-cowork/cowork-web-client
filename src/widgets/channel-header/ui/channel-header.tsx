@@ -21,6 +21,8 @@ export interface ChannelHeaderProps {
   onToggleMembers?: () => void;
   /** 없으면 고정 메시지 버튼을 숨긴다(예: 음성 채널) */
   onTogglePins?: () => void;
+  /** 없으면 검색 버튼을 비활성화한다 */
+  onToggleSearch?: () => void;
   className?: string;
 }
 
@@ -30,6 +32,7 @@ export function ChannelHeader({
   meta,
   onToggleMembers,
   onTogglePins,
+  onToggleSearch,
   className,
 }: ChannelHeaderProps) {
   return (
@@ -67,8 +70,9 @@ export function ChannelHeader({
         <button
           type="button"
           aria-label="메시지 검색"
-          disabled
-          className="text-on-surface-variant disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={!onToggleSearch}
+          onClick={onToggleSearch}
+          className="cursor-pointer text-on-surface-variant hover:text-on-surface disabled:cursor-not-allowed disabled:opacity-50"
         >
           <SearchIcon size={20} />
         </button>

@@ -7,7 +7,7 @@ export interface MessageAttachment {
   mimeType: string;
 }
 
-/** ë‹µê¸€ì´ ê°€ë¦¬í‚¤ëŠ” ì›ë³¸ ë©”ì‹œì§€ ìš”ì•½. ë©”ì‹œì§€ ëª©ë¡ ì¡°íšŒ ì‘ë‹µì—ë§Œ í¬í•¨ëœë‹¤. */
+/** ´ä±ÛÀÌ °¡¸®Å°´Â ¿øº» ¸Ş½ÃÁö ¿ä¾à. ¸Ş½ÃÁö ¸ñ·Ï Á¶È¸ ÀÀ´ä¿¡¸¸ Æ÷ÇÔµÈ´Ù. */
 export interface MentionedMessage {
   _id: string;
   authorId: number;
@@ -22,7 +22,7 @@ export interface MessageReaction {
   myReaction: boolean;
 }
 
-/** ë‚™ê´€ì ìœ¼ë¡œ ë¨¼ì € ê·¸ë¦° ë©”ì‹œì§€ì˜ ì „ì†¡ ìƒíƒœ. ì„œë²„ì—ì„œ ë°›ì€ ë©”ì‹œì§€ì—ëŠ” ì—†ë‹¤. */
+/** ³«°üÀûÀ¸·Î ¸ÕÀú ±×¸° ¸Ş½ÃÁöÀÇ Àü¼Û »óÅÂ. ¼­¹ö¿¡¼­ ¹ŞÀº ¸Ş½ÃÁö¿¡´Â ¾ø´Ù. */
 export type MessageSendStatus = 'pending' | 'failed';
 
 export interface Message {
@@ -69,11 +69,11 @@ export interface FileUploadUrl {
   objectKey: string;
   uploadUrl: string;
   expiresInSeconds: number;
-  /** PUT ì—…ë¡œë“œì— ê·¸ëŒ€ë¡œ ì‹¤ì–´ì•¼ í•˜ëŠ” í—¤ë” */
+  /** PUT ¾÷·Îµå¿¡ ±×´ë·Î ½Ç¾î¾ß ÇÏ´Â Çì´õ */
   headers: Record<string, string>;
 }
 
-/** ì—…ë¡œë“œ í™•ì¸ì„ ë§ˆì¹œ ì²¨ë¶€. ë©”ì‹œì§€ ì „ì†¡ ì‹œ `objectKey`ë¥¼ ë„˜ê¸´ë‹¤. */
+/** ¾÷·Îµå È®ÀÎÀ» ¸¶Ä£ Ã·ºÎ. ¸Ş½ÃÁö Àü¼Û ½Ã `objectKey`¸¦ ³Ñ±ä´Ù. */
 export interface ConfirmedFile {
   objectKey: string;
   name: string;
@@ -134,6 +134,34 @@ export interface MessageReactionEvent {
   channelId: number;
   emoji: string;
   userId: number;
-  /** ë³€ê²½ í›„ ì´ ì´ëª¨ì§€ì˜ ë°˜ì‘ ìˆ˜ */
+  /** º¯°æ ÈÄ ÀÌ ÀÌ¸ğÁöÀÇ ¹İÀÀ ¼ö */
   count: number;
+}
+
+export interface SearchMessagesParams {
+  q: string;
+  channelId?: number;
+  authorId?: number;
+  type?: MessageType;
+  hasFile?: boolean;
+  before?: string;
+  limit?: number;
+}
+
+export interface SearchMessageItem {
+  messageId: string;
+  channelId: number;
+  authorId: number;
+  content: string;
+  /** °Ë»ö¾î¸¦ `<em>`À¸·Î °¨½Ñ º»¹® Á¶°¢ */
+  highlight: string[];
+  type: MessageType;
+  hasAttachments: boolean;
+  isPinned: boolean;
+  createdAt: string;
+}
+
+export interface SearchMessagesPage {
+  messages: SearchMessageItem[];
+  nextCursor: string | null;
 }
