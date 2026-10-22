@@ -13,7 +13,11 @@ import { ChannelListItem } from '@/entities/channel/ui/channel-list-item';
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { groupDroppableId } from '@/features/channel-reorder/lib/reorder-channels';
 import { cn } from '@/shared/lib/cn';
-import { channelPath, channelSettingsOverviewPath } from '@/shared/model/paths';
+import {
+  channelPath,
+  channelSettingsOverviewPath,
+  projectPath,
+} from '@/shared/model/paths';
 import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
 import { ChevronRightIcon } from '@/shared/ui/icons/chevron-right-icon';
 import { PlusIcon } from '@/shared/ui/icons/plus-icon';
@@ -22,6 +26,8 @@ import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 export interface ChannelGroupProps {
   teamId: number;
   projectId: number | null;
+  /** 프로젝트 이름. 아직 모르면 `프로젝트 #id`로 보여준다. */
+  projectName?: string;
   channels: Channel[];
   activeChannelId: number | null;
   onCreateChannel?: () => void;
@@ -30,6 +36,7 @@ export interface ChannelGroupProps {
 export function ChannelGroup({
   teamId,
   projectId,
+  projectName,
   channels,
   activeChannelId,
   onCreateChannel,
@@ -41,7 +48,9 @@ export function ChannelGroup({
       new Map(unread.map((item) => [item.channelId, item.unreadCount])),
   });
   const label =
-    projectId === null ? '프로젝트 미소속' : `프로젝트 #${projectId}`;
+    projectId === null
+      ? '프로젝트 미소속'
+      : (projectName ?? `프로젝트 #${projectId}`);
   const canCreate = projectId === null && onCreateChannel !== undefined;
 
   return (
@@ -51,15 +60,29 @@ export function ChannelGroup({
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
           aria-expanded={expanded}
-          className="flex min-w-0 flex-1 cursor-pointer items-center gap-1 text-on-surface-variant hover:text-on-surface"
+          aria-label={projectId === null ? undefined : `${label} 채널 목록`}
+          className={cn(
+            'flex cursor-pointer items-center gap-1 text-on-surface-variant hover:text-on-surface',
+            projectId === null ? 'min-w-0 flex-1' : 'shrink-0',
+          )}
         >
           {expanded ? (
             <ChevronDownIcon size={12} />
           ) : (
             <ChevronRightIcon size={12} />
           )}
-          <span className="truncate typography-subtext-small">{label}</span>
+          {projectId === null && (
+            <span className="truncate typography-subtext-small">{label}</span>
+          )}
         </button>
+        {projectId !== null && (
+          <Link
+            href={projectPath(teamId, projectId)}
+            className="min-w-0 flex-1 truncate typography-subtext-small text-on-surface-variant hover:text-on-surface hover:underline"
+          >
+            {label}
+          </Link>
+        )}
         <button
           type="button"
           aria-label={`${label}에 채널 추가`}

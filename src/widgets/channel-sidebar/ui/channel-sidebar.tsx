@@ -10,8 +10,10 @@ import { buildReorderedChannelIds } from '@/features/channel-reorder/lib/reorder
 import { useReorderChannels } from '@/features/channel-reorder/model/use-reorder-channels';
 import { ChannelSearchModal } from '@/features/channel-search/ui/channel-search-modal';
 import { CreateChannelModal } from '@/features/channel-create/ui/create-channel-modal';
+import { CreateProjectModal } from '@/features/project-create/ui/create-project-modal';
 import { InviteTeamMembersModal } from '@/features/team-members/ui/invite-team-members-modal';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
+import { projectQueries } from '@/entities/project/api/project-queries';
 import { teamQueries } from '@/entities/team/api/team-queries';
 import { groupChannelsByProject } from '@/widgets/channel-sidebar/lib/group-channels-by-project';
 import { ChannelGroup } from '@/widgets/channel-sidebar/ui/channel-group';
@@ -22,6 +24,7 @@ import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { ChatIcon } from '@/shared/ui/icons/chat-icon';
+import { PlusIcon } from '@/shared/ui/icons/plus-icon';
 import { SearchIcon } from '@/shared/ui/icons/search-icon';
 import { UserPlusIcon } from '@/shared/ui/icons/user-plus-icon';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
@@ -60,6 +63,7 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [createProjectOpen, setCreateProjectOpen] = useState(false);
 
   return (
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
@@ -101,12 +105,26 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
             onCreateChannel={() => setCreateOpen(true)}
           />
         </QueryBoundary>
+
+        <button
+          type="button"
+          onClick={() => setCreateProjectOpen(true)}
+          className="mt-3 flex h-8 w-full cursor-pointer items-center gap-2 rounded-lg px-2 typography-subtext-medium text-on-surface-variant hover:bg-surface-container/60 hover:text-on-surface"
+        >
+          <PlusIcon size={14} />
+          프로젝트 만들기
+        </button>
       </div>
 
       <CreateChannelModal
         open={createOpen}
         teamId={teamId}
         onClose={() => setCreateOpen(false)}
+      />
+      <CreateProjectModal
+        open={createProjectOpen}
+        teamId={teamId}
+        onClose={() => setCreateProjectOpen(false)}
       />
       <InviteTeamMembersModal
         open={inviteOpen}
@@ -134,7 +152,13 @@ function ChannelList({
   onCreateChannel,
 }: ChannelListProps) {
   const { data: channels } = useSuspenseQuery(channelQueries.byTeam(teamId));
-  const groups = groupChannelsByProject(channels);
+  const { data: projects = [] } = useQuery(projectQueries.byTeam(teamId));
+  const groups = groupChannelsByProject(
+    channels,
+    projects.map((project) => project.id),
+  );
+  const projectName = (projectId: number) =>
+    projects.find((project) => project.id === projectId)?.name;
   const reorderChannels = useReorderChannels(teamId);
 
   const handleDragEnd = ({ source, destination }: DropResult) => {
@@ -175,6 +199,11 @@ function ChannelList({
               key={group.projectId ?? 'none'}
               teamId={teamId}
               projectId={group.projectId}
+              projectName={
+                group.projectId === null
+                  ? undefined
+                  : projectName(group.projectId)
+              }
               channels={group.channels}
               activeChannelId={currentChannelId}
               onCreateChannel={onCreateChannel}
