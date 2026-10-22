@@ -7,7 +7,10 @@ import {
 } from '@tanstack/react-query';
 
 import { postMessage } from '@/entities/message/api/post-message';
-import { type Message } from '@/entities/message/model/message';
+import {
+  type ConfirmedFile,
+  type Message,
+} from '@/entities/message/model/message';
 import {
   isMessagePending,
   refetchChannelMessages,
@@ -32,6 +35,10 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
     mutationFn: (message: Message) =>
       postMessage(channelId, {
         content: message.content,
+        type: message.attachments.length > 0 ? 'FILE' : 'TEXT',
+        attachments: message.attachments.flatMap(({ objectKey }) =>
+          objectKey ? [{ objectKey }] : [],
+        ),
         parentMessageId: message.parentMessageId ?? undefined,
         // 재시도에도 같은 키를 보내 서버가 중복 저장하지 않게 한다.
         clientMessageId: message.clientMessageId ?? message._id,
@@ -51,7 +58,7 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
     },
   });
 
-  const send = (content: string) => {
+  const send = (content: string, attachments: ConfirmedFile[] = []) => {
     const clientMessageId = createUuid();
     const now = new Date().toISOString();
 
@@ -62,8 +69,8 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
       channelId,
       authorId: me.id,
       content,
-      type: 'TEXT',
-      attachments: [],
+      type: attachments.length > 0 ? 'FILE' : 'TEXT',
+      attachments,
       parentMessageId: parentMessage?._id ?? null,
       isEdited: false,
       isPinned: false,

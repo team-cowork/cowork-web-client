@@ -53,8 +53,56 @@ export interface GetMessagesParams {
 
 export interface SendMessageRequest {
   content: string;
+  type: 'TEXT' | 'FILE';
+  attachments?: { objectKey: string }[];
   parentMessageId?: string;
   clientMessageId: string;
+}
+
+export interface CreateFileUploadUrlRequest {
+  filename: string;
+  contentType: string;
+  size: number;
+}
+
+export interface FileUploadUrl {
+  objectKey: string;
+  uploadUrl: string;
+  expiresInSeconds: number;
+  /** PUT 업로드에 그대로 실어야 하는 헤더 */
+  headers: Record<string, string>;
+}
+
+/** 업로드 확인을 마친 첨부. 메시지 전송 시 `objectKey`를 넘긴다. */
+export interface ConfirmedFile {
+  objectKey: string;
+  name: string;
+  size: number;
+  mimeType: string;
+}
+
+export interface AttachmentDownload {
+  downloadUrl: string;
+  expiresAt: string;
+  expiresInSeconds: number;
+}
+
+export interface ChannelFile {
+  fileId: string;
+  messageId: string;
+  fileName: string;
+  fileSize: number;
+  attachmentIndex: number;
+  objectKey?: string;
+  mimeType: string;
+  uploaderId: number;
+  uploaderName: string;
+  uploadedAt: string;
+}
+
+export interface ChannelFilePage {
+  files: ChannelFile[];
+  nextCursor: string | null;
 }
 
 export interface MessageEditedEvent {

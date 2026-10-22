@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode } from 'react';
+import { type ReactNode, useRef } from 'react';
 
 import { type Message } from '@/entities/message/model/message';
 import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
@@ -20,7 +20,14 @@ export interface ChatPanelProps {
   onLoadOlder?: () => void;
   placeholder?: string;
   emptyState?: ReactNode;
-  onAttach?: () => void;
+  /** 없으면 첨부 버튼을 비활성화한다 */
+  onAttachFiles?: (files: FileList) => void;
+  /** 컴포저 위에 보여줄 전송 대기 첨부 */
+  attachmentDrafts?: ReactNode;
+  /** 첨부만으로도 보낼 수 있는지 */
+  canSendEmpty?: boolean;
+  /** 첨부 업로드 중처럼 잠시 전송을 막아야 할 때 */
+  sendDisabled?: boolean;
   className?: string;
 }
 
@@ -38,10 +45,17 @@ export function ChatPanel({
   onLoadOlder,
   placeholder,
   emptyState,
-  onAttach,
+  onAttachFiles,
+  attachmentDrafts,
+  canSendEmpty = false,
+  sendDisabled = false,
   className,
 }: ChatPanelProps) {
-  const draft = useMessageDraft({ onSubmit: onSendMessage });
+  const draft = useMessageDraft({
+    onSubmit: onSendMessage,
+    allowEmpty: canSendEmpty,
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
@@ -55,14 +69,36 @@ export function ChatPanel({
         emptyState={emptyState}
       />
 
-      <div className="shrink-0 px-4 pb-6">
+      <div className="flex shrink-0 flex-col gap-2 px-4 pb-6">
+        {attachmentDrafts}
         <MessageComposer
           value={draft.value}
           onChange={draft.onChange}
           onSend={draft.onSend}
           placeholder={placeholder}
-          leading={<AttachButton onClick={onAttach} />}
+          canSendEmpty={canSendEmpty}
+          sendDisabled={sendDisabled}
+          leading={
+            <AttachButton
+              onClick={onAttachFiles && (() => fileInputRef.current?.click())}
+            />
+          }
         />
+        {onAttachFiles && (
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            hidden
+            onChange={(event) => {
+              if (event.target.files?.length) {
+                onAttachFiles(event.target.files);
+              }
+              // 같은 파일을 다시 골라도 change가 일어나도록 비운다.
+              event.target.value = '';
+            }}
+          />
+        )}
       </div>
     </div>
   );

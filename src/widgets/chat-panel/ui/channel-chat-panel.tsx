@@ -8,6 +8,8 @@ import { messageQueries } from '@/entities/message/api/message-queries';
 import { type Message } from '@/entities/message/model/message';
 import { useChannelMessageEvents } from '@/entities/message/model/use-channel-message-events';
 import { useMarkChannelRead } from '@/features/channel-read/model/use-mark-channel-read';
+import { useAttachmentUploads } from '@/features/message-attachment/model/use-attachment-uploads';
+import { AttachmentDrafts } from '@/features/message-attachment/ui/attachment-drafts';
 import { useSendMessage } from '@/features/message-send/model/use-send-message';
 import { ChatPanel } from '@/widgets/chat-panel/ui/chat-panel';
 import { Button } from '@/shared/ui/button';
@@ -83,6 +85,7 @@ function ChannelChatBody({
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useSuspenseInfiniteQuery(messageQueries.byChannel(channelId));
   const { send, retry } = useSendMessage(channelId);
+  const attachments = useAttachmentUploads(channelId);
 
   // 페이지와 페이지 안의 메시지 모두 최신순이라 뒤집어 오래된 순으로 그린다.
   const messages = data.pages.flat().reverse();
@@ -96,7 +99,19 @@ function ChannelChatBody({
   return (
     <ChatPanel
       messages={messages}
-      onSendMessage={send}
+      onSendMessage={(content) => {
+        send(content, attachments.confirmedFiles);
+        attachments.clear();
+      }}
+      onAttachFiles={attachments.add}
+      attachmentDrafts={
+        <AttachmentDrafts
+          uploads={attachments.uploads}
+          onRemove={attachments.remove}
+        />
+      }
+      canSendEmpty={attachments.confirmedFiles.length > 0}
+      sendDisabled={attachments.isUploading}
       onRetryMessage={retry}
       onSelectMessage={onSelectMessage}
       hasOlder={hasNextPage}
