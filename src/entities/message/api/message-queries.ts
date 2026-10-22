@@ -1,5 +1,6 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 
+import { getPins } from '@/entities/message/api/get-pins';
 import {
   getMessages,
   MESSAGE_PAGE_SIZE,
@@ -33,5 +34,10 @@ export const messageQueries = {
       queryFn: () => getMessages(channelId, { parentMessageId }),
       staleTime: 0,
       refetchOnWindowFocus: false,
+    }),
+  pins: (channelId: number) =>
+    queryOptions({
+      queryKey: [...messageQueries.all(), 'pins', channelId],
+      queryFn: () => getPins(channelId),
     }),
 } as const;

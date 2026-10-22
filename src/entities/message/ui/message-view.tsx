@@ -97,7 +97,16 @@ function UserMessageView({
           <MessageQuote mentioned={message.mentionedMessage} />
         )
       }
-      meta={message.isEdited && '(수정됨)'}
+      meta={
+        (message.isPinned || message.isEdited) && (
+          <>
+            {message.isEdited && '(수정됨)'}
+            {message.isPinned && (
+              <span className="ml-1 text-primary">· 고정됨</span>
+            )}
+          </>
+        )
+      }
       reactions={
         <MessageReactions
           reactions={message.reactions}

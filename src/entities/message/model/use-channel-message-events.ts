@@ -8,6 +8,7 @@ import {
   type Message,
   type MessageDeletedEvent,
   type MessageEditedEvent,
+  type MessagePinEvent,
   type MessageReaction,
   type MessageReactionEvent,
 } from '@/entities/message/model/message';
@@ -16,6 +17,7 @@ import {
   editMessageContent,
   refetchChannelMessages,
   removeMessage,
+  setMessagePinned,
   upsertMessage,
 } from '@/entities/message/model/message-cache';
 import { userQueries } from '@/entities/user/api/user-queries';
@@ -45,7 +47,7 @@ function toReactions(
 }
 
 /**
- * 채널 room에 참가해 새 메시지·수정·삭제·반응 이벤트를 메시지 캐시에 반영한다.
+ * 채널 room에 참가해 새 메시지·수정·삭제·고정·반응 이벤트를 메시지 캐시에 반영한다.
  * 채널 화면이 떠 있는 동안 한 곳에서만 호출한다.
  */
 export function useChannelMessageEvents(channelId: number) {
@@ -85,6 +87,16 @@ export function useChannelMessageEvents(channelId: number) {
       removeMessage(queryClient, channelId, messageId);
     };
 
+    const handlePinned =
+      (isPinned: boolean) =>
+      ({ messageId, ...event }: MessagePinEvent) => {
+        if (event.channelId !== channelId) return;
+
+        void setMessagePinned(queryClient, channelId, messageId, isPinned);
+      };
+    const handleMessagePinned = handlePinned(true);
+    const handleMessageUnpinned = handlePinned(false);
+
     const handleReaction =
       (added: boolean) =>
       ({ messageId, emoji, userId, count, ...event }: MessageReactionEvent) => {
@@ -103,6 +115,8 @@ export function useChannelMessageEvents(channelId: number) {
     socket.on('message', handleMessage);
     socket.on('message:edited', handleEdited);
     socket.on('message:deleted', handleDeleted);
+    socket.on('message:pinned', handleMessagePinned);
+    socket.on('message:unpinned', handleMessageUnpinned);
     socket.on('message:reaction:added', handleReactionAdded);
     socket.on('message:reaction:removed', handleReactionRemoved);
 
@@ -113,6 +127,8 @@ export function useChannelMessageEvents(channelId: number) {
       socket.off('message', handleMessage);
       socket.off('message:edited', handleEdited);
       socket.off('message:deleted', handleDeleted);
+      socket.off('message:pinned', handleMessagePinned);
+      socket.off('message:unpinned', handleMessageUnpinned);
       socket.off('message:reaction:added', handleReactionAdded);
       socket.off('message:reaction:removed', handleReactionRemoved);
 

@@ -203,6 +203,23 @@ export function applyReaction(
   );
 }
 
+export function setMessagePinned(
+  queryClient: QueryClient,
+  channelId: number,
+  messageId: string,
+  isPinned: boolean,
+) {
+  mapChannelMessages(queryClient, channelId, (messages) =>
+    messages.map((message) =>
+      message._id === messageId ? { ...message, isPinned } : message,
+    ),
+  );
+
+  return queryClient.invalidateQueries({
+    queryKey: messageQueries.pins(channelId).queryKey,
+  });
+}
+
 export function isMessagePending(
   queryClient: QueryClient,
   message: Message,

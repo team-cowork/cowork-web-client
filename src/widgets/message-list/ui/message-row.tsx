@@ -12,10 +12,12 @@ import {
 import { userQueries } from '@/entities/user/api/user-queries';
 import { DeleteMessageDialog } from '@/features/message-delete/ui/delete-message-dialog';
 import { MessageEditForm } from '@/features/message-edit/ui/message-edit-form';
+import { useTogglePin } from '@/features/message-pin/model/use-toggle-pin';
 import { useToggleReaction } from '@/features/message-reaction/model/use-toggle-reaction';
 import { ReactionPicker } from '@/features/message-reaction/ui/reaction-picker';
 import { IconButton } from '@/shared/ui/icon-button';
 import { EditIcon } from '@/shared/ui/icons/edit-icon';
+import { PinIcon } from '@/shared/ui/icons/pin-icon';
 import { TrashIcon } from '@/shared/ui/icons/trash-icon';
 
 export interface MessageRowProps {
@@ -38,7 +40,7 @@ function StopClick({ children }: { children: ReactNode }) {
 }
 
 /**
- * 메시지 한 줄에 반응·수정·삭제 조작을 붙인다.
+ * 메시지 한 줄에 반응·고정·수정·삭제 조작을 붙인다.
  * 아직 전송 중이거나 실패한 메시지, 시스템 메시지에는 조작을 붙이지 않는다.
  */
 export function MessageRow({
@@ -49,6 +51,7 @@ export function MessageRow({
 }: MessageRowProps) {
   const { data: me } = useQuery(userQueries.me());
   const toggleReaction = useToggleReaction(message);
+  const togglePin = useTogglePin(message);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -77,6 +80,17 @@ export function MessageRow({
               />
               {isMine && (
                 <>
+                  <IconButton
+                    aria-label={message.isPinned ? '고정 해제' : '메시지 고정'}
+                    aria-pressed={message.isPinned}
+                    size="S"
+                    variant="clear"
+                    disabled={togglePin.isPending}
+                    onClick={() => togglePin.mutate()}
+                    className={message.isPinned ? 'text-primary' : undefined}
+                  >
+                    <PinIcon />
+                  </IconButton>
                   <IconButton
                     aria-label="메시지 수정"
                     size="S"
