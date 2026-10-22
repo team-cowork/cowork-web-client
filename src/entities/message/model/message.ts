@@ -7,7 +7,7 @@ export interface MessageAttachment {
   mimeType: string;
 }
 
-/** ë‹µê¸€ì´ ê°€ë¦¬í‚¤ëŠ” ì›ë³¸ ë©”ì‹œì§€ ìš”ì•½. ë©”ì‹œì§€ ëª©ë¡ ì¡°íšŒ ì‘ë‹µì—ë§Œ í¬í•¨ëœë‹¤. */
+/** ´ä±ÛÀÌ °¡¸®Å°´Â ¿øº» ¸Ş½ÃÁö ¿ä¾à. ¸Ş½ÃÁö ¸ñ·Ï Á¶È¸ ÀÀ´ä¿¡¸¸ Æ÷ÇÔµÈ´Ù. */
 export interface MentionedMessage {
   _id: string;
   authorId: number;
@@ -16,7 +16,13 @@ export interface MentionedMessage {
   createdAt: string;
 }
 
-/** ë‚™ê´€ì ìœ¼ë¡œ ë¨¼ì € ê·¸ë¦° ë©”ì‹œì§€ì˜ ì „ì†¡ ìƒíƒœ. ì„œë²„ì—ì„œ ë°›ì€ ë©”ì‹œì§€ì—ëŠ” ì—†ë‹¤. */
+export interface MessageReaction {
+  emoji: string;
+  count: number;
+  myReaction: boolean;
+}
+
+/** ³«°üÀûÀ¸·Î ¸ÕÀú ±×¸° ¸Ş½ÃÁöÀÇ Àü¼Û »óÅÂ. ¼­¹ö¿¡¼­ ¹ŞÀº ¸Ş½ÃÁö¿¡´Â ¾ø´Ù. */
 export type MessageSendStatus = 'pending' | 'failed';
 
 export interface Message {
@@ -33,6 +39,7 @@ export interface Message {
   isPinned: boolean;
   clientMessageId: string | null;
   mentions: number[];
+  reactions: MessageReaction[];
   createdAt: string;
   updatedAt: string;
   mentionedMessage?: MentionedMessage | null;
@@ -58,4 +65,13 @@ export interface MessageEditedEvent {
 
 export interface MessageDeletedEvent {
   messageId: string;
+}
+
+export interface MessageReactionEvent {
+  messageId: string;
+  channelId: number;
+  emoji: string;
+  userId: number;
+  /** º¯°æ ÈÄ ÀÌ ÀÌ¸ğÁöÀÇ ¹İÀÀ ¼ö */
+  count: number;
 }

@@ -4,6 +4,7 @@ import { messageQueries } from '@/entities/message/api/message-queries';
 import {
   type MentionedMessage,
   type Message,
+  type MessageReaction,
 } from '@/entities/message/model/message';
 
 // 채널 목록과 스레드 답글 캐시는 모두 서버 응답 그대로 최신 메시지가 앞에 온다.
@@ -158,6 +159,47 @@ export function removeMessage(
           ? { ...message, mentionedMessage: null }
           : message,
       ),
+  );
+}
+
+export interface ReactionChange {
+  emoji: string;
+  /** 변경 후 반응 수. 0이면 반응을 목록에서 뺀다. */
+  count: number;
+  /** 내 반응 여부가 바뀔 때만 넘긴다. 다른 사람의 반응이면 기존 값을 유지한다. */
+  myReaction?: boolean;
+}
+
+export function applyReaction(
+  queryClient: QueryClient,
+  channelId: number,
+  messageId: string,
+  { emoji, count, myReaction }: ReactionChange,
+) {
+  const apply = (reactions: MessageReaction[]): MessageReaction[] => {
+    const current = reactions.find((reaction) => reaction.emoji === emoji);
+    if (count <= 0) {
+      return reactions.filter((reaction) => reaction.emoji !== emoji);
+    }
+
+    const next = {
+      emoji,
+      count,
+      myReaction: myReaction ?? current?.myReaction ?? false,
+    };
+    return current
+      ? reactions.map((reaction) =>
+          reaction.emoji === emoji ? next : reaction,
+        )
+      : [...reactions, next];
+  };
+
+  mapChannelMessages(queryClient, channelId, (messages) =>
+    messages.map((message) =>
+      message._id === messageId
+        ? { ...message, reactions: apply(message.reactions) }
+        : message,
+    ),
   );
 }
 

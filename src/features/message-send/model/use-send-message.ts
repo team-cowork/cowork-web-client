@@ -69,6 +69,7 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
       isPinned: false,
       clientMessageId,
       mentions: [],
+      reactions: [],
       createdAt: now,
       updatedAt: now,
       mentionedMessage: parentMessage

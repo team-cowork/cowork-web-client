@@ -24,6 +24,7 @@ export function toThreadRoot(message: Message): Message | null {
     isPinned: false,
     clientMessageId: null,
     mentions: [],
+    reactions: [],
     createdAt: parent.createdAt,
     updatedAt: parent.createdAt,
   };
