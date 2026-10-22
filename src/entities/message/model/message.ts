@@ -67,6 +67,11 @@ export interface MessageDeletedEvent {
   messageId: string;
 }
 
+export interface ChannelUnread {
+  channelId: number;
+  unreadCount: number;
+}
+
 export interface MessagePinEvent {
   messageId: string;
   channelId: number;

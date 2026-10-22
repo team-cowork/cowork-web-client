@@ -7,6 +7,7 @@ import { type FallbackProps } from 'react-error-boundary';
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { type Message } from '@/entities/message/model/message';
 import { useChannelMessageEvents } from '@/entities/message/model/use-channel-message-events';
+import { useMarkChannelRead } from '@/features/channel-read/model/use-mark-channel-read';
 import { useSendMessage } from '@/features/message-send/model/use-send-message';
 import { ChatPanel } from '@/widgets/chat-panel/ui/chat-panel';
 import { Button } from '@/shared/ui/button';
@@ -85,6 +86,12 @@ function ChannelChatBody({
 
   // 페이지와 페이지 안의 메시지 모두 최신순이라 뒤집어 오래된 순으로 그린다.
   const messages = data.pages.flat().reverse();
+
+  // 전송 중인 내 메시지는 서버 ID가 없으므로 확정된 마지막 메시지까지 읽음 처리한다.
+  useMarkChannelRead(
+    channelId,
+    messages.findLast((message) => message.sendStatus === undefined)?._id,
+  );
 
   return (
     <ChatPanel
