@@ -7,7 +7,7 @@ export interface MessageAttachment {
   mimeType: string;
 }
 
-/** ´ä±ÛÀÌ °¡¸®Å°´Â ¿øº» ¸Ş½ÃÁö ¿ä¾à. ¸Ş½ÃÁö ¸ñ·Ï Á¶È¸ ÀÀ´ä¿¡¸¸ Æ÷ÇÔµÈ´Ù. */
+/** ë‹µê¸€ì´ ê°€ë¦¬í‚¤ëŠ” ì›ë³¸ ë©”ì‹œì§€ ìš”ì•½. ë©”ì‹œì§€ ëª©ë¡ ì¡°íšŒ ì‘ë‹µì—ë§Œ í¬í•¨ëœë‹¤. */
 export interface MentionedMessage {
   _id: string;
   authorId: number;
@@ -22,7 +22,7 @@ export interface MessageReaction {
   myReaction: boolean;
 }
 
-/** ³«°üÀûÀ¸·Î ¸ÕÀú ±×¸° ¸Ş½ÃÁöÀÇ Àü¼Û »óÅÂ. ¼­¹ö¿¡¼­ ¹ŞÀº ¸Ş½ÃÁö¿¡´Â ¾ø´Ù. */
+/** ë‚™ê´€ì ìœ¼ë¡œ ë¨¼ì € ê·¸ë¦° ë©”ì‹œì§€ì˜ ì „ì†¡ ìƒíƒœ. ì„œë²„ì—ì„œ ë°›ì€ ë©”ì‹œì§€ì—ëŠ” ì—†ë‹¤. */
 export type MessageSendStatus = 'pending' | 'failed';
 
 export interface Message {
@@ -67,11 +67,15 @@ export interface MessageDeletedEvent {
   messageId: string;
 }
 
+export interface EditMessageRequest {
+  content: string;
+}
+
 export interface MessageReactionEvent {
   messageId: string;
   channelId: number;
   emoji: string;
   userId: number;
-  /** º¯°æ ÈÄ ÀÌ ÀÌ¸ğÁöÀÇ ¹İÀÀ ¼ö */
+  /** ë³€ê²½ í›„ ì´ ì´ëª¨ì§€ì˜ ë°˜ì‘ ìˆ˜ */
   count: number;
 }
