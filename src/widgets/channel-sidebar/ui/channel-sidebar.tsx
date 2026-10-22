@@ -12,6 +12,7 @@ import { ChannelSearchModal } from '@/features/channel-search/ui/channel-search-
 import { CreateChannelModal } from '@/features/channel-create/ui/create-channel-modal';
 import { CreateProjectModal } from '@/features/project-create/ui/create-project-modal';
 import { InviteTeamMembersModal } from '@/features/team-members/ui/invite-team-members-modal';
+import { useTeamEvents } from '@/features/team-realtime/model/use-team-events';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { projectQueries } from '@/entities/project/api/project-queries';
 import { teamQueries } from '@/entities/team/api/team-queries';
@@ -60,6 +61,7 @@ const CHANNEL_LIST_SKELETON = (
 export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
   const { channelId: currentChannelId } = useRouteIds();
   const { data: team } = useQuery(teamQueries.detail(teamId));
+  useTeamEvents(teamId);
   const [createOpen, setCreateOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
