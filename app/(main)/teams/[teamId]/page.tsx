@@ -7,11 +7,10 @@ import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { teamQueries } from '@/entities/team/api/team-queries';
+import { TeamProjectGrid } from '@/widgets/team-projects/ui/team-project-grid';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
-import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
-import { ChatIcon } from '@/shared/ui/icons/chat-icon';
 import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
@@ -57,13 +56,8 @@ function TeamView({ teamId }: { teamId: number }) {
   useSuspenseQuery(teamQueries.detail(teamId));
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-background p-6">
-      <EmptyState
-        icon={<ChatIcon />}
-        title="채널을 선택하세요"
-        description="왼쪽 목록에서 채널을 골라 대화를 확인할 수 있습니다"
-        className="max-w-md"
-      />
+    <div className="flex min-h-0 flex-1 overflow-y-auto bg-background">
+      <TeamProjectGrid teamId={teamId} />
     </div>
   );
 }
