@@ -20,6 +20,7 @@ import {
   setMessagePinned,
   upsertMessage,
 } from '@/entities/message/model/message-cache';
+import { messageQueries } from '@/entities/message/api/message-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { getChatSocket } from '@/shared/api/chat-socket';
 
@@ -76,6 +77,12 @@ export function useChannelMessageEvents(channelId: number) {
         ...message,
         reactions: toReactions(message.reactions, myId()),
       });
+
+      if (message.attachments.length > 0) {
+        void queryClient.invalidateQueries({
+          queryKey: messageQueries.channelFiles(channelId).queryKey,
+        });
+      }
     };
 
     // 수정·삭제 이벤트에는 채널 ID가 없어 이 채널 캐시에서 메시지 ID로 찾는다.

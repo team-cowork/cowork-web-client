@@ -14,6 +14,7 @@ import { type Message } from '@/entities/message/model/message';
 import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-badge';
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
 import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
+import { FileSharePanel } from '@/widgets/file-share/ui/file-share-panel';
 import { MemberPanel } from '@/widgets/member-panel/ui/member-panel';
 import { PinnedMessagesPanel } from '@/widgets/pinned-panel/ui/pinned-messages-panel';
 import { ChannelThreadPanel } from '@/widgets/thread-panel/ui/channel-thread-panel';
@@ -104,6 +105,8 @@ function ChannelView({
 
         {isVoice ? (
           <VoiceStage channelId={channelId} />
+        ) : channel.viewType === 'FILE_SHARE' ? (
+          <FileSharePanel channelId={channelId} />
         ) : (
           <ChannelChatPanel
             channelId={channelId}

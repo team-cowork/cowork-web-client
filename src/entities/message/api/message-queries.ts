@@ -1,5 +1,6 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 
+import { getChannelFiles } from '@/entities/message/api/get-channel-files';
 import { getPins } from '@/entities/message/api/get-pins';
 import { getTeamUnread } from '@/entities/message/api/get-team-unread';
 import {
@@ -42,6 +43,13 @@ export const messageQueries = {
     queryOptions({
       queryKey: [...messageQueries.all(), 'pins', channelId],
       queryFn: () => getPins(channelId),
+    }),
+  channelFiles: (channelId: number) =>
+    infiniteQueryOptions({
+      queryKey: [...messageQueries.all(), 'files', channelId],
+      queryFn: ({ pageParam }) => getChannelFiles(channelId, pageParam),
+      initialPageParam: undefined as string | undefined,
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     }),
   // 다른 채널에 새 메시지가 와도 서버가 알려주지 않아 주기적으로 다시 받는다.
   teamUnread: (teamId: number) =>
