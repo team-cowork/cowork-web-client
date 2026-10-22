@@ -1,5 +1,7 @@
 'use client';
 
+import { type ReactNode } from 'react';
+
 import {
   USER_STATUS_LABEL,
   toUserStatus,
@@ -12,10 +14,12 @@ import { SearchIcon } from '@/shared/ui/icons/search-icon';
 
 export interface DmHeaderProps {
   user?: User;
+  /** 오른쪽 끝 대화 설정 메뉴. 없으면 비활성 버튼을 보여준다. */
+  menu?: ReactNode;
   className?: string;
 }
 
-export function DmHeader({ user, className }: DmHeaderProps) {
+export function DmHeader({ user, menu, className }: DmHeaderProps) {
   const status = user ? toUserStatus(user.status) : null;
   const subtitle =
     user?.status_message ?? (status ? USER_STATUS_LABEL[status] : null);
@@ -47,14 +51,16 @@ export function DmHeader({ user, className }: DmHeaderProps) {
         >
           <SearchIcon size={20} />
         </button>
-        <button
-          type="button"
-          aria-label="대화 설정"
-          disabled
-          className="text-on-surface-variant disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <MoreIcon size={20} />
-        </button>
+        {menu ?? (
+          <button
+            type="button"
+            aria-label="대화 설정"
+            disabled
+            className="text-on-surface-variant disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <MoreIcon size={20} />
+          </button>
+        )}
       </div>
     </header>
   );

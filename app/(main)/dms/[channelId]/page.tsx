@@ -12,6 +12,7 @@ import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { toThreadRoot } from '@/entities/message/lib/to-thread-root';
 import { type Message } from '@/entities/message/model/message';
 import { userQueries } from '@/entities/user/api/user-queries';
+import { DmConversationMenu } from '@/features/dm-manage/ui/dm-conversation-menu';
 import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { DmHeader } from '@/widgets/dm-header/ui/dm-header';
 import { ChannelThreadPanel } from '@/widgets/thread-panel/ui/channel-thread-panel';
@@ -80,7 +81,16 @@ function DmView({ channelId }: { channelId: number }) {
   return (
     <div className="flex min-h-0 min-w-0 flex-1">
       <div className="flex min-w-0 flex-1 flex-col bg-background">
-        <DmHeader user={peer} />
+        <DmHeader
+          user={peer}
+          menu={
+            <DmConversationMenu
+              channelId={channelId}
+              peerId={peer?.id}
+              peerName={peer ? (peer.nickname ?? peer.name) : undefined}
+            />
+          }
+        />
 
         <ChannelChatPanel
           channelId={channelId}
