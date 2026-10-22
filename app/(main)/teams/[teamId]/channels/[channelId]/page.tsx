@@ -32,11 +32,11 @@ function ChannelPageError({ error, resetErrorBoundary }: FallbackProps) {
   return (
     <div className="flex flex-1 items-center justify-center p-6">
       <ErrorState
-        title="Ã¤³ÎÀ» ºÒ·¯¿ÀÁö ¸øÇß½À´Ï´Ù"
-        description="Àá½Ã ÈÄ ´Ù½Ã ½ÃµµÇØ ÁÖ¼¼¿ä"
+        title="ì±„ë„ì„ ë¶ˆëŸ¬ì˜¤ì§€ ëª»í–ˆìŠµë‹ˆë‹¤"
+        description="ì ì‹œ í›„ ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”"
         action={
           <Button size="S" variant="weak" onClick={resetErrorBoundary}>
-            ´Ù½Ã ½Ãµµ
+            ë‹¤ì‹œ ì‹œë„
           </Button>
         }
       />
@@ -53,7 +53,7 @@ export default function ChannelPage() {
     <QueryBoundary
       loadingFallback={
         <div className="flex flex-1 items-center justify-center p-6">
-          <LoadingPane label="Ã¤³ÎÀ» ºÒ·¯¿À´Â Áß¡¦" />
+          <LoadingPane label="ì±„ë„ì„ ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘â€¦" />
         </div>
       }
       errorFallback={ChannelPageError}
@@ -83,7 +83,7 @@ function ChannelView({
 
   const isVoice = channel.type === 'VOICE';
 
-  // ½º·¹µå°¡ ¿­·Á ÀÖÀ¸¸é ¿À¸¥ÂÊ ÆĞ³Î ÀÚ¸®¸¦ ½º·¹µå°¡ ¾´´Ù. ´Ù¸¥ ÆĞ³ÎÀ» ¿­¸é ½º·¹µå´Â ´İ´Â´Ù.
+  // ìŠ¤ë ˆë“œê°€ ì—´ë ¤ ìˆìœ¼ë©´ ì˜¤ë¥¸ìª½ íŒ¨ë„ ìë¦¬ë¥¼ ìŠ¤ë ˆë“œê°€ ì“´ë‹¤. ë‹¤ë¥¸ íŒ¨ë„ì„ ì—´ë©´ ìŠ¤ë ˆë“œëŠ” ë‹«ëŠ”ë‹¤.
   const toggleSidePanel = (panel: SidePanel) => {
     setThreadRoot(null);
     setSidePanel((prev) => (prev === panel && !threadRoot ? null : panel));
@@ -112,7 +112,8 @@ function ChannelView({
         ) : (
           <ChannelChatPanel
             channelId={channelId}
-            placeholder={`#${channel.name}¿¡ ¸Ş½ÃÁö º¸³»±â`}
+            projectId={channel.projectId}
+            placeholder={`#${channel.name}ì— ë©”ì‹œì§€ ë³´ë‚´ê¸°`}
             onSelectMessage={(message) => setThreadRoot(toThreadRoot(message))}
           />
         )}
