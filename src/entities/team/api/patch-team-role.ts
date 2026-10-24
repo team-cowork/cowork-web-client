@@ -1,5 +1,5 @@
 import { instance } from '@/shared/api/instance';
-import { type ApiResponse } from '@/shared/model/token';
+import { requestTeamRoleOperation } from '@/entities/team/api/request-team-role-operation';
 import {
   type TeamRole,
   type UpdateTeamRoleRequest,
@@ -10,10 +10,12 @@ export async function patchTeamRole(
   roleId: number,
   request: UpdateTeamRoleRequest,
 ): Promise<TeamRole> {
-  const { data } = await instance.patch<ApiResponse<TeamRole>>(
-    `/team/teams/${teamId}/roles/${roleId}`,
-    request,
+  const { role } = await requestTeamRoleOperation(teamId, (headers) =>
+    instance.patch(`/team/teams/${teamId}/roles/${roleId}`, request, {
+      headers,
+    }),
   );
+  if (!role) throw new Error('수정된 역할 정보를 받지 못했습니다');
 
-  return data.data;
+  return role;
 }
