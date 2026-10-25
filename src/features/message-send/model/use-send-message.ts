@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query';
 
 import { postMessage } from '@/entities/message/api/post-message';
+import { toAttachmentContent } from '@/entities/message/lib/attachment-content';
 import {
   type ConfirmedFile,
   type Message,
@@ -20,12 +21,12 @@ import {
 import { userQueries } from '@/entities/user/api/user-queries';
 import { createUuid } from '@/shared/lib/create-uuid';
 
-// ì „ì†¡ì´ ì ‘ìˆ˜ëœ ë’¤ ì´ ì‹œê°„ ì•ˆì— ì†Œì¼“ìœ¼ë¡œ ì €ì¥ëœ ë©”ì‹œì§€ê°€ ì˜¤ì§€ ì•Šìœ¼ë©´ ëª©ë¡ì„ ë‹¤ì‹œ ë°›ëŠ”ë‹¤.
+// Àü¼ÛÀÌ Á¢¼öµÈ µÚ ÀÌ ½Ã°£ ¾È¿¡ ¼ÒÄÏÀ¸·Î ÀúÀåµÈ ¸Ş½ÃÁö°¡ ¿ÀÁö ¾ÊÀ¸¸é ¸ñ·ÏÀ» ´Ù½Ã ¹Ş´Â´Ù.
 const DELIVERY_TIMEOUT_MS = 5000;
 
 /**
- * ë©”ì‹œì§€ë¥¼ ë¨¼ì € í™”ë©´ì— ê·¸ë¦° ë’¤ ì „ì†¡í•œë‹¤(ë‚™ê´€ì  ì—…ë°ì´íŠ¸).
- * `parentMessage`ë¥¼ ë„˜ê¸°ë©´ ê·¸ ë©”ì‹œì§€ì˜ ìŠ¤ë ˆë“œ ë‹µê¸€ë¡œ ë³´ë‚¸ë‹¤.
+ * ¸Ş½ÃÁö¸¦ ¸ÕÀú È­¸é¿¡ ±×¸° µÚ Àü¼ÛÇÑ´Ù(³«°üÀû ¾÷µ¥ÀÌÆ®).
+ * `parentMessage`¸¦ ³Ñ±â¸é ±× ¸Ş½ÃÁöÀÇ ½º·¹µå ´ä±Û·Î º¸³½´Ù.
  */
 export function useSendMessage(channelId: number, parentMessage?: Message) {
   const queryClient = useQueryClient();
@@ -40,7 +41,7 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
           objectKey ? [{ objectKey }] : [],
         ),
         parentMessageId: message.parentMessageId ?? undefined,
-        // ì¬ì‹œë„ì—ë„ ê°™ì€ í‚¤ë¥¼ ë³´ë‚´ ì„œë²„ê°€ ì¤‘ë³µ ì €ì¥í•˜ì§€ ì•Šê²Œ í•œë‹¤.
+        // Àç½Ãµµ¿¡µµ °°Àº Å°¸¦ º¸³» ¼­¹ö°¡ Áßº¹ ÀúÀåÇÏÁö ¾Ê°Ô ÇÑ´Ù.
         clientMessageId: message.clientMessageId ?? message._id,
       }),
     onMutate: (message) => {
@@ -68,7 +69,7 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
       projectId: null,
       channelId,
       authorId: me.id,
-      content,
+      content: content || toAttachmentContent(attachments),
       type: attachments.length > 0 ? 'FILE' : 'TEXT',
       attachments,
       parentMessageId: parentMessage?._id ?? null,

@@ -2,6 +2,7 @@
 
 import { type ReactNode } from 'react';
 
+import { isAttachmentOnlyContent } from '@/entities/message/lib/attachment-content';
 import { toAuthorTone } from '@/entities/message/lib/author-tone';
 import {
   formatMessageClock,
@@ -83,6 +84,8 @@ function UserMessageView({
   className,
 }: MessageViewProps) {
   const author = useMessageAuthor(message.authorId);
+  const showContent =
+    message.content.length > 0 && !isAttachmentOnlyContent(message);
   const timestamp =
     timestampFormat === 'clock'
       ? formatMessageClock(message.createdAt)
@@ -95,11 +98,11 @@ function UserMessageView({
       content={
         editor ?? (
           <>
-            {message.content && <Markdown>{message.content}</Markdown>}
+            {showContent && <Markdown>{message.content}</Markdown>}
             <MessageAttachments
               attachments={message.attachments}
               onOpen={onOpenAttachment}
-              className={message.content ? 'mt-2' : undefined}
+              className={showContent ? 'mt-2' : undefined}
             />
           </>
         )
