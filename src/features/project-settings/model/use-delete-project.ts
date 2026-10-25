@@ -16,10 +16,9 @@ export function useDeleteProject(teamId: number, projectId: number) {
   return useMutation({
     mutationFn: () => deleteProject(projectId),
     onSuccess: () => {
+      // 상세 화면이 아직 떠 있어 상세 캐시를 지우면 삭제된 프로젝트를 다시 조회한다.
+      // 화면을 벗어나면 캐시는 알아서 정리된다.
       router.push(teamPath(teamId));
-      queryClient.removeQueries({
-        queryKey: projectQueries.detail(projectId).queryKey,
-      });
       return Promise.all([
         queryClient.invalidateQueries({
           queryKey: projectQueries.byTeam(teamId).queryKey,

@@ -29,11 +29,7 @@ const CHANNEL_EVENTS = [
   'channel:updated',
   'channel:deleted',
 ] as const;
-const PROJECT_EVENTS = [
-  'project:created',
-  'project:updated',
-  'project:deleted',
-] as const;
+const PROJECT_EVENTS = ['project:created', 'project:updated'] as const;
 const MEMBERSHIP_EVENTS = [
   'member:joined',
   'member:left',
@@ -63,13 +59,22 @@ export function useTeamEvents(teamId: number) {
       invalidate([...projectQueries.all(), 'channels']);
     };
 
+    const invalidateProjectLists = () => {
+      invalidate(projectQueries.byTeam(teamId).queryKey);
+      invalidate(projectQueries.mine().queryKey);
+    };
+
     const handleProject = ({ projectId, ...event }: ProjectEvent) => {
       if (event.teamId !== teamId) return;
 
-      invalidate(projectQueries.byTeam(teamId).queryKey);
+      invalidateProjectLists();
       invalidate(projectQueries.detail(projectId).queryKey);
       invalidate(projectQueries.members(projectId).queryKey);
-      invalidate(projectQueries.mine().queryKey);
+    };
+
+    // 삭제된 프로젝트의 상세·멤버는 다시 조회해도 404라 목록만 갱신한다.
+    const handleProjectDeleted = (event: ProjectEvent) => {
+      if (event.teamId === teamId) invalidateProjectLists();
     };
 
     const handleMembership = ({ channelId, ...event }: MembershipEvent) => {
@@ -87,6 +92,7 @@ export function useTeamEvents(teamId: number) {
     socket.on('connect', join);
     CHANNEL_EVENTS.forEach((event) => socket.on(event, handleChannel));
     PROJECT_EVENTS.forEach((event) => socket.on(event, handleProject));
+    socket.on('project:deleted', handleProjectDeleted);
     MEMBERSHIP_EVENTS.forEach((event) => socket.on(event, handleMembership));
     socket.on('channel:access:revoked', handleAccessRevoked);
 
@@ -96,6 +102,7 @@ export function useTeamEvents(teamId: number) {
       socket.off('connect', join);
       CHANNEL_EVENTS.forEach((event) => socket.off(event, handleChannel));
       PROJECT_EVENTS.forEach((event) => socket.off(event, handleProject));
+      socket.off('project:deleted', handleProjectDeleted);
       MEMBERSHIP_EVENTS.forEach((event) => socket.off(event, handleMembership));
       socket.off('channel:access:revoked', handleAccessRevoked);
 
