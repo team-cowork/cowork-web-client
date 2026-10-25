@@ -55,7 +55,7 @@ export function ReactionPicker({
           />
           <div
             role="menu"
-            className="absolute top-full right-0 z-50 mt-1 grid grid-cols-4 gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-1.5 shadow-lg"
+            className="absolute top-full right-0 z-50 mt-1 grid w-max grid-cols-4 gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-1.5 shadow-lg"
           >
             {QUICK_EMOJIS.map((emoji) => (
               <button
