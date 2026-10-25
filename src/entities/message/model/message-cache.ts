@@ -220,6 +220,22 @@ export function setMessagePinned(
   });
 }
 
+/** 전송 상태와 관계없이 채널 목록에 이 메시지가 있는지 */
+export function hasMessage(
+  queryClient: QueryClient,
+  message: Message,
+): boolean {
+  const data = queryClient.getQueryData(
+    messageQueries.byChannel(message.channelId).queryKey,
+  );
+
+  return (
+    data?.pages.some((page) =>
+      page.some((cached) => isSameMessage(cached, message)),
+    ) ?? false
+  );
+}
+
 export function isMessagePending(
   queryClient: QueryClient,
   message: Message,

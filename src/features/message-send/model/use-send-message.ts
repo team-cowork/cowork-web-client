@@ -13,6 +13,7 @@ import {
   type Message,
 } from '@/entities/message/model/message';
 import {
+  hasMessage,
   isMessagePending,
   refetchChannelMessages,
   toMentionedMessage,
@@ -21,12 +22,12 @@ import {
 import { userQueries } from '@/entities/user/api/user-queries';
 import { createUuid } from '@/shared/lib/create-uuid';
 
-// Àü¼ÛÀÌ Á¢¼öµÈ µÚ ÀÌ ½Ã°£ ¾È¿¡ ¼ÒÄÏÀ¸·Î ÀúÀåµÈ ¸Ş½ÃÁö°¡ ¿ÀÁö ¾ÊÀ¸¸é ¸ñ·ÏÀ» ´Ù½Ã ¹Ş´Â´Ù.
+// ì „ì†¡ì´ ì ‘ìˆ˜ëœ ë’¤ ì´ ì‹œê°„ ì•ˆì— ì†Œì¼“ìœ¼ë¡œ ì €ì¥ëœ ë©”ì‹œì§€ê°€ ì˜¤ì§€ ì•Šìœ¼ë©´ ëª©ë¡ì„ ë‹¤ì‹œ ë°›ëŠ”ë‹¤.
 const DELIVERY_TIMEOUT_MS = 5000;
 
 /**
- * ¸Ş½ÃÁö¸¦ ¸ÕÀú È­¸é¿¡ ±×¸° µÚ Àü¼ÛÇÑ´Ù(³«°üÀû ¾÷µ¥ÀÌÆ®).
- * `parentMessage`¸¦ ³Ñ±â¸é ±× ¸Ş½ÃÁöÀÇ ½º·¹µå ´ä±Û·Î º¸³½´Ù.
+ * ë©”ì‹œì§€ë¥¼ ë¨¼ì € í™”ë©´ì— ê·¸ë¦° ë’¤ ì „ì†¡í•œë‹¤(ë‚™ê´€ì  ì—…ë°ì´íŠ¸).
+ * `parentMessage`ë¥¼ ë„˜ê¸°ë©´ ê·¸ ë©”ì‹œì§€ì˜ ìŠ¤ë ˆë“œ ë‹µê¸€ë¡œ ë³´ë‚¸ë‹¤.
  */
 export function useSendMessage(channelId: number, parentMessage?: Message) {
   const queryClient = useQueryClient();
@@ -41,7 +42,7 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
           objectKey ? [{ objectKey }] : [],
         ),
         parentMessageId: message.parentMessageId ?? undefined,
-        // Àç½Ãµµ¿¡µµ °°Àº Å°¸¦ º¸³» ¼­¹ö°¡ Áßº¹ ÀúÀåÇÏÁö ¾Ê°Ô ÇÑ´Ù.
+        // ì¬ì‹œë„ì—ë„ ê°™ì€ í‚¤ë¥¼ ë³´ë‚´ ì„œë²„ê°€ ì¤‘ë³µ ì €ì¥í•˜ì§€ ì•Šê²Œ í•œë‹¤.
         clientMessageId: message.clientMessageId ?? message._id,
       }),
     onMutate: (message) => {
@@ -51,9 +52,13 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
       upsertMessage(queryClient, { ...message, sendStatus: 'failed' });
     },
     onSuccess: (_data, message) => {
-      setTimeout(() => {
-        if (isMessagePending(queryClient, message)) {
-          void refetchChannelMessages(queryClient, channelId);
+      setTimeout(async () => {
+        if (!isMessagePending(queryClient, message)) return;
+
+        await refetchChannelMessages(queryClient, channelId);
+        // ì ‘ìˆ˜ëŠ” ëì§€ë§Œ ì„œë²„ê°€ ì €ì¥ ë‹¨ê³„ì—ì„œ ë²„ë¦° ë©”ì‹œì§€ëŠ” ì¡°ìš©íˆ ì‚¬ë¼ì§€ì§€ ì•Šê²Œ ì‹¤íŒ¨ë¡œ ë‚¨ê¸´ë‹¤.
+        if (!hasMessage(queryClient, message)) {
+          upsertMessage(queryClient, { ...message, sendStatus: 'failed' });
         }
       }, DELIVERY_TIMEOUT_MS);
     },
