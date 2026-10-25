@@ -7,22 +7,6 @@ export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
   ARCHIVED: '보관됨',
 };
 
-export const PROJECT_MEMBER_ROLES = ['OWNER', 'EDITOR', 'VIEWER'] as const;
-
-export type ProjectMemberRole = (typeof PROJECT_MEMBER_ROLES)[number];
-
-export const PROJECT_MEMBER_ROLE_LABEL: Record<ProjectMemberRole, string> = {
-  OWNER: '소유자',
-  EDITOR: '편집자',
-  VIEWER: '뷰어',
-};
-
-/** 멤버 추가·역할 변경으로 고를 수 있는 역할. OWNER는 부여할 수 없다. */
-export const ASSIGNABLE_PROJECT_MEMBER_ROLES = ['EDITOR', 'VIEWER'] as const;
-
-export type AssignableProjectMemberRole =
-  (typeof ASSIGNABLE_PROJECT_MEMBER_ROLES)[number];
-
 export interface Project {
   id: number;
   teamId: number;
@@ -39,13 +23,12 @@ export interface ProjectDetail extends Project {
   memberCount: number;
 }
 
+/** 팀 역할로 계산된 프로젝트 접근자. 프로젝트 단위 멤버 관리는 없다. */
 export interface ProjectMember {
-  /** 멤버 레코드 ID. 역할 변경·제거 경로에 쓴다. */
-  id: number;
   projectId: number;
   userId: number;
-  role: ProjectMemberRole;
-  joinedAt: string;
+  /** 프로젝트를 수정할 수 있는지 */
+  write: boolean;
 }
 
 export interface Page<T> {
@@ -68,9 +51,4 @@ export interface UpdateProjectRequest {
   name?: string;
   description?: string | null;
   status?: ProjectStatus;
-}
-
-export interface AddProjectMemberRequest {
-  userId: number;
-  role: AssignableProjectMemberRole;
 }

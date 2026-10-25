@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useState } from 'react';
+import { type ReactNode } from 'react';
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 
@@ -8,47 +8,37 @@ import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
 import { ChannelListItem } from '@/entities/channel/ui/channel-list-item';
 import { projectQueries } from '@/entities/project/api/project-queries';
 import {
-  ASSIGNABLE_PROJECT_MEMBER_ROLES,
-  PROJECT_MEMBER_ROLE_LABEL,
   PROJECT_STATUS_LABEL,
   type ProjectMember,
 } from '@/entities/project/model/project';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
-import { AddProjectMemberModal } from '@/features/project-members/ui/add-project-member-modal';
-import { useRemoveProjectMember } from '@/features/project-members/model/use-remove-project-member';
-import { useUpdateProjectMemberRole } from '@/features/project-members/model/use-update-project-member-role';
 import { useMoveProject } from '@/features/project-reorder/model/use-move-project';
 import { ProjectSettingsMenu } from '@/features/project-settings/ui/project-settings-menu';
 import { formatDate } from '@/shared/lib/format-date';
 import { channelPath } from '@/shared/model/paths';
 import { Badge } from '@/shared/ui/badge';
-import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { FolderIcon } from '@/shared/ui/icons/folder-icon';
 import { MenuItem } from '@/shared/ui/menu-item';
-import { SegmentedControl } from '@/shared/ui/segmented-control';
 
 export interface ProjectDetailProps {
   teamId: number;
   projectId: number;
 }
 
-const ROLE_OPTIONS = ASSIGNABLE_PROJECT_MEMBER_ROLES.map((role) => ({
-  label: PROJECT_MEMBER_ROLE_LABEL[role],
-  value: role,
-}));
-
-/** 프로젝트 정보, 채널, 멤버를 보여주고 소유자에게는 관리 조작을 연다. */
+/**
+ * 프로젝트 정보, 채널, 접근할 수 있는 멤버를 보여준다.
+ * 멤버는 팀 역할로 정해져 여기서 관리하지 않고, 수정 권한이 있으면 설정 메뉴를 연다.
+ */
 export function ProjectDetail({ teamId, projectId }: ProjectDetailProps) {
   const { data: project } = useSuspenseQuery(projectQueries.detail(projectId));
   const { data: members = [] } = useQuery(projectQueries.members(projectId));
   const { data: me } = useQuery(userQueries.me());
   const moveProject = useMoveProject(teamId);
-  const [addOpen, setAddOpen] = useState(false);
-
-  const isOwner = members.some(
-    (member) => member.userId === me?.id && member.role === 'OWNER',
+  // 세부 권한(수정·삭제)은 서버가 다시 확인한다.
+  const canWrite = members.some(
+    (member) => member.userId === me?.id && member.write,
   );
 
   return (
@@ -77,7 +67,7 @@ export function ProjectDetail({ teamId, projectId }: ProjectDetailProps) {
               </p>
             )}
           </div>
-          {isOwner && (
+          {canWrite && (
             <ProjectSettingsMenu
               project={project}
               extraItems={
@@ -110,24 +100,11 @@ export function ProjectDetail({ teamId, projectId }: ProjectDetailProps) {
           <ProjectChannels teamId={teamId} projectId={projectId} />
         </Section>
 
-        <Section
-          title="멤버"
-          action={
-            isOwner && (
-              <Button size="S" variant="weak" onClick={() => setAddOpen(true)}>
-                멤버 추가
-              </Button>
-            )
-          }
-        >
+        <Section title="멤버">
           <ul className="flex flex-col gap-1">
             {members.map((member) => (
-              <li key={member.id}>
-                <MemberRow
-                  projectId={projectId}
-                  member={member}
-                  manageable={isOwner && member.role !== 'OWNER'}
-                />
+              <li key={member.userId}>
+                <MemberRow member={member} />
               </li>
             ))}
           </ul>
@@ -142,33 +119,14 @@ export function ProjectDetail({ teamId, projectId }: ProjectDetailProps) {
           />
         </Section>
       </div>
-
-      <AddProjectMemberModal
-        open={addOpen}
-        teamId={teamId}
-        projectId={projectId}
-        members={members}
-        onClose={() => setAddOpen(false)}
-      />
     </div>
   );
 }
 
-function Section({
-  title,
-  action,
-  children,
-}: {
-  title: string;
-  action?: ReactNode;
-  children: ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h2 className="typography-label-medium text-on-surface">{title}</h2>
-        {action}
-      </div>
+      <h2 className="typography-label-medium text-on-surface">{title}</h2>
       {children}
     </section>
   );
@@ -224,19 +182,8 @@ function ProjectChannels({
   );
 }
 
-function MemberRow({
-  projectId,
-  member,
-  manageable,
-}: {
-  projectId: number;
-  member: ProjectMember;
-  manageable: boolean;
-}) {
+function MemberRow({ member }: { member: ProjectMember }) {
   const { data: user } = useQuery(userQueries.detail(member.userId));
-  const updateRole = useUpdateProjectMemberRole(projectId);
-  const removeMember = useRemoveProjectMember(projectId);
-  const pending = updateRole.isPending || removeMember.isPending;
 
   return (
     <div className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-surface-container">
@@ -244,30 +191,9 @@ function MemberRow({
       <span className="min-w-0 flex-1 truncate typography-label-small text-on-surface">
         {user ? (user.nickname ?? user.name) : ''}
       </span>
-      {manageable && member.role !== 'OWNER' ? (
-        <>
-          <SegmentedControl
-            options={ROLE_OPTIONS}
-            value={member.role}
-            onChange={(role) =>
-              !pending && updateRole.mutate({ memberId: member.id, role })
-            }
-          />
-          <Button
-            size="S"
-            variant="weak"
-            color="danger"
-            disabled={pending}
-            onClick={() => removeMember.mutate(member.id)}
-          >
-            제거
-          </Button>
-        </>
-      ) : (
-        <Badge color={member.role === 'OWNER' ? 'brand' : 'neutral'}>
-          {PROJECT_MEMBER_ROLE_LABEL[member.role]}
-        </Badge>
-      )}
+      <Badge color={member.write ? 'brand' : 'neutral'}>
+        {member.write ? '편집 가능' : '읽기 전용'}
+      </Badge>
     </div>
   );
 }
