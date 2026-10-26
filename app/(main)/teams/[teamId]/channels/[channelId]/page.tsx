@@ -9,6 +9,7 @@ import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
+import { LiveStatusBadge } from '@/entities/live/ui/live-status-badge';
 import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-badge';
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
 import { MemberPanel } from '@/widgets/member-panel/ui/member-panel';
@@ -83,7 +84,10 @@ function ChannelView({
           channel={channel}
           meta={
             isVoice ? (
-              <VoiceParticipantBadge channelId={channelId} />
+              <>
+                <VoiceParticipantBadge channelId={channelId} />
+                <LiveStatusBadge channelId={channelId} />
+              </>
             ) : undefined
           }
           onToggleMembers={() => setMembersOpen((prev) => !prev)}
