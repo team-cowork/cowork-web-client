@@ -9,7 +9,10 @@ import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
-import { resolveEntryChannelId } from '@/entities/channel/lib/last-channel';
+import {
+  resolveEntryChannelId,
+  useLastChannelStore,
+} from '@/entities/channel/model/last-channel-store';
 import { teamQueries } from '@/entities/team/api/team-queries';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { channelPath } from '@/shared/model/paths';
@@ -62,7 +65,10 @@ function TeamView({ teamId }: { teamId: number }) {
   const router = useRouter();
   useSuspenseQuery(teamQueries.detail(teamId));
   const { data: channels } = useSuspenseQuery(channelQueries.byTeam(teamId));
-  const entryChannelId = resolveEntryChannelId(teamId, channels);
+  const lastChannelId = useLastChannelStore(
+    (state) => state.channelIdByTeam[teamId],
+  );
+  const entryChannelId = resolveEntryChannelId(lastChannelId, channels);
 
   useEffect(() => {
     if (entryChannelId !== null) {

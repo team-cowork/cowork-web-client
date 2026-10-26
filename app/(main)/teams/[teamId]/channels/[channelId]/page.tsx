@@ -9,7 +9,7 @@ import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
-import { saveLastChannelId } from '@/entities/channel/lib/last-channel';
+import { useLastChannelStore } from '@/entities/channel/model/last-channel-store';
 import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-badge';
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
 import { MemberPanel } from '@/widgets/member-panel/ui/member-panel';
@@ -70,9 +70,13 @@ function ChannelView({
   const [membersOpen, setMembersOpen] = useState(true);
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
 
+  const setLastChannelId = useLastChannelStore(
+    (state) => state.setLastChannelId,
+  );
+
   useEffect(() => {
-    if (channel.teamId === teamId) saveLastChannelId(teamId, channelId);
-  }, [channel.teamId, teamId, channelId]);
+    if (channel.teamId === teamId) setLastChannelId(teamId, channelId);
+  }, [channel.teamId, teamId, channelId, setLastChannelId]);
 
   if (channel.teamId !== teamId) {
     notFound();
