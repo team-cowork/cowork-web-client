@@ -18,6 +18,10 @@ import { postVoiceJoin } from '@/entities/voice/api/post-voice-join';
 import { postVoiceLeave } from '@/entities/voice/api/post-voice-leave';
 import { voiceQueries } from '@/entities/voice/api/voice-queries';
 import { type VoiceRoomParticipant } from '@/entities/voice/model/voice';
+import {
+  applyRemoteVolume,
+  toRoomParticipants,
+} from '@/shared/lib/livekit-room';
 
 export type VoiceSessionStatus = 'idle' | 'connecting' | 'connected';
 
@@ -45,28 +49,6 @@ export function useVoiceSession() {
       'useVoiceSession은 VoiceSessionProvider 내부에서만 사용할 수 있습니다',
     );
   return ctx;
-}
-
-function toRoomParticipants(room: Room): VoiceRoomParticipant[] {
-  const all = [room.localParticipant, ...room.remoteParticipants.values()];
-
-  return all.map((participant) => {
-    const userId = Number.parseInt(participant.identity, 10);
-
-    return {
-      identity: participant.identity,
-      userId: Number.isNaN(userId) ? null : userId,
-      speaking: participant.isSpeaking,
-      muted: !participant.isMicrophoneEnabled,
-      isLocal: participant.isLocal,
-    };
-  });
-}
-
-function applyRemoteVolume(room: Room, enabled: boolean) {
-  room.remoteParticipants.forEach((participant) => {
-    participant.setVolume(enabled ? 1 : 0);
-  });
 }
 
 export function VoiceSessionProvider({ children }: { children: ReactNode }) {
