@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
 
+import { LiveSessionProvider } from '@/features/live-session/model/live-session-provider';
 import { VoiceSessionProvider } from '@/features/voice-session/model/voice-session-provider';
 import { SidebarNav } from '@/widgets/sidebar/ui/sidebar-nav';
 import { UserFooter } from '@/widgets/sidebar/ui/user-footer';
@@ -8,14 +9,16 @@ import { TeamRail } from '@/widgets/team-rail/ui/team-rail';
 export default function MainLayout({ children }: { children: ReactNode }) {
   return (
     <VoiceSessionProvider>
-      <div className="flex flex-1 overflow-hidden">
-        <TeamRail />
-        <aside className="flex w-60 shrink-0 flex-col bg-surface">
-          <SidebarNav />
-          <UserFooter />
-        </aside>
-        <main className="flex min-w-0 flex-1 flex-col">{children}</main>
-      </div>
+      <LiveSessionProvider>
+        <div className="flex flex-1 overflow-hidden">
+          <TeamRail />
+          <aside className="flex w-60 shrink-0 flex-col bg-surface">
+            <SidebarNav />
+            <UserFooter />
+          </aside>
+          <main className="flex min-w-0 flex-1 flex-col">{children}</main>
+        </div>
+      </LiveSessionProvider>
     </VoiceSessionProvider>
   );
 }
