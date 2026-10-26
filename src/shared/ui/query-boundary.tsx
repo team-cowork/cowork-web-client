@@ -15,6 +15,7 @@ export interface QueryBoundaryProps {
   loadingFallback: ReactNode;
   errorFallback: ComponentType<FallbackProps>;
   resetKeys?: unknown[];
+  onError?: (error: unknown) => void;
 }
 
 function subscribe() {
@@ -26,6 +27,7 @@ export function QueryBoundary({
   loadingFallback,
   errorFallback,
   resetKeys,
+  onError,
 }: QueryBoundaryProps) {
   const isMounted = useSyncExternalStore(
     subscribe,
@@ -39,6 +41,7 @@ export function QueryBoundary({
   return (
     <ErrorBoundary
       onReset={reset}
+      onError={onError}
       FallbackComponent={errorFallback}
       resetKeys={resetKeys}
     >

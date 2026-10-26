@@ -54,6 +54,11 @@ export default function ChannelPage() {
       }
       errorFallback={ChannelPageError}
       resetKeys={[teamId, channelId]}
+      onError={(error) => {
+        if (isAxiosError(error) && error.response?.status === 404) {
+          useLastChannelStore.getState().clearLastChannelId(teamId, channelId);
+        }
+      }}
     >
       <ChannelView teamId={teamId} channelId={channelId} />
     </QueryBoundary>
