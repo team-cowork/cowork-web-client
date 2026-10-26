@@ -7,6 +7,7 @@ import { cn } from '@/shared/lib/cn';
 export interface ChannelListItemProps {
   name: string;
   prefix?: ReactNode;
+  meta?: ReactNode;
   unreadCount?: number;
   active?: boolean;
   href?: string;
@@ -18,6 +19,7 @@ export interface ChannelListItemProps {
 export function ChannelListItem({
   name,
   prefix = '#',
+  meta,
   unreadCount,
   active,
   href,
@@ -29,6 +31,7 @@ export function ChannelListItem({
     <>
       <span className="shrink-0 text-on-surface-variant">{prefix}</span>
       <span className="flex-1 truncate typography-label-small">{name}</span>
+      {meta && <span className="shrink-0">{meta}</span>}
     </>
   );
 

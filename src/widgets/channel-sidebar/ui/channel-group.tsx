@@ -10,6 +10,8 @@ import { type Channel } from '@/entities/channel/model/channel';
 import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
 import { ChannelListItem } from '@/entities/channel/ui/channel-list-item';
 import { groupDroppableId } from '@/features/channel-reorder/lib/reorder-channels';
+import { VoiceCallTimer } from '@/widgets/channel-sidebar/ui/voice-call-timer';
+import { VoiceChannelMembers } from '@/widgets/channel-sidebar/ui/voice-channel-members';
 import { cn } from '@/shared/lib/cn';
 import { channelPath, channelSettingsOverviewPath } from '@/shared/model/paths';
 import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
@@ -96,6 +98,11 @@ export function ChannelGroup({
                         prefix={
                           <ChannelIcon viewType={channel.viewType} size={18} />
                         }
+                        meta={
+                          channel.type === 'VOICE' ? (
+                            <VoiceCallTimer channelId={channel.id} />
+                          ) : undefined
+                        }
                         className={cn(
                           snapshot.isDragging &&
                             'bg-surface-container-high text-on-surface shadow-lg',
@@ -113,6 +120,9 @@ export function ChannelGroup({
                           </Link>
                         }
                       />
+                      {channel.type === 'VOICE' && (
+                        <VoiceChannelMembers channelId={channel.id} />
+                      )}
                     </li>
                   )}
                 </Draggable>

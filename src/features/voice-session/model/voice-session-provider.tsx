@@ -28,6 +28,7 @@ export type VoiceSessionStatus = 'idle' | 'connecting' | 'connected';
 interface VoiceSessionContextValue {
   channelId: number | null;
   sessionId: string | null;
+  connectedAt: string | null;
   status: VoiceSessionStatus;
   participants: VoiceRoomParticipant[];
   micEnabled: boolean;
@@ -61,6 +62,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
 
   const [channelId, setChannelId] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [connectedAt, setConnectedAt] = useState<string | null>(null);
   const [status, setStatus] = useState<VoiceSessionStatus>('idle');
   const [participants, setParticipants] = useState<VoiceRoomParticipant[]>([]);
   const [micEnabled, setMicEnabled] = useState(true);
@@ -72,6 +74,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     channelIdRef.current = null;
     setChannelId(null);
     setSessionId(null);
+    setConnectedAt(null);
     setStatus('idle');
     setParticipants([]);
   }, []);
@@ -170,6 +173,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
 
         setSessionId(session.session_id);
         setStatus('connected');
+        setConnectedAt(new Date().toISOString());
         sync();
 
         await queryClient.invalidateQueries({
@@ -235,6 +239,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     () => ({
       channelId,
       sessionId,
+      connectedAt,
       status,
       participants,
       micEnabled,
@@ -252,6 +257,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       micEnabled,
       participants,
       sessionId,
+      connectedAt,
       status,
       toggleAudio,
       toggleMic,
