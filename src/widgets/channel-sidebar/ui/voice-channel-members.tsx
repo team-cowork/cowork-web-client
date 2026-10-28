@@ -15,6 +15,10 @@ export interface VoiceChannelMembersProps {
   className?: string;
 }
 
+// 음성 채널마다 따로 조회하므로 열어 둔 채널(15초)보다 느리게 갱신한다.
+// 창으로 돌아올 때는 바로 다시 받아 오래 머물러도 크게 어긋나지 않는다
+const SIDEBAR_REFETCH_INTERVAL_MS = 60 * 1000;
+
 interface Member {
   key: string;
   userId: number | null;
@@ -33,6 +37,7 @@ export function VoiceChannelMembers({
   const { data } = useQuery({
     ...voiceQueries.participants(channelId),
     enabled: !isConnected,
+    refetchInterval: SIDEBAR_REFETCH_INTERVAL_MS,
   });
 
   const members: Member[] = isConnected
@@ -53,6 +58,7 @@ export function VoiceChannelMembers({
   const { data: liveStatus } = useQuery({
     ...liveQueries.status(channelId),
     enabled: members.length > 0,
+    refetchInterval: SIDEBAR_REFETCH_INTERVAL_MS,
   });
 
   const users = useQueries({
