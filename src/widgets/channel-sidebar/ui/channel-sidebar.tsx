@@ -62,7 +62,10 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
   const { channelId: currentChannelId } = useRouteIds();
   const { data: team } = useQuery(teamQueries.detail(teamId));
   useTeamEvents(teamId);
-  const [createOpen, setCreateOpen] = useState(false);
+  // 채널을 만들 그룹. `undefined`면 모달이 닫혀 있고 `null`이면 프로젝트 미소속이다.
+  const [createProjectId, setCreateProjectId] = useState<
+    number | null | undefined
+  >(undefined);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
@@ -104,7 +107,7 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
           <ChannelList
             teamId={teamId}
             currentChannelId={currentChannelId}
-            onCreateChannel={() => setCreateOpen(true)}
+            onCreateChannel={setCreateProjectId}
           />
         </QueryBoundary>
 
@@ -119,9 +122,10 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
       </div>
 
       <CreateChannelModal
-        open={createOpen}
+        open={createProjectId !== undefined}
         teamId={teamId}
-        onClose={() => setCreateOpen(false)}
+        projectId={createProjectId ?? null}
+        onClose={() => setCreateProjectId(undefined)}
       />
       <CreateProjectModal
         open={createProjectOpen}
@@ -145,7 +149,7 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
 interface ChannelListProps {
   teamId: number;
   currentChannelId: number | null;
-  onCreateChannel: () => void;
+  onCreateChannel: (projectId: number | null) => void;
 }
 
 function ChannelList({
@@ -187,7 +191,7 @@ function ChannelList({
           title="채널이 없습니다"
           description="채널을 만들어 대화를 시작하세요"
           action={
-            <Button size="S" onClick={onCreateChannel}>
+            <Button size="S" onClick={() => onCreateChannel(null)}>
               채널 만들기
             </Button>
           }

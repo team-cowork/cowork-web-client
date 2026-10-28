@@ -30,7 +30,8 @@ export interface ChannelGroupProps {
   projectName?: string;
   channels: Channel[];
   activeChannelId: number | null;
-  onCreateChannel?: () => void;
+  /** 이 그룹(프로젝트)에 채널을 만든다 */
+  onCreateChannel?: (projectId: number | null) => void;
 }
 
 export function ChannelGroup({
@@ -51,7 +52,6 @@ export function ChannelGroup({
     projectId === null
       ? '프로젝트 미소속'
       : (projectName ?? `프로젝트 #${projectId}`);
-  const canCreate = projectId === null && onCreateChannel !== undefined;
 
   return (
     <section className="flex flex-col">
@@ -86,13 +86,8 @@ export function ChannelGroup({
         <button
           type="button"
           aria-label={`${label}에 채널 추가`}
-          title={
-            canCreate
-              ? undefined
-              : '채널을 프로젝트에 배정하는 API가 아직 없습니다'
-          }
-          disabled={!canCreate}
-          onClick={onCreateChannel}
+          disabled={!onCreateChannel}
+          onClick={() => onCreateChannel?.(projectId)}
           className="shrink-0 cursor-pointer text-on-surface-variant hover:text-on-surface disabled:cursor-not-allowed disabled:opacity-50"
         >
           <PlusIcon size={16} />
