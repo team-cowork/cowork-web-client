@@ -144,11 +144,13 @@ function ChannelRolePolicyEditor({
   const savedPermissions =
     policies.find((policy) => policy.roleId === selectedRole.id)?.permissions ??
     {};
-  const permissions =
-    setRolePolicy.isPending &&
+  const permissions = {
+    ...selectedRole.permissions,
+    ...(setRolePolicy.isPending &&
     setRolePolicy.variables.roleId === selectedRole.id
       ? setRolePolicy.variables.permissions
-      : savedPermissions;
+      : savedPermissions),
+  };
   const groups = permissionGroups
     .map((group) => ({
       ...group,
