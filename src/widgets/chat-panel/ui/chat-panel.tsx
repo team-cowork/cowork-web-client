@@ -12,7 +12,8 @@ import { cn } from '@/shared/lib/cn';
 export interface ChatPanelProps {
   /** 오래된 메시지부터 순서대로 */
   messages: Message[];
-  onSendMessage: (content: string) => void;
+  /** `false`를 돌려주면 입력값을 비우지 않는다 */
+  onSendMessage: (content: string) => boolean | void;
   /** 입력값이 바뀔 때마다 불린다(예: 입력 중 알림) */
   onDraftChange?: (value: string) => void;
   onRetryMessage?: (message: Message) => void;

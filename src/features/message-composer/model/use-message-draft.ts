@@ -3,7 +3,8 @@
 import { useState } from 'react';
 
 export interface UseMessageDraftOptions {
-  onSubmit: (content: string) => void;
+  /** `false`를 돌려주면 보내지 않은 것으로 보고 입력값을 남긴다 */
+  onSubmit: (content: string) => boolean | void;
   /** 첨부처럼 본문 없이도 보낼 거리가 있으면 빈 초안도 전송한다 */
   allowEmpty?: boolean;
 }
@@ -23,7 +24,7 @@ export function useMessageDraft({
 
     if (content.length === 0 && !allowEmpty) return;
 
-    onSubmit(content);
+    if (onSubmit(content) === false) return;
     setValue('');
   };
 

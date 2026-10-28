@@ -89,6 +89,11 @@ const COMMAND_STATUS_TEXT = {
     'GitHub 이슈를 만들지 못했어요. 프로젝트에 저장소가 연결돼 있는지 확인해 주세요.',
 } as const;
 
+const COMMAND_PROBLEM_TEXT = {
+  noProject: '/issue는 프로젝트에 속한 채널에서만 쓸 수 있어요.',
+  noTitle: '/issue 뒤에 이슈 제목을 적어 주세요.',
+} as const;
+
 function ChannelChatBody({
   channelId,
   projectId = null,
@@ -121,8 +126,11 @@ function ChannelChatBody({
       }}
       onSendMessage={(content) => {
         typing.stop();
-        if (attachments.confirmedFiles.length === 0 && command.run(content)) {
-          return;
+        if (attachments.confirmedFiles.length === 0) {
+          const result = command.run(content);
+          // 보낼 수 없는 커맨드는 일반 메시지로 보내지 않고 입력을 남겨 고칠 수 있게 한다.
+          if (result === 'invalid') return false;
+          if (result === 'sent') return;
         }
 
         command.reset();
@@ -133,6 +141,14 @@ function ChannelChatBody({
       attachmentDrafts={
         <>
           <TypingIndicator userIds={typing.typingUserIds} />
+          {command.problem && (
+            <p
+              role="status"
+              className="px-1 typography-subtext-medium text-error"
+            >
+              {COMMAND_PROBLEM_TEXT[command.problem]}
+            </p>
+          )}
           {command.status !== 'idle' && (
             <p
               role="status"
