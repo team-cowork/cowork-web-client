@@ -70,7 +70,8 @@ export function ToastProvider({
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {typeof document !== 'undefined' &&
+      {/* 토스트는 상호작용 뒤에만 생기므로, 서버 렌더링과 첫 hydration에는 포털을 그리지 않는다. */}
+      {toasts.length > 0 &&
         createPortal(
           <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex flex-col items-center gap-2 px-4">
             {toasts.map((t) => (
