@@ -15,6 +15,7 @@ import { userQueries } from '@/entities/user/api/user-queries';
 import { DmConversationMenu } from '@/features/dm-manage/ui/dm-conversation-menu';
 import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { DmHeader } from '@/widgets/dm-header/ui/dm-header';
+import { PinnedMessagesPanel } from '@/widgets/pinned-panel/ui/pinned-messages-panel';
 import { ChannelThreadPanel } from '@/widgets/thread-panel/ui/channel-thread-panel';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
@@ -62,6 +63,7 @@ export default function DmPage() {
 
 function DmView({ channelId }: { channelId: number }) {
   const [threadRoot, setThreadRoot] = useState<Message | null>(null);
+  const [pinsOpen, setPinsOpen] = useState(false);
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
   const { data: me } = useSuspenseQuery(userQueries.me());
   const { data: members } = useSuspenseQuery(channelQueries.members(channelId));
@@ -77,6 +79,13 @@ function DmView({ channelId }: { channelId: number }) {
   }
 
   const peer = peerResults[0]?.data;
+  const subtitle = peer ? `@ ${peer.nickname ?? peer.name}` : '다이렉트 메시지';
+
+  // 스레드와 고정 메시지는 오른쪽 패널 자리를 함께 쓴다.
+  const togglePins = () => {
+    setThreadRoot(null);
+    setPinsOpen((prev) => !prev || threadRoot !== null);
+  };
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1">
@@ -90,6 +99,7 @@ function DmView({ channelId }: { channelId: number }) {
               peerName={peer ? (peer.nickname ?? peer.name) : undefined}
             />
           }
+          onTogglePins={togglePins}
         />
 
         <ChannelChatPanel
@@ -98,16 +108,22 @@ function DmView({ channelId }: { channelId: number }) {
         />
       </div>
 
-      {threadRoot && (
+      {threadRoot ? (
         <ChannelThreadPanel
           key={threadRoot._id}
           channelId={channelId}
-          subtitle={
-            peer ? `@ ${peer.nickname ?? peer.name}` : '다이렉트 메시지'
-          }
+          subtitle={subtitle}
           rootMessage={threadRoot}
           onClose={() => setThreadRoot(null)}
         />
+      ) : (
+        pinsOpen && (
+          <PinnedMessagesPanel
+            channelId={channelId}
+            subtitle={subtitle}
+            onClose={() => setPinsOpen(false)}
+          />
+        )
       )}
     </div>
   );
