@@ -56,6 +56,19 @@ export interface TeamRole {
   updatedAt: string | null;
 }
 
+export interface TeamRolePermission {
+  key: string;
+  title: string;
+  description: string;
+  channelTypes: string[];
+}
+
+export interface TeamRolePermissionGroup {
+  key: string;
+  title: string;
+  permissions: TeamRolePermission[];
+}
+
 export interface TeamMember {
   id: number;
   userId: number;
