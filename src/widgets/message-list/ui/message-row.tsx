@@ -90,19 +90,19 @@ export function MessageRow({
                 onOpenChange={setPickerOpen}
                 onSelect={toggleReaction}
               />
+              <IconButton
+                aria-label={message.isPinned ? '고정 해제' : '메시지 고정'}
+                aria-pressed={message.isPinned}
+                size="S"
+                variant="clear"
+                disabled={togglePin.isPending}
+                onClick={() => togglePin.mutate()}
+                className={message.isPinned ? 'text-primary' : undefined}
+              >
+                <PinIcon />
+              </IconButton>
               {isMine && (
                 <>
-                  <IconButton
-                    aria-label={message.isPinned ? '고정 해제' : '메시지 고정'}
-                    aria-pressed={message.isPinned}
-                    size="S"
-                    variant="clear"
-                    disabled={togglePin.isPending}
-                    onClick={() => togglePin.mutate()}
-                    className={message.isPinned ? 'text-primary' : undefined}
-                  >
-                    <PinIcon />
-                  </IconButton>
                   <IconButton
                     aria-label="메시지 수정"
                     size="S"
