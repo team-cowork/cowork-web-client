@@ -1,3 +1,5 @@
+import { type RoomParticipantSnapshot } from '@/shared/lib/livekit-room';
+
 export interface VoiceParticipant {
   user_id: number;
   joined_at: string;
@@ -25,10 +27,4 @@ export interface VoiceJoinResponse {
   livekit_url: string;
 }
 
-export interface VoiceRoomParticipant {
-  identity: string;
-  userId: number | null;
-  speaking: boolean;
-  muted: boolean;
-  isLocal: boolean;
-}
+export type VoiceRoomParticipant = RoomParticipantSnapshot;

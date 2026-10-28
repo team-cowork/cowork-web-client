@@ -9,6 +9,7 @@ export interface VoiceParticipantCardProps {
   fallbackName?: string;
   speaking?: boolean;
   muted?: boolean;
+  live?: boolean;
   className?: string;
 }
 
@@ -17,6 +18,7 @@ export function VoiceParticipantCard({
   fallbackName,
   speaking = false,
   muted = false,
+  live = false,
   className,
 }: VoiceParticipantCardProps) {
   const displayName =
@@ -56,6 +58,11 @@ export function VoiceParticipantCard({
         <span className="truncate typography-label-small text-on-surface">
           {displayName}
         </span>
+        {live && (
+          <span className="shrink-0 rounded-md bg-error px-1.5 py-0.5 text-[0.6875rem] font-bold text-on-error">
+            LIVE
+          </span>
+        )}
       </span>
     </div>
   );
