@@ -315,6 +315,10 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
         if (!room.canPlaybackAudio) await room.startAudio();
         applyRemoteVolume(room, audioEnabledRef.current);
 
+        // 위 작업을 기다리는 사이 방이 끊겼다면(시청 연결 직후 호스트 종료 등)
+        // 끊김 처리가 이미 끝났으니 방 없이 방송·시청 상태로 남지 않게 실패로 돌린다
+        if (!isCurrent()) throw new Error('라이브 연결이 끊어졌습니다');
+
         dispatch({
           type: 'CONNECTED',
           sessionId: session.session_id,
