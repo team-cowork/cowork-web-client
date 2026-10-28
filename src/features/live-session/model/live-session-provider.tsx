@@ -210,16 +210,14 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
   }, [clearRoom, notifyLeave]);
 
   const connect = useCallback(
-    async (nextChannelId: number, intent: ConnectIntent) => {
+    async (
+      nextChannelId: number,
+      intent: ConnectIntent,
+      pickedScreenTracks?: Promise<LocalTrack[]>,
+    ) => {
       // 디스코드처럼 화면을 먼저 고르게 하고, 취소하면 아무것도 바꾸지 않는다.
       // 기존 연결은 화면을 고른 뒤에 끊어야 취소했을 때 보던 방송이 남는다.
-      let screenTracks: LocalTrack[] =
-        intent === 'watch'
-          ? []
-          : await createLocalScreenTracks({
-              audio: true,
-              controller: createCaptureController(),
-            });
+      let screenTracks: LocalTrack[] = (await pickedScreenTracks) ?? [];
 
       if (roomRef.current || channelIdRef.current !== null) {
         try {
@@ -362,8 +360,19 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
   );
 
   const goLive = useCallback(
-    (nextChannelId: number) =>
-      runExclusive(() => connect(nextChannelId, 'start')),
+    (nextChannelId: number) => {
+      // Safari·Firefox는 클릭 직후에만 화면 선택 창을 열어 주므로, 앞선 작업을
+      // 기다리는 대기열에 들어가기 전에 바로 연다
+      const screenTracks = createLocalScreenTracks({
+        audio: true,
+        controller: createCaptureController(),
+      });
+
+      // 대기열 차례가 오기 전에 취소돼도 처리되지 않은 거절로 남지 않게 한다
+      screenTracks.catch(() => undefined);
+
+      return runExclusive(() => connect(nextChannelId, 'start', screenTracks));
+    },
     [connect, runExclusive],
   );
 
