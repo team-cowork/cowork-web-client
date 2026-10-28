@@ -101,6 +101,11 @@ function UserMessageView({
             {showContent && <Markdown>{message.content}</Markdown>}
             <MessageAttachments
               attachments={message.attachments}
+              source={
+                message.sendStatus === undefined
+                  ? { channelId: message.channelId, messageId: message._id }
+                  : undefined
+              }
               onOpen={onOpenAttachment}
               className={showContent ? 'mt-2' : undefined}
             />

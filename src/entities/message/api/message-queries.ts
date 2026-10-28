@@ -1,5 +1,6 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 
+import { getAttachmentDownloadUrl } from '@/entities/message/api/get-attachment-download-url';
 import { getChannelFiles } from '@/entities/message/api/get-channel-files';
 import { getPins } from '@/entities/message/api/get-pins';
 import { getProjectMessageSearch } from '@/entities/message/api/get-project-message-search';
@@ -12,6 +13,8 @@ import {
 import { type SearchMessagesParams } from '@/entities/message/model/message';
 
 const UNREAD_REFETCH_INTERVAL_MS = 30 * 1000;
+// 첨부 URL은 60초 뒤 만료되므로 그보다 조금 일찍 새로 받는다.
+const ATTACHMENT_URL_STALE_MS = 50 * 1000;
 
 // 새 메시지·수정·삭제는 소켓 이벤트로 캐시에 직접 반영한다.
 // 포커스 복귀 때 다시 받아오면 전송 중인 메시지가 사라지므로 끈다.
@@ -53,6 +56,29 @@ export const messageQueries = {
       queryFn: ({ pageParam }) => getChannelFiles(channelId, pageParam),
       initialPageParam: undefined as string | undefined,
       getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    }),
+  /**
+   * 이미지 미리보기에 쓰는 첨부 URL.
+   * 서버가 캐시하지 말라고 내려주므로, 만료 뒤 다시 그릴 때는 새 URL을 받는다.
+   * 이미 그린 이미지가 다시 받아지지 않도록 포커스 복귀 때는 갱신하지 않는다.
+   */
+  attachmentUrl: (
+    channelId: number,
+    messageId: string,
+    attachmentIndex: number,
+  ) =>
+    queryOptions({
+      queryKey: [
+        ...messageQueries.all(),
+        'attachmentUrl',
+        channelId,
+        messageId,
+        attachmentIndex,
+      ],
+      queryFn: () =>
+        getAttachmentDownloadUrl(channelId, messageId, attachmentIndex),
+      staleTime: ATTACHMENT_URL_STALE_MS,
+      refetchOnWindowFocus: false,
     }),
   /** `projectId`가 있으면 프로젝트 범위, 없으면 팀 전체에서 검색한다. */
   search: (
