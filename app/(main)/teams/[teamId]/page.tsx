@@ -1,13 +1,19 @@
 'use client';
 
-import { notFound } from 'next/navigation';
+import { useEffect } from 'react';
+
+import { notFound, redirect, useRouter } from 'next/navigation';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
+import { channelQueries } from '@/entities/channel/api/channel-queries';
+import { type Channel } from '@/entities/channel/model/channel';
+import { useLastChannelStore } from '@/entities/channel/model/last-channel-store';
 import { teamQueries } from '@/entities/team/api/team-queries';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
+import { channelPath } from '@/shared/model/paths';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
@@ -33,10 +39,24 @@ function TeamPageError({ error, resetErrorBoundary }: FallbackProps) {
   );
 }
 
+function findFirstChannelId(channels: Channel[]): number | null {
+  return (
+    channels.reduce<Channel | null>(
+      (first, channel) =>
+        first === null || channel.position < first.position ? channel : first,
+      null,
+    )?.id ?? null
+  );
+}
+
 export default function TeamPage() {
   const { teamId } = useRouteIds();
+  const lastChannelId = useLastChannelStore((state) =>
+    teamId === null ? undefined : state.channelIdByTeam[teamId],
+  );
 
   if (teamId === null) notFound();
+  if (lastChannelId !== undefined) redirect(channelPath(teamId, lastChannelId));
 
   return (
     <QueryBoundary
@@ -54,7 +74,24 @@ export default function TeamPage() {
 }
 
 function TeamView({ teamId }: { teamId: number }) {
+  const router = useRouter();
   useSuspenseQuery(teamQueries.detail(teamId));
+  const { data: channels } = useSuspenseQuery(channelQueries.byTeam(teamId));
+  const entryChannelId = findFirstChannelId(channels);
+
+  useEffect(() => {
+    if (entryChannelId !== null) {
+      router.replace(channelPath(teamId, entryChannelId));
+    }
+  }, [router, teamId, entryChannelId]);
+
+  if (entryChannelId !== null) {
+    return (
+      <div className="flex flex-1 items-center justify-center p-6">
+        <LoadingPane label="채널을 불러오는 중…" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 items-center justify-center bg-background p-6">

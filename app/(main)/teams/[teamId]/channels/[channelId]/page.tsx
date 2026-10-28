@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { notFound } from 'next/navigation';
 
@@ -9,6 +9,7 @@ import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
+import { useLastChannelStore } from '@/entities/channel/model/last-channel-store';
 import { LiveStatusBadge } from '@/entities/live/ui/live-status-badge';
 import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-badge';
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
@@ -54,6 +55,11 @@ export default function ChannelPage() {
       }
       errorFallback={ChannelPageError}
       resetKeys={[teamId, channelId]}
+      onError={(error) => {
+        if (isAxiosError(error) && error.response?.status === 404) {
+          useLastChannelStore.getState().clearLastChannelId(teamId, channelId);
+        }
+      }}
     >
       <ChannelView teamId={teamId} channelId={channelId} />
     </QueryBoundary>
@@ -69,6 +75,14 @@ function ChannelView({
 }) {
   const [membersOpen, setMembersOpen] = useState(true);
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
+
+  const setLastChannelId = useLastChannelStore(
+    (state) => state.setLastChannelId,
+  );
+
+  useEffect(() => {
+    if (channel.teamId === teamId) setLastChannelId(teamId, channelId);
+  }, [channel.teamId, teamId, channelId, setLastChannelId]);
 
   if (channel.teamId !== teamId) {
     notFound();
