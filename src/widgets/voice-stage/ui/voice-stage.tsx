@@ -133,8 +133,9 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
   const liveStartedAt =
     hasLive && liveStatus.data?.live ? liveStatus.data.started_at : undefined;
   const isMyLive = liveHostUserId !== null && me.data?.id === liveHostUserId;
-  // 새로고침 등으로 연결만 끊기고 서버에는 남아 있는 내 방송
-  const isOrphanedMyLive = hasLive && activeLive === null && isMyLive;
+  // 새로고침 등으로 연결이 끊긴 내 방송은 서버가 방을 지우는 중이라 이어갈 수
+  // 없다. 다음 갱신에서 사라질 때까지 시청 타일로도 보여 주지 않는다
+  const showLiveTile = hasLive && (activeLive !== null || !isMyLive);
 
   const stage: StageParticipant[] = isConnected
     ? session.participants.map((participant) => ({
@@ -209,12 +210,10 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
   function goLive() {
     setFocusOwnStream(false);
 
-    return live.goLive(channelId, { resume: isOrphanedMyLive });
+    return live.goLive(channelId);
   }
 
   function renderLiveTile() {
-    if (!hasLive) return null;
-
     if (isStreaming)
       return (
         <LiveStreamTile
@@ -225,20 +224,6 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
           previewTrack={live.screenShareTrack}
           actionLabel="크게 보기"
           onAction={() => setFocusOwnStream(true)}
-        />
-      );
-
-    if (isOrphanedMyLive)
-      return (
-        <LiveStreamTile
-          hostName={liveHostName}
-          viewerCount={liveViewerCount}
-          startedAt={liveStartedAt}
-          isMine
-          // 디스코드처럼 방송은 같은 채널 음성에 참여한 상태에서만 할 수 있다
-          actionLabel={isConnected ? '다시 공유' : '음성 참여 후 공유 가능'}
-          onAction={() => void runLive(goLive, GO_LIVE_ERRORS)}
-          disabled={pending || !isConnected}
         />
       );
 
@@ -272,7 +257,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
         }
         speaking={participant.speaking}
         muted={participant.muted}
-        live={hasLive && participant.userId === liveHostUserId}
+        live={showLiveTile && participant.userId === liveHostUserId}
       />
     );
   }
@@ -374,7 +359,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
         />
       );
 
-    if (stage.length === 0 && !hasLive)
+    if (stage.length === 0 && !showLiveTile)
       return (
         <EmptyState
           icon={<HeadphonesIcon />}
@@ -386,7 +371,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
 
     return (
       <ul className="flex w-225 max-w-full flex-wrap items-center justify-center gap-5">
-        {hasLive && <li>{renderLiveTile()}</li>}
+        {showLiveTile && <li>{renderLiveTile()}</li>}
         {stage.map((participant) => (
           <li key={participant.key}>{renderParticipantCard(participant)}</li>
         ))}
@@ -449,14 +434,8 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
                       : runLive(goLive, GO_LIVE_ERRORS))
                 : undefined
             }
-            onLeave={() =>
-              void runVoice(async () => {
-                // 디스코드처럼 음성에서 나가면 내 방송도 함께 끝낸다
-                if (isStreaming) await live.leave().catch(() => undefined);
-
-                await session.leave();
-              })
-            }
+            // 음성에서 나가면 LiveVoiceGuard가 내 방송도 함께 끝낸다
+            onLeave={() => void runVoice(session.leave)}
           />
         ) : (
           <Button

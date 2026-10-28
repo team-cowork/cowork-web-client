@@ -41,7 +41,7 @@ import {
   toRoomParticipants,
 } from '@/shared/lib/livekit-room';
 
-type ConnectIntent = 'start' | 'resume' | 'watch';
+type ConnectIntent = 'start' | 'watch';
 
 interface LiveSessionContextValue {
   state: LiveSessionState;
@@ -49,7 +49,7 @@ interface LiveSessionContextValue {
   participants: RoomParticipantSnapshot[];
   screenShareTrack: Track | null;
   audioEnabled: boolean;
-  goLive: (channelId: number, options?: { resume?: boolean }) => Promise<void>;
+  goLive: (channelId: number) => Promise<void>;
   watch: (channelId: number) => Promise<void>;
   leave: () => Promise<void>;
   dismiss: () => void;
@@ -301,10 +301,8 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
         await room.connect(session.livekit_url, session.token);
         roomRef.current = room;
 
-        // 같은 join이라도 호스트 재입장이면 publish 토큰이 온다
         const localUserId = Number.parseInt(room.localParticipant.identity, 10);
-        const isHost =
-          intent !== 'watch' || localUserId === session.host_user_id;
+        const isHost = intent === 'start';
 
         isHostRef.current = isHost;
 
@@ -342,7 +340,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
         await room?.disconnect();
 
         if (sessionStarted)
-          await notifyLeave(nextChannelId, intent !== 'watch').catch(
+          await notifyLeave(nextChannelId, intent === 'start').catch(
             () => undefined,
           );
         else
@@ -364,10 +362,8 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
   );
 
   const goLive = useCallback(
-    (nextChannelId: number, options?: { resume?: boolean }) =>
-      runExclusive(() =>
-        connect(nextChannelId, options?.resume ? 'resume' : 'start'),
-      ),
+    (nextChannelId: number) =>
+      runExclusive(() => connect(nextChannelId, 'start')),
     [connect, runExclusive],
   );
 
