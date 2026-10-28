@@ -6,7 +6,11 @@ import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
 
-import { buildReorderedChannelIds } from '@/features/channel-reorder/lib/reorder-channels';
+import {
+  buildChannelMove,
+  buildReorderedChannelIds,
+} from '@/features/channel-reorder/lib/reorder-channels';
+import { useMoveChannel } from '@/features/channel-reorder/model/use-move-channel';
 import { useReorderChannels } from '@/features/channel-reorder/model/use-reorder-channels';
 import { ChannelSearchModal } from '@/features/channel-search/ui/channel-search-modal';
 import { CreateChannelModal } from '@/features/channel-create/ui/create-channel-modal';
@@ -166,10 +170,23 @@ function ChannelList({
   const projectName = (projectId: number) =>
     projects.find((project) => project.id === projectId)?.name;
   const reorderChannels = useReorderChannels(teamId);
+  const moveChannel = useMoveChannel(teamId);
 
   const handleDragEnd = ({ source, destination }: DropResult) => {
     if (!destination) return;
-    if (destination.droppableId !== source.droppableId) return;
+
+    // 다른 그룹에 놓으면 채널을 그 프로젝트로 옮긴다.
+    if (destination.droppableId !== source.droppableId) {
+      const move = buildChannelMove(
+        groups,
+        source.droppableId,
+        source.index,
+        destination.droppableId,
+        destination.index,
+      );
+      if (move) moveChannel.mutate(move);
+      return;
+    }
     if (destination.index === source.index) return;
 
     const orderedChannelIds = buildReorderedChannelIds(

@@ -38,6 +38,49 @@ export function buildReorderedChannelIds(
   );
 }
 
+export interface ChannelMove {
+  channelId: number;
+  projectId: number | null;
+  orderedChannelIds: number[];
+}
+
+/** 다른 그룹(프로젝트)으로 끌어 놓은 채널의 새 소속과 팀 전체 순서를 구한다. */
+export function buildChannelMove(
+  groups: ReorderableGroup[],
+  sourceId: string,
+  from: number,
+  destinationId: string,
+  to: number,
+): ChannelMove | null {
+  const source = groups.find(
+    (group) => groupDroppableId(group.projectId) === sourceId,
+  );
+  const destination = groups.find(
+    (group) => groupDroppableId(group.projectId) === destinationId,
+  );
+  const moved = source?.channels[from];
+  if (!source || !destination || !moved) return null;
+
+  const destinationChannels = [...destination.channels];
+  destinationChannels.splice(to, 0, moved);
+
+  return {
+    channelId: moved.id,
+    projectId: destination.projectId,
+    orderedChannelIds: groups.flatMap((group) => {
+      if (group === source) {
+        return group.channels
+          .filter((channel) => channel.id !== moved.id)
+          .map((channel) => channel.id);
+      }
+      if (group === destination) {
+        return destinationChannels.map((channel) => channel.id);
+      }
+      return group.channels.map((channel) => channel.id);
+    }),
+  };
+}
+
 export function applyChannelOrder(
   channels: Channel[],
   orderedChannelIds: number[],
