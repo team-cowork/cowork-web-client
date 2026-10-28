@@ -1,45 +1,33 @@
 'use client';
 
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+
+import { useSuspenseQuery } from '@tanstack/react-query';
 
 import { useSetChannelRolePolicy } from '@/features/channel-role-policies/model/use-set-channel-role-policy';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
-import {
-  CHANNEL_READ_PERMISSION,
-  CHANNEL_VOICE_CONNECT_PERMISSION,
-} from '@/entities/channel/model/channel';
 import { teamQueries } from '@/entities/team/api/team-queries';
+import { cn } from '@/shared/lib/cn';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
+import { CheckIcon } from '@/shared/ui/icons/check-icon';
+import { CloseIcon } from '@/shared/ui/icons/close-icon';
 import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
-import { SettingRow } from '@/shared/ui/setting-row';
-import { SettingsCard } from '@/shared/ui/settings-card';
-import { Switch } from '@/shared/ui/switch';
 
-const ROLE_LIST_SKELETON = (
-  <ul className="flex flex-col gap-1">
-    {Array.from({ length: 3 }, (_, index) => (
-      <li key={index}>
-        <span className="block h-16 animate-pulse rounded-xl bg-surface-container" />
-      </li>
-    ))}
-  </ul>
+const EDITOR_SKELETON = (
+  <div className="flex items-start gap-8">
+    <div className="flex w-60 shrink-0 flex-col gap-1">
+      {Array.from({ length: 3 }, (_, index) => (
+        <span
+          key={index}
+          className="block h-10 animate-pulse rounded-lg bg-surface-container"
+        />
+      ))}
+    </div>
+    <span className="block h-64 flex-1 animate-pulse rounded-xl bg-surface-container" />
+  </div>
 );
-
-const TEXT_ACCESS = {
-  checkPermission: CHANNEL_READ_PERMISSION,
-  grantPermissions: [CHANNEL_READ_PERMISSION],
-  label: '채널 활성화',
-  description: '이 역할을 가진 멤버가 채널을 볼 수 있습니다',
-};
-
-const VOICE_ACCESS = {
-  checkPermission: CHANNEL_VOICE_CONNECT_PERMISSION,
-  grantPermissions: [CHANNEL_VOICE_CONNECT_PERMISSION, CHANNEL_READ_PERMISSION],
-  label: '음성 채널 활성화',
-  description: '이 역할을 가진 멤버가 음성 채널을 보고 입장할 수 있습니다',
-};
 
 export interface ChannelRolePolicySettingsProps {
   teamId: number;
@@ -60,19 +48,73 @@ export function ChannelRolePolicySettings({
   channelId,
 }: ChannelRolePolicySettingsProps) {
   return (
-    <SettingsCard title="역할별 열람 권한">
-      <QueryBoundary
-        loadingFallback={ROLE_LIST_SKELETON}
-        errorFallback={ChannelRolePolicySettingsError}
-        resetKeys={[teamId, channelId]}
-      >
-        <ChannelRolePolicyList teamId={teamId} channelId={channelId} />
-      </QueryBoundary>
-    </SettingsCard>
+    <QueryBoundary
+      loadingFallback={EDITOR_SKELETON}
+      errorFallback={ChannelRolePolicySettingsError}
+      resetKeys={[teamId, channelId]}
+    >
+      <ChannelRolePolicyEditor teamId={teamId} channelId={channelId} />
+    </QueryBoundary>
   );
 }
 
-function ChannelRolePolicyList({
+interface PermissionToggleProps {
+  label: string;
+  allowed: boolean;
+  disabled: boolean;
+  onChange: (allowed: boolean) => void;
+}
+
+function PermissionToggle({
+  label,
+  allowed,
+  disabled,
+  onChange,
+}: PermissionToggleProps) {
+  const base =
+    'flex h-8 w-11 cursor-pointer items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40';
+
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className="inline-flex shrink-0 overflow-hidden rounded-lg bg-surface-container"
+    >
+      <button
+        type="button"
+        aria-label={`${label} 거부`}
+        aria-pressed={!allowed}
+        disabled={disabled}
+        onClick={() => onChange(false)}
+        className={cn(
+          base,
+          allowed
+            ? 'text-on-surface-variant hover:text-error'
+            : 'bg-error text-on-error',
+        )}
+      >
+        <CloseIcon size={16} />
+      </button>
+      <button
+        type="button"
+        aria-label={`${label} 허용`}
+        aria-pressed={allowed}
+        disabled={disabled}
+        onClick={() => onChange(true)}
+        className={cn(
+          base,
+          allowed
+            ? 'bg-success text-on-success'
+            : 'text-on-surface-variant hover:text-success',
+        )}
+      >
+        <CheckIcon size={16} />
+      </button>
+    </div>
+  );
+}
+
+function ChannelRolePolicyEditor({
   teamId,
   channelId,
 }: ChannelRolePolicySettingsProps) {
@@ -80,65 +122,126 @@ function ChannelRolePolicyList({
   const { data: policies } = useSuspenseQuery(
     channelQueries.rolePolicies(channelId),
   );
-  const { data: channel } = useQuery(channelQueries.detail(channelId));
-  const setRolePolicy = useSetChannelRolePolicy(channelId);
-
-  const policyByRoleId = new Map(
-    policies.map((policy) => [policy.roleId, policy.permissions]),
+  const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
+  const { data: permissionGroups } = useSuspenseQuery(
+    teamQueries.rolePermissions(),
   );
-  const access = channel?.type === 'VOICE' ? VOICE_ACCESS : TEXT_ACCESS;
+  const setRolePolicy = useSetChannelRolePolicy(channelId);
+  const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
 
   if (roles.length === 0) {
     return (
       <EmptyState
         icon={<SettingsIcon />}
         title="팀 역할이 없습니다"
-        description="팀 설정에서 역할을 만들고 멤버에게 부여한 뒤 채널 열람 권한을 지정하세요"
+        description="팀 설정에서 역할을 만들고 멤버에게 부여한 뒤 채널 권한을 지정하세요"
       />
     );
   }
 
+  const selectedRole =
+    roles.find((role) => role.id === selectedRoleId) ?? roles[0];
+  const savedPermissions =
+    policies.find((policy) => policy.roleId === selectedRole.id)?.permissions ??
+    {};
+  const permissions =
+    setRolePolicy.isPending &&
+    setRolePolicy.variables.roleId === selectedRole.id
+      ? setRolePolicy.variables.permissions
+      : savedPermissions;
+  const groups = permissionGroups
+    .map((group) => ({
+      ...group,
+      permissions: group.permissions.filter((permission) =>
+        permission.channelTypes.includes(channel.type),
+      ),
+    }))
+    .filter((group) => group.permissions.length > 0);
+
   return (
-    <div className="flex flex-col gap-2">
-      <ul className="flex flex-col gap-1">
-        {roles.map((role) => {
-          const isTarget =
-            setRolePolicy.isPending &&
-            setRolePolicy.variables.roleId === role.id;
-          const permissions = isTarget
-            ? setRolePolicy.variables.permissions
-            : (policyByRoleId.get(role.id) ?? {});
+    <div className="flex items-start gap-8">
+      <nav aria-label="역할" className="flex w-60 shrink-0 flex-col gap-1">
+        <span className="px-2.5 pb-1 typography-subtext-medium text-on-surface-variant">
+          역할
+        </span>
+        <ul className="flex flex-col gap-0.5">
+          {roles.map((role) => {
+            const active = role.id === selectedRole.id;
 
-          return (
-            <li key={role.id}>
-              <SettingRow label={role.name} description={access.description}>
-                <Switch
-                  aria-label={`${role.name} ${access.label}`}
-                  checked={permissions[access.checkPermission] === true}
-                  disabled={setRolePolicy.isPending}
-                  onCheckedChange={(checked) =>
-                    setRolePolicy.mutate({
-                      roleId: role.id,
-                      permissions: {
-                        ...(policyByRoleId.get(role.id) ?? {}),
-                        ...Object.fromEntries(
-                          access.grantPermissions.map((key) => [key, checked]),
-                        ),
-                      },
-                    })
-                  }
-                />
-              </SettingRow>
-            </li>
-          );
-        })}
-      </ul>
+            return (
+              <li key={role.id}>
+                <button
+                  type="button"
+                  aria-current={active ? 'true' : undefined}
+                  onClick={() => setSelectedRoleId(role.id)}
+                  className={cn(
+                    'flex h-10 w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 typography-label-small transition-colors focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none',
+                    active
+                      ? 'bg-surface-container text-on-surface'
+                      : 'text-on-surface-variant hover:bg-surface-container/60 hover:text-on-surface',
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className="size-3 shrink-0 rounded-full bg-outline"
+                    style={
+                      role.colorHex ? { backgroundColor: role.colorHex } : {}
+                    }
+                  />
+                  <span className="truncate">{role.name}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
 
-      {setRolePolicy.isError && (
-        <p className="typography-subtext-medium text-error">
-          {setRolePolicy.error.message}
-        </p>
-      )}
+      <div className="flex min-w-0 flex-1 flex-col gap-8">
+        {groups.map((group) => (
+          <section key={group.key} className="flex flex-col">
+            <h2 className="pb-2 typography-title-small text-on-surface">
+              {group.title}
+            </h2>
+            <ul className="flex flex-col">
+              {group.permissions.map((permission) => (
+                <li
+                  key={permission.key}
+                  className="flex items-center justify-between gap-6 border-b border-outline-variant py-4 last:border-b-0"
+                >
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <span className="typography-body-medium-strong text-on-surface">
+                      {permission.title}
+                    </span>
+                    <span className="typography-subtext-medium text-on-surface-variant">
+                      {permission.description}
+                    </span>
+                  </div>
+                  <PermissionToggle
+                    label={permission.title}
+                    allowed={permissions[permission.key] === true}
+                    disabled={setRolePolicy.isPending}
+                    onChange={(allowed) =>
+                      setRolePolicy.mutate({
+                        roleId: selectedRole.id,
+                        permissions: {
+                          ...savedPermissions,
+                          [permission.key]: allowed,
+                        },
+                      })
+                    }
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+
+        {setRolePolicy.isError && (
+          <p className="typography-subtext-medium text-error">
+            {setRolePolicy.error.message}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

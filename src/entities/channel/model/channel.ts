@@ -71,9 +71,6 @@ export interface ChannelMember {
   joinedAt: string;
 }
 
-export const CHANNEL_READ_PERMISSION = 'message_read';
-export const CHANNEL_VOICE_CONNECT_PERMISSION = 'voice_connect';
-
 export interface ChannelRolePolicy {
   roleId: number;
   priority: number;
