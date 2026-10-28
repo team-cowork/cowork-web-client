@@ -22,7 +22,7 @@ import {
 } from '@/entities/message/model/message-cache';
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
-import { getChatSocket } from '@/shared/api/chat-socket';
+import { getChatSocket, joinChannelRoom } from '@/shared/api/chat-socket';
 
 // 소켓으로 오는 메시지의 반응은 REST 응답과 달리 반응한 사용자 ID 목록으로 온다.
 interface BroadcastReaction {
@@ -56,16 +56,16 @@ export function useChannelMessageEvents(channelId: number) {
 
   useEffect(() => {
     const socket = getChatSocket();
-    let hasJoined = false;
+    const leave = joinChannelRoom(channelId);
+    // 이미 연결된 상태에서 시작했다면 다음 connect는 재연결이다.
+    let hasConnected = socket.connected;
 
-    const join = () => {
-      socket.emit('join', { channelId });
-
-      // 재연결 때 연결 복구로 놓친 이벤트를 받지 못했다면 목록을 다시 받는다.
-      if (hasJoined && !socket.recovered) {
+    // 재연결 때 연결 복구로 놓친 이벤트를 받지 못했다면 목록을 다시 받는다.
+    const handleConnect = () => {
+      if (hasConnected && !socket.recovered) {
         void refetchChannelMessages(queryClient, channelId);
       }
-      hasJoined = true;
+      hasConnected = true;
     };
 
     const myId = () => queryClient.getQueryData(userQueries.me().queryKey)?.id;
@@ -118,7 +118,7 @@ export function useChannelMessageEvents(channelId: number) {
     const handleReactionAdded = handleReaction(true);
     const handleReactionRemoved = handleReaction(false);
 
-    socket.on('connect', join);
+    socket.on('connect', handleConnect);
     socket.on('message', handleMessage);
     socket.on('message:edited', handleEdited);
     socket.on('message:deleted', handleDeleted);
@@ -127,10 +127,8 @@ export function useChannelMessageEvents(channelId: number) {
     socket.on('message:reaction:added', handleReactionAdded);
     socket.on('message:reaction:removed', handleReactionRemoved);
 
-    if (socket.connected) join();
-
     return () => {
-      socket.off('connect', join);
+      socket.off('connect', handleConnect);
       socket.off('message', handleMessage);
       socket.off('message:edited', handleEdited);
       socket.off('message:deleted', handleDeleted);
@@ -139,7 +137,7 @@ export function useChannelMessageEvents(channelId: number) {
       socket.off('message:reaction:added', handleReactionAdded);
       socket.off('message:reaction:removed', handleReactionRemoved);
 
-      if (socket.connected) socket.emit('leave', { channelId });
+      leave();
     };
   }, [channelId, queryClient]);
 }

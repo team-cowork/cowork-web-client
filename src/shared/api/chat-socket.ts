@@ -11,6 +11,8 @@ const RECONNECT_RETRY_DELAY_MS = 5000;
 const AUTH_FAILED_PREFIX = '인증 실패';
 
 let socket: Socket | null = null;
+// 같은 채널 room을 여러 화면이 함께 쓸 수 있어 참가 수를 센다.
+const channelRoomCounts = new Map<number, number>();
 
 function socketOrigin(): string {
   return new URL(process.env.NEXT_PUBLIC_BASE_URL ?? window.location.origin)
@@ -43,9 +45,13 @@ function createChatSocket(): Socket {
   let retried = false;
   let authFailed = false;
 
+  // 연결이 끊기면 서버 쪽 room 참가도 사라지므로 다시 연결될 때마다 참가 중인 room에 다시 들어간다.
   created.on('connect', () => {
     retried = false;
     authFailed = false;
+    channelRoomCounts.forEach((_, channelId) =>
+      created.emit('join', { channelId }),
+    );
   });
 
   created.on('exception', (payload: { message?: string }) => {
@@ -73,4 +79,32 @@ function createChatSocket(): Socket {
 export function getChatSocket(): Socket {
   socket ??= createChatSocket();
   return socket;
+}
+
+/**
+ * 채널 room에 참가하고, 참가를 끝내는 함수를 돌려준다.
+ * 마지막 사용처가 끝낼 때만 room을 떠나, 같은 room을 쓰는 다른 화면이 이벤트를 잃지 않게 한다.
+ */
+export function joinChannelRoom(channelId: number): () => void {
+  const chatSocket = getChatSocket();
+  const count = channelRoomCounts.get(channelId) ?? 0;
+  channelRoomCounts.set(channelId, count + 1);
+  if (count === 0 && chatSocket.connected) {
+    chatSocket.emit('join', { channelId });
+  }
+
+  let left = false;
+  return () => {
+    if (left) return;
+    left = true;
+
+    const remaining = (channelRoomCounts.get(channelId) ?? 1) - 1;
+    if (remaining > 0) {
+      channelRoomCounts.set(channelId, remaining);
+      return;
+    }
+
+    channelRoomCounts.delete(channelId);
+    if (chatSocket.connected) chatSocket.emit('leave', { channelId });
+  };
 }
