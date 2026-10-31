@@ -1,5 +1,7 @@
 'use client';
 
+import { type ReactNode } from 'react';
+
 import Image from 'next/image';
 
 import { useQuery } from '@tanstack/react-query';
@@ -9,6 +11,7 @@ import { messageQueries } from '@/entities/message/api/message-queries';
 import { type MessageAttachment } from '@/entities/message/model/message';
 import { cn } from '@/shared/lib/cn';
 import { formatFileSize } from '@/shared/lib/format-file-size';
+import { LocalImage } from '@/shared/ui/local-image';
 
 export interface MessageAttachmentsProps {
   attachments: MessageAttachment[];
@@ -53,6 +56,14 @@ export function MessageAttachments({
                 attachment={attachment}
                 className={cn(onOpen && 'hover:border-outline')}
               />
+            ) : isImage(attachment) && attachment.localFile ? (
+              <ImageFrame>
+                <LocalImage
+                  file={attachment.localFile}
+                  alt={attachment.name}
+                  className={IMAGE_CLASS_NAME}
+                />
+              </ImageFrame>
             ) : (
               <AttachmentCard
                 name={attachment.name}
@@ -96,15 +107,8 @@ function ImagePreview({
   }
 
   return (
-    <span
-      className={cn(
-        'block w-fit overflow-hidden rounded-xl border border-outline-variant bg-surface-container',
-        className,
-      )}
-    >
-      {isPending ? (
-        <span className="block h-48 w-64 animate-pulse" />
-      ) : (
+    <ImageFrame className={className}>
+      {!isPending ? (
         // 서명된 일회성 URL이라 이미지 최적화 서버를 거치지 않는다.
         <Image
           src={data.downloadUrl}
@@ -113,9 +117,39 @@ function ImagePreview({
           height={0}
           sizes="28rem"
           unoptimized
-          className="block h-auto max-h-80 w-auto max-w-full"
+          className={IMAGE_CLASS_NAME}
         />
+      ) : attachment.localFile ? (
+        // 방금 보낸 이미지는 URL을 받는 동안 원본을 그대로 보여줘 깜빡이지 않게 한다.
+        <LocalImage
+          file={attachment.localFile}
+          alt={attachment.name}
+          className={IMAGE_CLASS_NAME}
+        />
+      ) : (
+        <span className="block h-48 w-64 animate-pulse" />
       )}
+    </ImageFrame>
+  );
+}
+
+const IMAGE_CLASS_NAME = 'block h-auto max-h-80 w-auto max-w-full';
+
+function ImageFrame({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <span
+      className={cn(
+        'block w-fit overflow-hidden rounded-xl border border-outline-variant bg-surface-container',
+        className,
+      )}
+    >
+      {children}
     </span>
   );
 }
