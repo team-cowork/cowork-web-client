@@ -31,6 +31,8 @@ export interface ChatPanelProps {
   canSendEmpty?: boolean;
   /** 첨부 업로드 중처럼 잠시 전송을 막아야 할 때 */
   sendDisabled?: boolean;
+  /** 전송을 막은 이유. 전송 버튼에서 알려준다. */
+  sendDisabledReason?: string;
   className?: string;
 }
 
@@ -53,6 +55,7 @@ export function ChatPanel({
   attachmentDrafts,
   canSendEmpty = false,
   sendDisabled = false,
+  sendDisabledReason,
   className,
 }: ChatPanelProps) {
   const draft = useMessageDraft({
@@ -85,6 +88,7 @@ export function ChatPanel({
           placeholder={placeholder}
           canSendEmpty={canSendEmpty}
           sendDisabled={sendDisabled}
+          sendDisabledReason={sendDisabledReason}
           leading={
             <AttachButton
               onClick={onAttachFiles && (() => fileInputRef.current?.click())}

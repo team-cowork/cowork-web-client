@@ -16,6 +16,8 @@ export interface MessageComposerProps {
   canSendEmpty?: boolean;
   /** 첨부 업로드 중처럼 잠시 전송을 막아야 할 때 */
   sendDisabled?: boolean;
+  /** 전송을 막은 이유. 전송 버튼에 마우스를 올리거나 스크린 리더로 읽을 때 알려준다. */
+  sendDisabledReason?: string;
   className?: string;
 }
 
@@ -27,9 +29,11 @@ export function MessageComposer({
   leading,
   canSendEmpty = false,
   sendDisabled = false,
+  sendDisabledReason,
   className,
 }: MessageComposerProps) {
   const canSend = !sendDisabled && (canSendEmpty || value.trim().length > 0);
+  const reason = sendDisabled ? sendDisabledReason : undefined;
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -58,7 +62,8 @@ export function MessageComposer({
       <IconButton
         size="M"
         variant="fill"
-        aria-label="전송"
+        aria-label={reason ? `전송 (${reason})` : '전송'}
+        title={reason}
         disabled={!canSend}
         onClick={onSend}
         className="rounded-[14px]"
