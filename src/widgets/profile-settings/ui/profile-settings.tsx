@@ -13,12 +13,33 @@ import { SettingsCard } from '@/shared/ui/settings-card';
 import { SettingsLayout } from '@/shared/ui/settings-layout';
 import { SettingsNavItem } from '@/shared/ui/settings-nav-item';
 
+function ProfileSettingsFooter() {
+  return (
+    <ul className="flex flex-col gap-0.5 border-t border-outline-variant pt-3">
+      <li>
+        <LogoutButton />
+      </li>
+    </ul>
+  );
+}
+
 function ProfileSettingsError() {
   return (
-    <ErrorState
-      title="프로필을 불러오지 못했어요"
-      description="잠시 후 다시 시도해 주세요."
-    />
+    <SettingsLayout
+      nav={
+        <ul className="flex flex-col gap-0.5">
+          <li>
+            <SettingsNavItem active>계정</SettingsNavItem>
+          </li>
+        </ul>
+      }
+      footer={<ProfileSettingsFooter />}
+    >
+      <ErrorState
+        title="프로필을 불러오지 못했어요"
+        description="잠시 후 다시 시도해 주세요."
+      />
+    </SettingsLayout>
   );
 }
 
@@ -50,13 +71,7 @@ function ProfileSettingsContent() {
           </ul>
         </>
       }
-      footer={
-        <ul className="flex flex-col gap-0.5 border-t border-outline-variant pt-3">
-          <li>
-            <LogoutButton />
-          </li>
-        </ul>
-      }
+      footer={<ProfileSettingsFooter />}
     >
       <SettingsCard title="프로필 사진">
         <ProfileImageField user={user} />

@@ -51,9 +51,22 @@ export interface TeamRole {
   colorHex: string;
   priority: number;
   mentionable: boolean;
-  permissions: string[];
+  permissions: Record<string, boolean>;
   createdAt: string | null;
   updatedAt: string | null;
+}
+
+export interface TeamRolePermission {
+  key: string;
+  title: string;
+  description: string;
+  channelTypes: string[];
+}
+
+export interface TeamRolePermissionGroup {
+  key: string;
+  title: string;
+  permissions: TeamRolePermission[];
 }
 
 export interface TeamMember {
@@ -106,7 +119,15 @@ export interface CreateTeamRoleRequest {
   colorHex: string;
   priority: number;
   mentionable: boolean;
-  permissions: string[];
+  permissions: Record<string, boolean>;
+}
+
+export interface TeamRoleOperation {
+  operationId: string;
+  status: 'PENDING' | 'PROCESSING' | 'SUCCEEDED' | 'FAILED';
+  role: TeamRole | null;
+  errorCode: string | null;
+  errorMessage: string | null;
 }
 
 export interface UpdateTeamRoleRequest {
@@ -114,7 +135,7 @@ export interface UpdateTeamRoleRequest {
   colorHex?: string | null;
   priority?: number | null;
   mentionable?: boolean | null;
-  permissions?: string[] | null;
+  permissions?: Record<string, boolean> | null;
 }
 
 export interface CreateInviteRequest {
