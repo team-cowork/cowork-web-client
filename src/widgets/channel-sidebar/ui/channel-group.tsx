@@ -5,13 +5,19 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 import { Draggable, Droppable } from '@hello-pangea/dnd';
+import { useQuery } from '@tanstack/react-query';
 
 import { type Channel } from '@/entities/channel/model/channel';
 import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
 import { ChannelListItem } from '@/entities/channel/ui/channel-list-item';
+import { messageQueries } from '@/entities/message/api/message-queries';
 import { groupDroppableId } from '@/features/channel-reorder/lib/reorder-channels';
 import { cn } from '@/shared/lib/cn';
-import { channelPath, channelSettingsOverviewPath } from '@/shared/model/paths';
+import {
+  channelPath,
+  channelSettingsOverviewPath,
+  projectPath,
+} from '@/shared/model/paths';
 import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
 import { ChevronRightIcon } from '@/shared/ui/icons/chevron-right-icon';
 import { PlusIcon } from '@/shared/ui/icons/plus-icon';
@@ -20,22 +26,32 @@ import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 export interface ChannelGroupProps {
   teamId: number;
   projectId: number | null;
+  /** 프로젝트 이름. 아직 모르면 `프로젝트 #id`로 보여준다. */
+  projectName?: string;
   channels: Channel[];
   activeChannelId: number | null;
-  onCreateChannel?: () => void;
+  /** 이 그룹(프로젝트)에 채널을 만든다 */
+  onCreateChannel?: (projectId: number | null) => void;
 }
 
 export function ChannelGroup({
   teamId,
   projectId,
+  projectName,
   channels,
   activeChannelId,
   onCreateChannel,
 }: ChannelGroupProps) {
   const [expanded, setExpanded] = useState(true);
+  const { data: unreadByChannel } = useQuery({
+    ...messageQueries.teamUnread(teamId),
+    select: (unread) =>
+      new Map(unread.map((item) => [item.channelId, item.unreadCount])),
+  });
   const label =
-    projectId === null ? '프로젝트 미소속' : `프로젝트 #${projectId}`;
-  const canCreate = projectId === null && onCreateChannel !== undefined;
+    projectId === null
+      ? '프로젝트 미소속'
+      : (projectName ?? `프로젝트 #${projectId}`);
 
   return (
     <section className="flex flex-col">
@@ -44,25 +60,34 @@ export function ChannelGroup({
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
           aria-expanded={expanded}
-          className="flex min-w-0 flex-1 cursor-pointer items-center gap-1 text-on-surface-variant hover:text-on-surface"
+          aria-label={projectId === null ? undefined : `${label} 채널 목록`}
+          className={cn(
+            'flex cursor-pointer items-center gap-1 text-on-surface-variant hover:text-on-surface',
+            projectId === null ? 'min-w-0 flex-1' : 'shrink-0',
+          )}
         >
           {expanded ? (
             <ChevronDownIcon size={12} />
           ) : (
             <ChevronRightIcon size={12} />
           )}
-          <span className="truncate typography-subtext-small">{label}</span>
+          {projectId === null && (
+            <span className="truncate typography-subtext-small">{label}</span>
+          )}
         </button>
+        {projectId !== null && (
+          <Link
+            href={projectPath(teamId, projectId)}
+            className="min-w-0 flex-1 truncate typography-subtext-small text-on-surface-variant hover:text-on-surface hover:underline"
+          >
+            {label}
+          </Link>
+        )}
         <button
           type="button"
           aria-label={`${label}에 채널 추가`}
-          title={
-            canCreate
-              ? undefined
-              : '채널을 프로젝트에 배정하는 API가 아직 없습니다'
-          }
-          disabled={!canCreate}
-          onClick={onCreateChannel}
+          disabled={!onCreateChannel}
+          onClick={() => onCreateChannel?.(projectId)}
           className="shrink-0 cursor-pointer text-on-surface-variant hover:text-on-surface disabled:cursor-not-allowed disabled:opacity-50"
         >
           <PlusIcon size={16} />
@@ -93,6 +118,11 @@ export function ChannelGroup({
                         name={channel.name}
                         href={channelPath(teamId, channel.id)}
                         active={channel.id === activeChannelId}
+                        unreadCount={
+                          channel.id === activeChannelId
+                            ? undefined
+                            : unreadByChannel?.get(channel.id)
+                        }
                         prefix={
                           <ChannelIcon viewType={channel.viewType} size={18} />
                         }

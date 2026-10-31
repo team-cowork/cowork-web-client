@@ -12,6 +12,10 @@ export interface MessageComposerProps {
   onSend: () => void;
   placeholder?: string;
   leading?: ReactNode;
+  /** 입력이 비어 있어도 전송할 수 있는지(예: 첨부만 보내기) */
+  canSendEmpty?: boolean;
+  /** 첨부 업로드 중처럼 잠시 전송을 막아야 할 때 */
+  sendDisabled?: boolean;
   className?: string;
 }
 
@@ -21,9 +25,11 @@ export function MessageComposer({
   onSend,
   placeholder = '메시지를 입력하세요. Markdown 지원',
   leading,
+  canSendEmpty = false,
+  sendDisabled = false,
   className,
 }: MessageComposerProps) {
-  const canSend = value.trim().length > 0;
+  const canSend = !sendDisabled && (canSendEmpty || value.trim().length > 0);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {

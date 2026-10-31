@@ -6,12 +6,19 @@ import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
 
-import { buildReorderedChannelIds } from '@/features/channel-reorder/lib/reorder-channels';
+import {
+  buildChannelMove,
+  buildReorderedChannelIds,
+} from '@/features/channel-reorder/lib/reorder-channels';
+import { useMoveChannel } from '@/features/channel-reorder/model/use-move-channel';
 import { useReorderChannels } from '@/features/channel-reorder/model/use-reorder-channels';
 import { ChannelSearchModal } from '@/features/channel-search/ui/channel-search-modal';
 import { CreateChannelModal } from '@/features/channel-create/ui/create-channel-modal';
+import { CreateProjectModal } from '@/features/project-create/ui/create-project-modal';
 import { InviteTeamMembersModal } from '@/features/team-members/ui/invite-team-members-modal';
+import { useTeamEvents } from '@/features/team-realtime/model/use-team-events';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
+import { projectQueries } from '@/entities/project/api/project-queries';
 import { teamQueries } from '@/entities/team/api/team-queries';
 import { groupChannelsByProject } from '@/widgets/channel-sidebar/lib/group-channels-by-project';
 import { ChannelGroup } from '@/widgets/channel-sidebar/ui/channel-group';
@@ -22,6 +29,7 @@ import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { ChatIcon } from '@/shared/ui/icons/chat-icon';
+import { PlusIcon } from '@/shared/ui/icons/plus-icon';
 import { SearchIcon } from '@/shared/ui/icons/search-icon';
 import { UserPlusIcon } from '@/shared/ui/icons/user-plus-icon';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
@@ -57,9 +65,14 @@ const CHANNEL_LIST_SKELETON = (
 export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
   const { channelId: currentChannelId } = useRouteIds();
   const { data: team } = useQuery(teamQueries.detail(teamId));
-  const [createOpen, setCreateOpen] = useState(false);
+  useTeamEvents(teamId);
+  // 채널을 만들 그룹. `undefined`면 모달이 닫혀 있고 `null`이면 프로젝트 미소속이다.
+  const [createProjectId, setCreateProjectId] = useState<
+    number | null | undefined
+  >(undefined);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [createProjectOpen, setCreateProjectOpen] = useState(false);
 
   return (
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
@@ -98,15 +111,30 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
           <ChannelList
             teamId={teamId}
             currentChannelId={currentChannelId}
-            onCreateChannel={() => setCreateOpen(true)}
+            onCreateChannel={setCreateProjectId}
           />
         </QueryBoundary>
+
+        <button
+          type="button"
+          onClick={() => setCreateProjectOpen(true)}
+          className="mt-3 flex h-8 w-full cursor-pointer items-center gap-2 rounded-lg px-2 typography-subtext-medium text-on-surface-variant hover:bg-surface-container/60 hover:text-on-surface"
+        >
+          <PlusIcon size={14} />
+          프로젝트 만들기
+        </button>
       </div>
 
       <CreateChannelModal
-        open={createOpen}
+        open={createProjectId !== undefined}
         teamId={teamId}
-        onClose={() => setCreateOpen(false)}
+        projectId={createProjectId ?? null}
+        onClose={() => setCreateProjectId(undefined)}
+      />
+      <CreateProjectModal
+        open={createProjectOpen}
+        teamId={teamId}
+        onClose={() => setCreateProjectOpen(false)}
       />
       <InviteTeamMembersModal
         open={inviteOpen}
@@ -125,7 +153,7 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
 interface ChannelListProps {
   teamId: number;
   currentChannelId: number | null;
-  onCreateChannel: () => void;
+  onCreateChannel: (projectId: number | null) => void;
 }
 
 function ChannelList({
@@ -134,12 +162,31 @@ function ChannelList({
   onCreateChannel,
 }: ChannelListProps) {
   const { data: channels } = useSuspenseQuery(channelQueries.byTeam(teamId));
-  const groups = groupChannelsByProject(channels);
+  const { data: projects = [] } = useQuery(projectQueries.byTeam(teamId));
+  const groups = groupChannelsByProject(
+    channels,
+    projects.map((project) => project.id),
+  );
+  const projectName = (projectId: number) =>
+    projects.find((project) => project.id === projectId)?.name;
   const reorderChannels = useReorderChannels(teamId);
+  const moveChannel = useMoveChannel(teamId);
 
   const handleDragEnd = ({ source, destination }: DropResult) => {
     if (!destination) return;
-    if (destination.droppableId !== source.droppableId) return;
+
+    // 다른 그룹에 놓으면 채널을 그 프로젝트로 옮긴다.
+    if (destination.droppableId !== source.droppableId) {
+      const move = buildChannelMove(
+        groups,
+        source.droppableId,
+        source.index,
+        destination.droppableId,
+        destination.index,
+      );
+      if (move) moveChannel.mutate(move);
+      return;
+    }
     if (destination.index === source.index) return;
 
     const orderedChannelIds = buildReorderedChannelIds(
@@ -161,7 +208,7 @@ function ChannelList({
           title="채널이 없습니다"
           description="채널을 만들어 대화를 시작하세요"
           action={
-            <Button size="S" onClick={onCreateChannel}>
+            <Button size="S" onClick={() => onCreateChannel(null)}>
               채널 만들기
             </Button>
           }
@@ -175,6 +222,11 @@ function ChannelList({
               key={group.projectId ?? 'none'}
               teamId={teamId}
               projectId={group.projectId}
+              projectName={
+                group.projectId === null
+                  ? undefined
+                  : projectName(group.projectId)
+              }
               channels={group.channels}
               activeChannelId={currentChannelId}
               onCreateChannel={onCreateChannel}

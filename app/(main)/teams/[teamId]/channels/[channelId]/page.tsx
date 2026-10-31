@@ -10,15 +10,20 @@ import { type FallbackProps } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { useLastChannelStore } from '@/entities/channel/model/last-channel-store';
+import { toThreadRoot } from '@/entities/message/lib/to-thread-root';
+import { type Message } from '@/entities/message/model/message';
 import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-badge';
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
+import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
+import { FileSharePanel } from '@/widgets/file-share/ui/file-share-panel';
 import { MemberPanel } from '@/widgets/member-panel/ui/member-panel';
+import { MessageSearchPanel } from '@/widgets/message-search/ui/message-search-panel';
+import { PinnedMessagesPanel } from '@/widgets/pinned-panel/ui/pinned-messages-panel';
+import { ChannelThreadPanel } from '@/widgets/thread-panel/ui/channel-thread-panel';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
-import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
-import { ChatIcon } from '@/shared/ui/icons/chat-icon';
 import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
@@ -60,10 +65,12 @@ export default function ChannelPage() {
         }
       }}
     >
-      <ChannelView teamId={teamId} channelId={channelId} />
+      <ChannelView key={channelId} teamId={teamId} channelId={channelId} />
     </QueryBoundary>
   );
 }
+
+type SidePanel = 'members' | 'pins' | 'search';
 
 function ChannelView({
   teamId,
@@ -72,7 +79,8 @@ function ChannelView({
   teamId: number;
   channelId: number;
 }) {
-  const [membersOpen, setMembersOpen] = useState(true);
+  const [sidePanel, setSidePanel] = useState<SidePanel | null>('members');
+  const [threadRoot, setThreadRoot] = useState<Message | null>(null);
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
 
   const setLastChannelId = useLastChannelStore(
@@ -89,8 +97,14 @@ function ChannelView({
 
   const isVoice = channel.type === 'VOICE';
 
+  // 스레드가 열려 있으면 오른쪽 패널 자리를 스레드가 쓴다. 다른 패널을 열면 스레드는 닫는다.
+  const toggleSidePanel = (panel: SidePanel) => {
+    setThreadRoot(null);
+    setSidePanel((prev) => (prev === panel && !threadRoot ? null : panel));
+  };
+
   return (
-    <div className="flex min-w-0 flex-1">
+    <div className="flex min-h-0 min-w-0 flex-1">
       <div className="flex min-w-0 flex-1 flex-col bg-background">
         <ChannelHeader
           teamId={teamId}
@@ -100,24 +114,49 @@ function ChannelView({
               <VoiceParticipantBadge channelId={channelId} />
             ) : undefined
           }
-          onToggleMembers={() => setMembersOpen((prev) => !prev)}
+          onToggleMembers={() => toggleSidePanel('members')}
+          onTogglePins={isVoice ? undefined : () => toggleSidePanel('pins')}
+          onToggleSearch={isVoice ? undefined : () => toggleSidePanel('search')}
         />
 
         {isVoice ? (
           <VoiceStage channelId={channelId} />
+        ) : channel.viewType === 'FILE_SHARE' ? (
+          <FileSharePanel channelId={channelId} />
         ) : (
-          <div className="flex flex-1 items-center justify-center p-6">
-            <EmptyState
-              icon={<ChatIcon />}
-              title="채팅 기능 준비 중"
-              description="메시지 API 연동 후 이 영역에 대화가 표시됩니다"
-              className="max-w-md"
-            />
-          </div>
+          <ChannelChatPanel
+            channelId={channelId}
+            projectId={channel.projectId}
+            placeholder={`#${channel.name}에 메시지 보내기`}
+            onSelectMessage={(message) => setThreadRoot(toThreadRoot(message))}
+          />
         )}
       </div>
 
-      {membersOpen && <MemberPanel channelId={channelId} />}
+      {threadRoot ? (
+        <ChannelThreadPanel
+          key={threadRoot._id}
+          channelId={channelId}
+          subtitle={`# ${channel.name}`}
+          rootMessage={threadRoot}
+          onClose={() => setThreadRoot(null)}
+        />
+      ) : sidePanel === 'search' && !isVoice ? (
+        <MessageSearchPanel
+          teamId={teamId}
+          channelId={channelId}
+          projectId={channel.projectId}
+          onClose={() => setSidePanel(null)}
+        />
+      ) : sidePanel === 'pins' && !isVoice ? (
+        <PinnedMessagesPanel
+          channelId={channelId}
+          subtitle={`# ${channel.name}`}
+          onClose={() => setSidePanel(null)}
+        />
+      ) : (
+        sidePanel === 'members' && <MemberPanel channelId={channelId} />
+      )}
     </div>
   );
 }
