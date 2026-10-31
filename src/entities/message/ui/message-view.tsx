@@ -139,22 +139,38 @@ function UserMessageView({
       actions={actions}
       actionsVisible={actionsVisible}
       footer={
-        message.sendStatus === 'failed' && (
-          <p className="flex items-center gap-2 typography-subtext-medium text-error">
-            전송에 실패했어요
-            {onRetry && (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onRetry(message);
-                }}
-                className="cursor-pointer typography-label-x-small underline"
-              >
-                다시 보내기
-              </button>
-            )}
+        message.sendStatus === 'pending' ? (
+          // 바로 확정되는 짧은 전송에는 깜빡이지 않도록 잠시 뒤에 나타난다.
+          <p
+            role="status"
+            className="flex items-center gap-1.5 typography-subtext-medium text-on-surface-variant transition-opacity delay-300 duration-200 starting:opacity-0"
+          >
+            <span
+              aria-hidden
+              className="size-3 shrink-0 animate-spin rounded-full border-2 border-outline border-t-primary"
+            />
+            {message.attachments.length > 0
+              ? '파일을 보내는 중…'
+              : '보내는 중…'}
           </p>
+        ) : (
+          message.sendStatus === 'failed' && (
+            <p className="flex items-center gap-2 typography-subtext-medium text-error">
+              전송에 실패했어요
+              {onRetry && (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onRetry(message);
+                  }}
+                  className="cursor-pointer typography-label-x-small underline"
+                >
+                  다시 보내기
+                </button>
+              )}
+            </p>
+          )
         )
       }
       dimmed={message.sendStatus === 'pending'}
