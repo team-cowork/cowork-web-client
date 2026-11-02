@@ -18,12 +18,17 @@ import { postVoiceJoin } from '@/entities/voice/api/post-voice-join';
 import { postVoiceLeave } from '@/entities/voice/api/post-voice-leave';
 import { voiceQueries } from '@/entities/voice/api/voice-queries';
 import { type VoiceRoomParticipant } from '@/entities/voice/model/voice';
+import {
+  applyRemoteVolume,
+  toRoomParticipants,
+} from '@/shared/lib/livekit-room';
 
 export type VoiceSessionStatus = 'idle' | 'connecting' | 'connected';
 
 interface VoiceSessionContextValue {
   channelId: number | null;
   sessionId: string | null;
+  connectedAt: string | null;
   status: VoiceSessionStatus;
   participants: VoiceRoomParticipant[];
   micEnabled: boolean;
@@ -47,28 +52,6 @@ export function useVoiceSession() {
   return ctx;
 }
 
-function toRoomParticipants(room: Room): VoiceRoomParticipant[] {
-  const all = [room.localParticipant, ...room.remoteParticipants.values()];
-
-  return all.map((participant) => {
-    const userId = Number.parseInt(participant.identity, 10);
-
-    return {
-      identity: participant.identity,
-      userId: Number.isNaN(userId) ? null : userId,
-      speaking: participant.isSpeaking,
-      muted: !participant.isMicrophoneEnabled,
-      isLocal: participant.isLocal,
-    };
-  });
-}
-
-function applyRemoteVolume(room: Room, enabled: boolean) {
-  room.remoteParticipants.forEach((participant) => {
-    participant.setVolume(enabled ? 1 : 0);
-  });
-}
-
 export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const roomRef = useRef<Room | null>(null);
@@ -79,6 +62,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
 
   const [channelId, setChannelId] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [connectedAt, setConnectedAt] = useState<string | null>(null);
   const [status, setStatus] = useState<VoiceSessionStatus>('idle');
   const [participants, setParticipants] = useState<VoiceRoomParticipant[]>([]);
   const [micEnabled, setMicEnabled] = useState(true);
@@ -90,6 +74,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     channelIdRef.current = null;
     setChannelId(null);
     setSessionId(null);
+    setConnectedAt(null);
     setStatus('idle');
     setParticipants([]);
   }, []);
@@ -188,6 +173,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
 
         setSessionId(session.session_id);
         setStatus('connected');
+        setConnectedAt(new Date().toISOString());
         sync();
 
         await queryClient.invalidateQueries({
@@ -253,6 +239,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     () => ({
       channelId,
       sessionId,
+      connectedAt,
       status,
       participants,
       micEnabled,
@@ -270,6 +257,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       micEnabled,
       participants,
       sessionId,
+      connectedAt,
       status,
       toggleAudio,
       toggleMic,

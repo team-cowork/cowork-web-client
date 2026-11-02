@@ -13,6 +13,7 @@ export interface VoiceControlsProps {
   audioEnabled: boolean;
   onToggleAudio: () => void;
   onShareScreen?: () => void;
+  screenSharing?: boolean;
   onLeave?: () => void;
   className?: string;
 }
@@ -26,6 +27,7 @@ export function VoiceControls({
   audioEnabled,
   onToggleAudio,
   onShareScreen,
+  screenSharing = false,
   onLeave,
   className,
 }: VoiceControlsProps) {
@@ -70,12 +72,15 @@ export function VoiceControls({
 
       <button
         type="button"
-        aria-label="화면 공유"
+        aria-label={screenSharing ? '화면 공유 중지' : '화면 공유'}
+        aria-pressed={screenSharing}
         onClick={onShareScreen}
         disabled={!onShareScreen}
         className={cn(
           buttonClass,
-          'bg-surface-container text-on-surface-variant',
+          screenSharing
+            ? 'bg-primary text-on-primary'
+            : 'bg-surface-container text-on-surface hover:bg-surface-container-high',
         )}
       >
         <MonitorIcon size={22} />

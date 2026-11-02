@@ -10,6 +10,7 @@ import { type FallbackProps } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { useLastChannelStore } from '@/entities/channel/model/last-channel-store';
+import { LiveStatusBadge } from '@/entities/live/ui/live-status-badge';
 import { toThreadRoot } from '@/entities/message/lib/to-thread-root';
 import { type Message } from '@/entities/message/model/message';
 import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-badge';
@@ -111,7 +112,10 @@ function ChannelView({
           channel={channel}
           meta={
             isVoice ? (
-              <VoiceParticipantBadge channelId={channelId} />
+              <>
+                <VoiceParticipantBadge channelId={channelId} />
+                <LiveStatusBadge channelId={channelId} />
+              </>
             ) : undefined
           }
           onToggleMembers={() => toggleSidePanel('members')}
