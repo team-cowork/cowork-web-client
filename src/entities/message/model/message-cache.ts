@@ -22,24 +22,22 @@ function isSameMessage(a: Message, b: Message): boolean {
 }
 
 // 서버가 준 첨부에는 로컬 원본이 없다. 썸네일 URL을 받는 동안에도 같은 그림을 보여주도록 유지한다.
+// 순서가 바뀌어도 다른 파일과 섞이지 않도록 objectKey가 같을 때만 잇는다.
 function keepLocalFiles(
   current: MessageAttachment[],
   incoming: MessageAttachment[],
 ): MessageAttachment[] {
   if (!current.some((attachment) => attachment.localFile)) return incoming;
 
-  return incoming.map((attachment, index) => {
-    if (attachment.localFile) return attachment;
+  return incoming.map((attachment) => {
+    if (attachment.localFile || attachment.objectKey === undefined) {
+      return attachment;
+    }
 
-    const local =
-      current.find(
-        (cached) =>
-          attachment.objectKey !== undefined &&
-          cached.objectKey === attachment.objectKey,
-      ) ?? current[index];
-    return local?.localFile
-      ? { ...attachment, localFile: local.localFile }
-      : attachment;
+    const localFile = current.find(
+      (cached) => cached.objectKey === attachment.objectKey,
+    )?.localFile;
+    return localFile ? { ...attachment, localFile } : attachment;
   });
 }
 
