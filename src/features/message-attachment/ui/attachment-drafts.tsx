@@ -1,56 +1,49 @@
 'use client';
 
-import { type ReactNode } from 'react';
-
 import { type AttachmentUpload } from '@/features/message-attachment/model/use-attachment-uploads';
 import { cn } from '@/shared/lib/cn';
-import { formatFileSize } from '@/shared/lib/format-file-size';
-import { Badge } from '@/shared/ui/badge';
-import { CloseIcon } from '@/shared/ui/icons/close-icon';
+import { EyeIcon } from '@/shared/ui/icons/eye-icon';
 import { FileIcon } from '@/shared/ui/icons/file-icon';
+import { TrashIcon } from '@/shared/ui/icons/trash-icon';
 import { LocalImage } from '@/shared/ui/local-image';
 
 export interface AttachmentDraftsProps {
   uploads: AttachmentUpload[];
   onRemove: (id: string) => void;
-  /** 첨부 목록 위에 보여줄 안내(예: 업로드가 끝나야 보낼 수 있음) */
-  hint?: ReactNode;
   className?: string;
 }
 
+// 새 탭이 파일을 읽을 시간을 두고 URL을 해제한다.
+const PREVIEW_URL_LIFETIME_MS = 60_000;
+
+function openPreview(file: File) {
+  const url = URL.createObjectURL(file);
+  window.open(url, '_blank', 'noopener');
+  setTimeout(() => URL.revokeObjectURL(url), PREVIEW_URL_LIFETIME_MS);
+}
+
 /**
- * 전송 전에 붙여 둔 파일.
- * 메시지에 올라간 첨부 카드와 헷갈리지 않도록 점선 테두리와 상태 표시로 구분한다.
+ * 전송 전에 붙여 둔 파일을 타일로 보여준다.
+ * 입력창 안에 두어 아직 보내지 않은 첨부라는 것이 위치만으로 드러나게 한다.
  */
 export function AttachmentDrafts({
   uploads,
   onRemove,
-  hint,
   className,
 }: AttachmentDraftsProps) {
   if (uploads.length === 0) return null;
 
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
-      {hint && (
-        <p
-          role="status"
-          className="px-1 typography-subtext-medium text-on-surface-variant"
-        >
-          {hint}
-        </p>
-      )}
-      <ul className="flex flex-wrap gap-2">
-        {uploads.map((upload) => (
-          <li key={upload.id} className="w-64">
-            <AttachmentDraft
-              upload={upload}
-              onRemove={() => onRemove(upload.id)}
-            />
-          </li>
-        ))}
-      </ul>
-    </div>
+    <ul className={cn('flex flex-wrap gap-3', className)}>
+      {uploads.map((upload) => (
+        <li key={upload.id}>
+          <AttachmentDraft
+            upload={upload}
+            onRemove={() => onRemove(upload.id)}
+          />
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -62,64 +55,79 @@ function AttachmentDraft({
   onRemove: () => void;
 }) {
   const { file, status } = upload;
+  const isImage = file.type.startsWith('image/');
   const progress = Math.max(0, Math.min(100, Math.round(upload.progress)));
 
   return (
     <div
+      title={status === 'failed' ? '업로드에 실패해 보내지 않아요' : file.name}
       className={cn(
-        'flex items-center gap-3 rounded-[16px] border border-dashed bg-surface-container-low p-3',
-        status === 'failed' ? 'border-error' : 'border-outline',
+        'group relative flex w-36 flex-col gap-2 rounded-[14px] border bg-surface-container-low p-2',
+        status === 'failed' ? 'border-error' : 'border-outline-variant',
       )}
     >
-      <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-tertiary-container text-on-tertiary-container [&_svg]:size-6">
-        {file.type.startsWith('image/') ? (
+      <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-[10px] bg-surface-container text-on-surface-variant">
+        {isImage ? (
           <LocalImage file={file} alt="" className="size-full object-cover" />
         ) : (
-          <FileIcon />
+          <FileIcon size={40} />
         )}
-      </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className="truncate typography-label-small text-on-surface">
-          {file.name}
-        </p>
+
         {status === 'uploading' && (
-          <>
-            <p className="typography-subtext-medium text-on-surface-variant">
-              업로드 중 {progress}%
-            </p>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-variant">
+          <div className="absolute inset-0 flex items-center justify-center bg-surface/70 px-4">
+            <div
+              role="progressbar"
+              aria-label={`${file.name} 업로드 진행률`}
+              aria-valuenow={progress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              className="h-1.5 w-full overflow-hidden rounded-full bg-surface-variant"
+            >
               <div
-                role="progressbar"
-                aria-label={`${file.name} 업로드 진행률`}
-                aria-valuenow={progress}
-                aria-valuemin={0}
-                aria-valuemax={100}
                 className="h-full rounded-full bg-primary transition-[width]"
                 style={{ width: `${progress}%` }}
               />
             </div>
-          </>
+          </div>
         )}
-        {status === 'done' && (
-          <p className="flex items-center gap-1.5 typography-subtext-medium text-on-surface-variant">
-            <Badge color="brand">전송 대기</Badge>
-            {formatFileSize(file.size)}
-          </p>
-        )}
+
         {status === 'failed' && (
-          <p className="typography-subtext-medium text-error">
-            업로드 실패 · 보내지 않아요
-          </p>
+          <div className="absolute inset-0 flex items-center justify-center bg-error/15">
+            <span
+              role="img"
+              aria-label="업로드 실패"
+              className="flex size-8 items-center justify-center rounded-full bg-error text-base font-bold text-on-error"
+            >
+              !
+            </span>
+          </div>
         )}
       </div>
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label={`${file.name} 첨부 삭제`}
-        className="shrink-0 cursor-pointer rounded-md p-1 text-on-surface-variant hover:bg-surface-variant hover:text-on-surface"
-      >
-        <CloseIcon className="size-4" />
-      </button>
+
+      <p className="truncate typography-label-x-small text-on-surface">
+        {file.name}
+      </p>
+
+      <div className="pointer-events-none absolute -top-2 -right-2 flex items-center gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-0.5 opacity-0 shadow-sm transition-opacity group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100">
+        {isImage && (
+          <button
+            type="button"
+            onClick={() => openPreview(file)}
+            aria-label={`${file.name} 미리보기`}
+            className="flex size-7 cursor-pointer items-center justify-center rounded-md text-on-surface-variant hover:bg-surface-variant hover:text-on-surface"
+          >
+            <EyeIcon size={16} />
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`${file.name} 첨부 삭제`}
+          className="flex size-7 cursor-pointer items-center justify-center rounded-md text-error hover:bg-error/10"
+        >
+          <TrashIcon size={16} />
+        </button>
+      </div>
     </div>
   );
 }

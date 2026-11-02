@@ -92,24 +92,6 @@ const COMMAND_STATUS_TEXT = {
 const UPLOADING_HINT =
   '파일을 올리는 중이에요. 업로드가 끝나면 보낼 수 있어요.';
 
-function attachmentHint({
-  isUploading,
-  hasFailed,
-  readyCount,
-}: {
-  isUploading: boolean;
-  hasFailed: boolean;
-  readyCount: number;
-}) {
-  if (isUploading) return UPLOADING_HINT;
-  if (hasFailed) {
-    return readyCount > 0
-      ? '업로드에 실패한 파일은 빼고 보내요.'
-      : '업로드에 실패했어요. 파일을 지우고 다시 올려 주세요.';
-  }
-  return '아직 보내지 않았어요. 전송하면 메시지로 올라가요.';
-}
-
 const COMMAND_PROBLEM_TEXT = {
   noProject: '/issue는 프로젝트에 속한 채널에서만 쓸 수 있어요.',
   noTitle: '/issue 뒤에 이슈 제목을 적어 주세요.',
@@ -159,7 +141,7 @@ function ChannelChatBody({
         attachments.clear();
       }}
       onAttachFiles={attachments.add}
-      attachmentDrafts={
+      composerStatus={
         <>
           <TypingIndicator userIds={typing.typingUserIds} />
           {command.problem && (
@@ -183,16 +165,13 @@ function ChannelChatBody({
               {COMMAND_STATUS_TEXT[command.status]}
             </p>
           )}
-          <AttachmentDrafts
-            uploads={attachments.uploads}
-            onRemove={attachments.remove}
-            hint={attachmentHint({
-              isUploading: attachments.isUploading,
-              hasFailed: attachments.hasFailed,
-              readyCount: attachments.confirmedFiles.length,
-            })}
-          />
         </>
+      }
+      attachmentDrafts={
+        <AttachmentDrafts
+          uploads={attachments.uploads}
+          onRemove={attachments.remove}
+        />
       }
       canSendEmpty={attachments.confirmedFiles.length > 0}
       sendDisabled={attachments.isUploading}

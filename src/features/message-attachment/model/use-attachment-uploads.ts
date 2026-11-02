@@ -60,13 +60,11 @@ export function useAttachmentUploads(channelId: number) {
     upload.confirmed ? [{ ...upload.confirmed, localFile: upload.file }] : [],
   );
   const isUploading = uploads.some((upload) => upload.status === 'uploading');
-  const hasFailed = uploads.some((upload) => upload.status === 'failed');
 
   return {
     uploads,
     confirmedFiles,
     isUploading,
-    hasFailed,
     add,
     remove,
     clear,
