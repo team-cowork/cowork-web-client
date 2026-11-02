@@ -4,6 +4,8 @@ import { type SyntheticEvent, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
+import { useQuery } from '@tanstack/react-query';
+
 import { useCreateChannel } from '@/features/channel-create/model/use-create-channel';
 import {
   CHANNEL_VIEW_TYPES,
@@ -13,6 +15,7 @@ import {
   type ChannelViewType,
 } from '@/entities/channel/model/channel';
 import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
+import { projectQueries } from '@/entities/project/api/project-queries';
 import { channelPath } from '@/shared/model/paths';
 import { Button } from '@/shared/ui/button';
 import { GlobeIcon } from '@/shared/ui/icons/globe-icon';
@@ -24,23 +27,35 @@ import { TextField } from '@/shared/ui/text-field';
 export interface CreateChannelModalProps {
   open: boolean;
   teamId: number;
+  /** 채널을 넣을 프로젝트. `null`이면 프로젝트 미소속으로 만든다. */
+  projectId?: number | null;
   onClose: () => void;
 }
 
 export function CreateChannelModal({
   open,
   teamId,
+  projectId = null,
   onClose,
 }: CreateChannelModalProps) {
+  const { data: project } = useQuery({
+    ...projectQueries.detail(projectId ?? 0),
+    enabled: open && projectId !== null,
+  });
+
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="채널 만들기"
+      title={project ? `${project.name}에 채널 만들기` : '채널 만들기'}
       className="w-[520px]"
     >
       {open ? (
-        <CreateChannelForm teamId={teamId} onClose={onClose} />
+        <CreateChannelForm
+          teamId={teamId}
+          projectId={projectId}
+          onClose={onClose}
+        />
       ) : undefined}
     </Modal>
   );
@@ -48,13 +63,15 @@ export function CreateChannelModal({
 
 function CreateChannelForm({
   teamId,
+  projectId,
   onClose,
 }: {
   teamId: number;
+  projectId: number | null;
   onClose: () => void;
 }) {
   const router = useRouter();
-  const createChannel = useCreateChannel(teamId);
+  const createChannel = useCreateChannel(teamId, projectId);
   const [viewType, setViewType] = useState<ChannelViewType>('TEXT');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');

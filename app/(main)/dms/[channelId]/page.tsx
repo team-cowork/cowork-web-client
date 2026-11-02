@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import { notFound } from 'next/navigation';
 
 import { useQueries, useSuspenseQuery } from '@tanstack/react-query';
@@ -7,13 +9,17 @@ import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
+import { toThreadRoot } from '@/entities/message/lib/to-thread-root';
+import { type Message } from '@/entities/message/model/message';
 import { userQueries } from '@/entities/user/api/user-queries';
+import { DmConversationMenu } from '@/features/dm-manage/ui/dm-conversation-menu';
+import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { DmHeader } from '@/widgets/dm-header/ui/dm-header';
+import { PinnedMessagesPanel } from '@/widgets/pinned-panel/ui/pinned-messages-panel';
+import { ChannelThreadPanel } from '@/widgets/thread-panel/ui/channel-thread-panel';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
-import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
-import { ChatIcon } from '@/shared/ui/icons/chat-icon';
 import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
@@ -50,12 +56,14 @@ export default function DmPage() {
       errorFallback={DmPageError}
       resetKeys={[channelId]}
     >
-      <DmView channelId={channelId} />
+      <DmView key={channelId} channelId={channelId} />
     </QueryBoundary>
   );
 }
 
 function DmView({ channelId }: { channelId: number }) {
+  const [threadRoot, setThreadRoot] = useState<Message | null>(null);
+  const [pinsOpen, setPinsOpen] = useState(false);
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
   const { data: me } = useSuspenseQuery(userQueries.me());
   const { data: members } = useSuspenseQuery(channelQueries.members(channelId));
@@ -70,18 +78,53 @@ function DmView({ channelId }: { channelId: number }) {
     notFound();
   }
 
-  return (
-    <div className="flex min-w-0 flex-1 flex-col bg-background">
-      <DmHeader user={peerResults[0]?.data} />
+  const peer = peerResults[0]?.data;
+  const subtitle = peer ? `@ ${peer.nickname ?? peer.name}` : '다이렉트 메시지';
 
-      <div className="flex flex-1 items-center justify-center p-6">
-        <EmptyState
-          icon={<ChatIcon />}
-          title="채팅 기능 준비 중"
-          description="메시지 API 연동 후 이 영역에 대화가 표시됩니다"
-          className="max-w-md"
+  // 스레드와 고정 메시지는 오른쪽 패널 자리를 함께 쓴다.
+  const togglePins = () => {
+    setThreadRoot(null);
+    setPinsOpen((prev) => !prev || threadRoot !== null);
+  };
+
+  return (
+    <div className="flex min-h-0 min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 flex-col bg-background">
+        <DmHeader
+          user={peer}
+          menu={
+            <DmConversationMenu
+              channelId={channelId}
+              peerId={peer?.id}
+              peerName={peer ? (peer.nickname ?? peer.name) : undefined}
+            />
+          }
+          onTogglePins={togglePins}
+        />
+
+        <ChannelChatPanel
+          channelId={channelId}
+          onSelectMessage={(message) => setThreadRoot(toThreadRoot(message))}
         />
       </div>
+
+      {threadRoot ? (
+        <ChannelThreadPanel
+          key={threadRoot._id}
+          channelId={channelId}
+          subtitle={subtitle}
+          rootMessage={threadRoot}
+          onClose={() => setThreadRoot(null)}
+        />
+      ) : (
+        pinsOpen && (
+          <PinnedMessagesPanel
+            channelId={channelId}
+            subtitle={subtitle}
+            onClose={() => setPinsOpen(false)}
+          />
+        )
+      )}
     </div>
   );
 }
