@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/shared/lib/cn';
 import {
   channelSettingsMembersPath,
+  channelSettingsWebhooksPath,
   channelSettingsOverviewPath,
 } from '@/shared/model/paths';
 
@@ -31,6 +32,7 @@ export function ChannelSettingsNav({
   const sections: SettingsNavSection[] = [
     { label: '개요', href: channelSettingsOverviewPath(teamId, channelId) },
     { label: '멤버', href: channelSettingsMembersPath(teamId, channelId) },
+    { label: '웹훅', href: channelSettingsWebhooksPath(teamId, channelId) },
   ];
 
   return (

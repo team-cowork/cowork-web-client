@@ -52,3 +52,10 @@ export function channelSettingsMembersPath(
 ): string {
   return `/teams/${teamId}/channels/${channelId}/settings/members`;
 }
+
+export function channelSettingsWebhooksPath(
+  teamId: number,
+  channelId: number,
+): string {
+  return `/teams/${teamId}/channels/${channelId}/settings/webhooks`;
+}
