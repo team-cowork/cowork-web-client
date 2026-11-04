@@ -57,22 +57,14 @@ function ConnectRepos({
 }) {
   const router = useRouter();
   const [filter, setFilter] = useState('');
-  const [needsInstallation, setNeedsInstallation] = useState(false);
   // 400(팀 GitHub 미연동)은 재시도해도 같으므로 바로 안내 화면을 보여줘요.
   const repos = useQuery({
     ...githubQueries.orgRepos(projectId),
     retry: false,
   });
-  const connect = useConnectGithubRepo(
-    projectId,
-    () => setNeedsInstallation(true),
-    onClose,
-  );
+  const connect = useConnectGithubRepo(projectId, onClose);
 
-  if (
-    needsInstallation ||
-    (isAxiosError(repos.error) && repos.error.response?.status === 400)
-  ) {
+  if (isAxiosError(repos.error) && repos.error.response?.status === 400) {
     return (
       <EmptyState
         title="팀에 GitHub 조직을 연결해 주세요"
