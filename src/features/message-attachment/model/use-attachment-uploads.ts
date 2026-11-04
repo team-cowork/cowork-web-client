@@ -55,10 +55,18 @@ export function useAttachmentUploads(channelId: number) {
 
   const clear = () => setUploads([]);
 
+  // 원본 파일을 함께 넘겨 서버 미리보기를 받기 전까지 화면에서 바로 그릴 수 있게 한다.
   const confirmedFiles = uploads.flatMap((upload) =>
-    upload.confirmed ? [upload.confirmed] : [],
+    upload.confirmed ? [{ ...upload.confirmed, localFile: upload.file }] : [],
   );
   const isUploading = uploads.some((upload) => upload.status === 'uploading');
 
-  return { uploads, confirmedFiles, isUploading, add, remove, clear };
+  return {
+    uploads,
+    confirmedFiles,
+    isUploading,
+    add,
+    remove,
+    clear,
+  };
 }
