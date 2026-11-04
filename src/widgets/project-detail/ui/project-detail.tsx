@@ -21,6 +21,7 @@ import { Badge } from '@/shared/ui/badge';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { FolderIcon } from '@/shared/ui/icons/folder-icon';
 import { MenuItem } from '@/shared/ui/menu-item';
+import { ProjectGithubRepos } from '@/widgets/project-detail/ui/project-github-repos';
 
 export interface ProjectDetailProps {
   teamId: number;
@@ -108,6 +109,14 @@ export function ProjectDetail({ teamId, projectId }: ProjectDetailProps) {
               </li>
             ))}
           </ul>
+        </Section>
+
+        <Section title="GitHub 저장소">
+          <ProjectGithubRepos
+            teamId={teamId}
+            projectId={projectId}
+            canWrite={canWrite}
+          />
         </Section>
 
         {/* PR 보드는 다른 파트에서 붙인다. 자리만 잡아 둔다. */}
