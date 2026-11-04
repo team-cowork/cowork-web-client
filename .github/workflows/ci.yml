@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  # 스택 PR은 base가 다른 기능 브랜치이므로 base 브랜치를 제한하지 않습니다.
+  pull_request:
+  push:
+    branches: [develop]
+
+# 같은 PR에 새 커밋이 올라오면 이전 실행은 취소합니다.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Dockerfile과 같은 버전을 사용합니다.
+  NODE_VERSION: 22
+  PNPM_VERSION: 11.6.0
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Type check
+        run: pnpm exec tsc --noEmit -p .
+
+      - name: Format check
+        run: pnpm run format:check
+
+      - name: Build
+        run: pnpm run build
+        env:
+          # 빌드 검증용이라 실제 주소가 없어도 됩니다. 변수가 있으면 배포와 같은 값을 씁니다.
+          NEXT_PUBLIC_BASE_URL: ${{ vars.NEXT_PUBLIC_BASE_URL || 'https://example.invalid/api' }}
+          NEXT_TELEMETRY_DISABLED: 1
