@@ -24,8 +24,10 @@ const restrict = (files, severity, patterns) => ({
   rules: { 'no-restricted-imports': [severity, { patterns }] },
 });
 
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const otherSlice = (layer, slice) => ({
-  regex: `^@/${layer}/(?!${slice}/)`,
+  regex: `^@/${layer}/(?!${escapeRegExp(slice)}/)`,
   message: `다른 ${layer} slice는 import할 수 없어요. 상위 레이어에서 조합해 주세요.`,
 });
 
@@ -81,13 +83,18 @@ const eslintConfig = defineConfig([
     'warn',
     featureRules('message-attachment'),
   ),
-  // 기존 위젯 간 import가 남아 있어 경고로 시작합니다. 정리되면 error로 올립니다.
   ...slicesOf('widgets').map((slice) =>
-    restrict([`src/widgets/${slice}/**/*.{ts,tsx}`], 'warn', [
+    restrict([`src/widgets/${slice}/**/*.{ts,tsx}`], 'error', [
       RELATIVE_IMPORT,
       otherSlice('widgets', slice),
     ]),
   ),
+  // 열린 PR(#52)이 수정 중인 slice라 이번에는 경고로 둡니다.
+  // chat-panel이 message-list를 쓰는 구조를 정리하면 이 예외를 지워 주세요.
+  restrict(['src/widgets/chat-panel/**/*.{ts,tsx}'], 'warn', [
+    RELATIVE_IMPORT,
+    otherSlice('widgets', 'chat-panel'),
+  ]),
 ]);
 
 export default eslintConfig;
