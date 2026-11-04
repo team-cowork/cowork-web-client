@@ -1,6 +1,6 @@
 import { instance } from '@/shared/api/instance';
 import { type ApiResponse } from '@/shared/model/token';
-import { type GithubInstallUrl } from '../model/github';
+import { type GithubInstallUrl } from '@/entities/github/model/github';
 
 export async function getTeamGithubInstallUrl(
   teamId: number,

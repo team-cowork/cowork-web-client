@@ -1,6 +1,6 @@
 import { instance } from '@/shared/api/instance';
 import { type ApiResponse } from '@/shared/model/token';
-import { type GithubPull } from '../model/github';
+import { type GithubPull } from '@/entities/github/model/github';
 
 export async function getGithubPull(
   projectId: number,

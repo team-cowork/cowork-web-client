@@ -1,6 +1,6 @@
 import { instance } from '@/shared/api/instance';
 import { type ApiResponse } from '@/shared/model/token';
-import { type ProjectGithubRepo } from '../model/github';
+import { type ProjectGithubRepo } from '@/entities/github/model/github';
 
 export async function getProjectGithubRepos(
   projectId: number,
