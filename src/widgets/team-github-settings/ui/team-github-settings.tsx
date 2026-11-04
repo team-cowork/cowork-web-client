@@ -59,13 +59,16 @@ export function TeamGithubSettings({ teamId }: { teamId: number }) {
       </SettingsCard>
       <Dialog
         open={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
+        onClose={() => {
+          if (!uninstall.isPending) setConfirmOpen(false);
+        }}
         title="GitHub 연동을 해제할까요?"
         description="팀 프로젝트에서 GitHub 저장소와 PR 정보를 더 이상 사용할 수 없어요."
       >
         <Button
           variant="weak"
           color="neutral"
+          disabled={uninstall.isPending}
           onClick={() => setConfirmOpen(false)}
         >
           취소
