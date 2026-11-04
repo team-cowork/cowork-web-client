@@ -2,7 +2,7 @@ import { instance } from '@/shared/api/instance';
 import {
   type AddProjectGithubRepoRequest,
   type ProjectGithubRepo,
-} from '../model/github';
+} from '@/entities/github/model/github';
 
 export async function postProjectGithubRepo(
   projectId: number,

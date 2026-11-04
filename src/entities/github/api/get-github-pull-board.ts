@@ -1,6 +1,6 @@
 import { instance } from '@/shared/api/instance';
 import { type ApiResponse } from '@/shared/model/token';
-import { type GithubPullBoard } from '../model/github';
+import { type GithubPullBoard } from '@/entities/github/model/github';
 
 export async function getGithubPullBoard(
   projectId: number,

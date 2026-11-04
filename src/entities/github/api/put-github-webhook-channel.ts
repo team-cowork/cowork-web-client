@@ -3,7 +3,7 @@ import { type ApiResponse } from '@/shared/model/token';
 import {
   type ProjectGithubRepo,
   type SetGithubWebhookChannelRequest,
-} from '../model/github';
+} from '@/entities/github/model/github';
 
 export async function putGithubWebhookChannel(
   projectId: number,
