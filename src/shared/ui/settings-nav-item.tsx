@@ -2,8 +2,7 @@ import { type ButtonHTMLAttributes, type ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
 
-export interface SettingsNavItemProps
-  extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface SettingsNavItemProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
   active?: boolean;
   danger?: boolean;
