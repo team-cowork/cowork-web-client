@@ -21,10 +21,7 @@ export function useMergePull(
       // 비동기 요청 접수이므로 승인·머지 완료로 표시하지 않아요.
       toast('요청을 보냈어요. 결과는 GitHub에서 확인해 주세요');
       void queryClient.invalidateQueries({
-        queryKey: githubQueries.pullBoard(projectId, repoId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: githubQueries.pull(projectId, repoId, prNumber),
+        queryKey: githubQueries.pulls(projectId, repoId),
       });
     },
     onError: (error) => {

@@ -2,8 +2,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { getGithubPull } from '@/entities/github/api/get-github-pull';
-import { getGithubPullFiles } from '@/entities/github/api/get-github-pull-files';
 import { githubQueries } from '@/entities/github/api/github-queries';
 import { GithubPrActions } from '@/features/github-pr-actions/ui/github-pr-actions';
 import { Badge } from '@/shared/ui/badge';
@@ -27,14 +25,8 @@ export function GithubPrDetailModal({
   canWrite,
   onClose,
 }: GithubPrDetailModalProps) {
-  const pull = useQuery({
-    queryKey: githubQueries.pull(projectId, repoId, prNumber),
-    queryFn: () => getGithubPull(projectId, repoId, prNumber),
-  });
-  const files = useQuery({
-    queryKey: githubQueries.pullFiles(projectId, repoId, prNumber),
-    queryFn: () => getGithubPullFiles(projectId, repoId, prNumber),
-  });
+  const pull = useQuery(githubQueries.pull(projectId, repoId, prNumber));
+  const files = useQuery(githubQueries.pullFiles(projectId, repoId, prNumber));
   const githubUrl = pull.data?.htmlUrl;
   const safeGithubUrl =
     githubUrl && /^https:\/\/github\.com\//.test(githubUrl)
