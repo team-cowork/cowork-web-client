@@ -13,7 +13,7 @@ import { useLastChannelStore } from '@/entities/channel/model/last-channel-store
 import { LiveStatusBadge } from '@/entities/live/ui/live-status-badge';
 import { toThreadRoot } from '@/entities/message/lib/to-thread-root';
 import { type Message } from '@/entities/message/model/message';
-import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-badge';
+import { VoiceParticipantBadge } from '@/features/voice-session/ui/voice-participant-badge';
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
 import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { FileSharePanel } from '@/widgets/file-share/ui/file-share-panel';
