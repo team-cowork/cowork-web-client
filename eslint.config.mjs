@@ -49,7 +49,10 @@ const eslintConfig = defineConfig([
     'build/**',
     'next-env.d.ts',
   ]),
-  restrict(['app/**/*.{ts,tsx}', 'proxy.ts'], 'error', [RELATIVE_IMPORT]),
+  // app 안에서는 라우트 옆에 둔 비공개 폴더(`./_ui` 등)만 상대 경로로 import할 수 있습니다.
+  restrict(['app/**/*.{ts,tsx}', 'proxy.ts'], 'error', [
+    { ...RELATIVE_IMPORT, regex: '^(?!\\./_)\\.\\.?/(?!.*\\.css$)' },
+  ]),
   restrict(['src/shared/**/*.{ts,tsx}'], 'error', [
     RELATIVE_IMPORT,
     {
