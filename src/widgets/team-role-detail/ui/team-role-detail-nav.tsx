@@ -39,7 +39,7 @@ export function TeamRoleDetailNav({
         colorHex: DEFAULT_ROLE_COLOR_HEX,
         priority: 0,
         mentionable: false,
-        permissions: [],
+        permissions: {},
       },
       {
         onSuccess: (role) =>

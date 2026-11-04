@@ -71,12 +71,22 @@ export interface ChannelMember {
   joinedAt: string;
 }
 
-export interface OpenDmRequest {
-  targetUserId: number;
+export interface ChannelRolePolicy {
+  roleId: number;
+  priority: number;
+  permissions: Record<string, boolean>;
 }
 
-export interface AddChannelMemberRequest {
-  userId: number;
+export interface ChannelRolePolicyOperation {
+  operationId: string;
+  status: 'PENDING' | 'PROCESSING' | 'SUCCEEDED' | 'FAILED';
+  permissions: Record<string, boolean> | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+}
+
+export interface OpenDmRequest {
+  targetUserId: number;
 }
 
 export interface CreateChannelRequest {

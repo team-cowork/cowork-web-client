@@ -1,15 +1,16 @@
 import { instance } from '@/shared/api/instance';
-import { type ApiResponse } from '@/shared/model/token';
-import { type TeamRole } from '@/entities/team/model/team';
+import { requestTeamRoleOperation } from '@/entities/team/api/request-team-role-operation';
 
 export async function putTeamMemberRole(
   teamId: number,
   targetUserId: number,
   roleId: number,
-): Promise<TeamRole> {
-  const { data } = await instance.put<ApiResponse<TeamRole>>(
-    `/team/teams/${teamId}/members/${targetUserId}/roles/${roleId}`,
+): Promise<void> {
+  await requestTeamRoleOperation(teamId, (headers) =>
+    instance.put(
+      `/team/teams/${teamId}/members/${targetUserId}/roles/${roleId}`,
+      undefined,
+      { headers },
+    ),
   );
-
-  return data.data;
 }

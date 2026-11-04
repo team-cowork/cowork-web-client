@@ -46,9 +46,9 @@ export function channelSettingsOverviewPath(
   return `/teams/${teamId}/channels/${channelId}/settings/overview`;
 }
 
-export function channelSettingsMembersPath(
+export function channelSettingsPermissionsPath(
   teamId: number,
   channelId: number,
 ): string {
-  return `/teams/${teamId}/channels/${channelId}/settings/members`;
+  return `/teams/${teamId}/channels/${channelId}/settings/permissions`;
 }

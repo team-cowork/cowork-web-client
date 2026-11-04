@@ -1,5 +1,5 @@
 import { instance } from '@/shared/api/instance';
-import { type ApiResponse } from '@/shared/model/token';
+import { requestTeamRoleOperation } from '@/entities/team/api/request-team-role-operation';
 import {
   type CreateTeamRoleRequest,
   type TeamRole,
@@ -9,10 +9,10 @@ export async function postTeamRole(
   teamId: number,
   request: CreateTeamRoleRequest,
 ): Promise<TeamRole> {
-  const { data } = await instance.post<ApiResponse<TeamRole>>(
-    `/team/teams/${teamId}/roles`,
-    request,
+  const { role } = await requestTeamRoleOperation(teamId, (headers) =>
+    instance.post(`/team/teams/${teamId}/roles`, request, { headers }),
   );
+  if (!role) throw new Error('생성된 역할 정보를 받지 못했습니다');
 
-  return data.data;
+  return role;
 }
