@@ -130,6 +130,7 @@ function ChannelWebhookSettingsContent({ channelId }: { channelId: number }) {
       <Dialog
         open={token !== null}
         onClose={() => setToken(null)}
+        dismissible={false}
         title="보안 토큰을 저장해 주세요"
         description="토큰은 지금 한 번만 보여드려요. 안전한 곳에 보관하고, 웹훅 실행 요청의 X-Webhook-Secret 헤더로 보내 주세요. 창을 닫으면 다시 볼 수 없어요."
       >
