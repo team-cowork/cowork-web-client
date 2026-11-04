@@ -10,7 +10,7 @@ import { patchWebhook } from '@/entities/webhook/api/patch-webhook';
 import { postWebhookExecutionId } from '@/entities/webhook/api/post-webhook-execution-id';
 import { putWebhookSecurityMode } from '@/entities/webhook/api/put-webhook-security-mode';
 import { webhookQueries } from '@/entities/webhook/api/webhook-queries';
-import { isWebhookCooldownError } from '@/entities/webhook/lib/webhook-url';
+import { isWebhookCooldownError } from '@/entities/webhook/lib/webhook-error';
 import { type UpdateWebhookRequest } from '@/entities/webhook/model/webhook';
 import { createUuid } from '@/shared/lib/create-uuid';
 import { useToast } from '@/shared/ui/toast-provider';
