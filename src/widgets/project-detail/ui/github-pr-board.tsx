@@ -5,8 +5,6 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 
-import { getGithubPullBoard } from '@/entities/github/api/get-github-pull-board';
-import { getProjectGithubRepos } from '@/entities/github/api/get-project-github-repos';
 import { githubQueries } from '@/entities/github/api/github-queries';
 import { type GithubPullSummary } from '@/entities/github/model/github';
 import { formatDate } from '@/shared/lib/format-date';
@@ -24,10 +22,7 @@ interface GithubPrBoardProps {
 
 export function GithubPrBoard({ projectId, canWrite }: GithubPrBoardProps) {
   const [selectedRepoId, setSelectedRepoId] = useState<string>();
-  const repos = useQuery({
-    queryKey: githubQueries.projectRepos(projectId),
-    queryFn: () => getProjectGithubRepos(projectId),
-  });
+  const repos = useQuery(githubQueries.projectRepos(projectId));
 
   if (repos.isPending) {
     return (
@@ -95,10 +90,7 @@ function PullBoard({
   const [selectedPull, setSelectedPull] = useState<GithubPullSummary | null>(
     null,
   );
-  const board = useQuery({
-    queryKey: githubQueries.pullBoard(projectId, repoId),
-    queryFn: () => getGithubPullBoard(projectId, repoId),
-  });
+  const board = useQuery(githubQueries.pullBoard(projectId, repoId));
 
   if (board.isPending) {
     return (
