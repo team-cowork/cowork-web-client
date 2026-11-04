@@ -11,12 +11,15 @@ interface GithubPrActionsProps {
   projectId: number;
   repoId: number;
   prNumber: number;
+  /** 머지할 수 없는 이유. 값이 있으면 머지 버튼을 막고 이유를 보여줘요. */
+  mergeBlockedReason?: string;
 }
 
 export function GithubPrActions({
   projectId,
   repoId,
   prNumber,
+  mergeBlockedReason,
 }: GithubPrActionsProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const approve = useApprovePull(projectId, repoId, prNumber);
@@ -25,6 +28,11 @@ export function GithubPrActions({
 
   return (
     <>
+      {mergeBlockedReason && (
+        <p className="mr-auto self-center typography-subtext-medium text-on-surface-variant">
+          {mergeBlockedReason}
+        </p>
+      )}
       <Button
         size="S"
         variant="weak"
@@ -33,7 +41,11 @@ export function GithubPrActions({
       >
         {approve.isPending ? '요청을 보내는 중이에요…' : '승인하기'}
       </Button>
-      <Button size="S" disabled={pending} onClick={() => setConfirmOpen(true)}>
+      <Button
+        size="S"
+        disabled={pending || mergeBlockedReason !== undefined}
+        onClick={() => setConfirmOpen(true)}
+      >
         {merge.isPending ? '요청을 보내는 중이에요…' : '머지하기'}
       </Button>
       <Dialog
