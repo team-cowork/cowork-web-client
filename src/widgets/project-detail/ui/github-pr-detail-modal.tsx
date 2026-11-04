@@ -14,6 +14,8 @@ interface GithubPrDetailModalProps {
   projectId: number;
   repoId: number;
   prNumber: number;
+  /** 상세 응답에는 Draft 여부가 없어 보드 카드 값을 받아요. */
+  draft: boolean;
   canWrite: boolean;
   onClose: () => void;
 }
@@ -22,11 +24,18 @@ export function GithubPrDetailModal({
   projectId,
   repoId,
   prNumber,
+  draft,
   canWrite,
   onClose,
 }: GithubPrDetailModalProps) {
   const pull = useQuery(githubQueries.pull(projectId, repoId, prNumber));
   const files = useQuery(githubQueries.pullFiles(projectId, repoId, prNumber));
+  // 머지 API는 결과를 알려주지 않아서, 실패가 확실한 요청은 미리 막아요.
+  const mergeBlockedReason = draft
+    ? 'Draft PR은 머지할 수 없어요.'
+    : pull.data?.mergeable === false
+      ? '충돌이 있어 머지할 수 없어요.'
+      : undefined;
   const githubUrl = pull.data?.htmlUrl;
   const safeGithubUrl =
     githubUrl && /^https:\/\/github\.com\//.test(githubUrl)
@@ -45,6 +54,7 @@ export function GithubPrDetailModal({
             projectId={projectId}
             repoId={repoId}
             prNumber={prNumber}
+            mergeBlockedReason={mergeBlockedReason}
           />
         ) : undefined
       }
