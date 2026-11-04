@@ -2,7 +2,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { getProjectGithubRepos } from '@/entities/github/api/get-project-github-repos';
 import { githubQueries } from '@/entities/github/api/github-queries';
 import { projectQueries } from '@/entities/project/api/project-queries';
 import { GithubRepoConnect } from '@/features/github-repo-connect/ui/github-repo-connect';
@@ -22,10 +21,7 @@ export function ProjectGithubRepos({
   projectId,
   canWrite,
 }: ProjectGithubReposProps) {
-  const repos = useQuery({
-    queryKey: githubQueries.projectRepos(projectId),
-    queryFn: () => getProjectGithubRepos(projectId),
-  });
+  const repos = useQuery(githubQueries.projectRepos(projectId));
   const channels = useQuery(projectQueries.channels(projectId));
 
   return (
