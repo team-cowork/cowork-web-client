@@ -53,6 +53,7 @@ jobs:
           NEXT_PUBLIC_BASE_URL: ${{ vars.NEXT_PUBLIC_BASE_URL || 'https://example.invalid/api' }}
           NEXT_TELEMETRY_DISABLED: 1
 
+      # push 이벤트에는 PR 정보가 없어 커밋 메시지와 실행 링크를 대신 보내요.
       # 웹훅 시크릿이 없으면 알림만 건너뛰고(ack_no_webhook), 알림이 실패해도 CI 결과는 바꾸지 않아요(nofail 기본값).
       - name: Success Discord Notification
         uses: sarisia/actions-status-discord@v1.16.0
@@ -63,8 +64,8 @@ jobs:
           title: '✅ CI 성공'
           noprefix: true
           status: success
-          description: ${{ github.event.pull_request.title }}
-          url: ${{ github.event.pull_request.html_url }}
+          description: ${{ github.event.pull_request.title || github.event.head_commit.message }}
+          url: ${{ github.event.pull_request.html_url || format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
           content: ${{ github.event_name == 'pull_request' && 'PR을 확인해 주세요.' || 'develop 브랜치 검사를 통과했어요.' }}
           username: cowork-web CI
           color: 0x4CAF50
@@ -78,8 +79,8 @@ jobs:
           title: '❌ CI 실패'
           noprefix: true
           status: failure
-          description: ${{ github.event.pull_request.title }}
-          url: ${{ github.event.pull_request.html_url }}
+          description: ${{ github.event.pull_request.title || github.event.head_commit.message }}
+          url: ${{ github.event.pull_request.html_url || format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
           content: '에러를 확인해 주세요.'
           username: cowork-web CI
           color: 0xe74c3c
