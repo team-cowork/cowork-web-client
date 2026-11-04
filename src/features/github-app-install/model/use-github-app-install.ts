@@ -21,7 +21,7 @@ export function useGithubAppInstall(teamId: number) {
   const uninstall = useMutation({
     mutationFn: () => deleteTeamGithubInstallation(teamId),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: githubQueries.all });
+      await queryClient.invalidateQueries({ queryKey: githubQueries.all() });
       toast('GitHub 연동을 해제했어요.');
     },
     onError: () =>

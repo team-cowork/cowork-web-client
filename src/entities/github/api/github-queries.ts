@@ -1,42 +1,39 @@
-import { type QueryKey } from '@tanstack/react-query';
+import { queryOptions } from '@tanstack/react-query';
 
-// PR 관련 키는 [...all, projectId, repoId, 'pulls'] 아래에 모아 저장소 단위로 한 번에 무효화할 수 있게 둡니다.
+import { getGithubOrgRepos } from '@/entities/github/api/get-github-org-repos';
+import { getGithubPull } from '@/entities/github/api/get-github-pull';
+import { getGithubPullBoard } from '@/entities/github/api/get-github-pull-board';
+import { getGithubPullFiles } from '@/entities/github/api/get-github-pull-files';
+import { getProjectGithubRepos } from '@/entities/github/api/get-project-github-repos';
+
 export const githubQueries = {
-  all: ['github'] as const,
-  orgRepos: (projectId: number): QueryKey => [
-    ...githubQueries.all,
-    'orgRepos',
-    projectId,
-  ],
-  projectRepos: (projectId: number): QueryKey => [
-    ...githubQueries.all,
-    'projectRepos',
-    projectId,
-  ],
-  pullBoard: (projectId: number, repoId: number): QueryKey => [
-    ...githubQueries.all,
-    projectId,
-    repoId,
-    'pulls',
-    'board',
-  ],
-  pull: (projectId: number, repoId: number, prNumber: number): QueryKey => [
-    ...githubQueries.all,
-    projectId,
-    repoId,
-    'pulls',
-    prNumber,
-  ],
-  pullFiles: (
-    projectId: number,
-    repoId: number,
-    prNumber: number,
-  ): QueryKey => [
-    ...githubQueries.all,
-    projectId,
-    repoId,
-    'pulls',
-    prNumber,
-    'files',
-  ],
-};
+  all: () => ['github'] as const,
+  orgRepos: (projectId: number) =>
+    queryOptions({
+      queryKey: [...githubQueries.all(), 'orgRepos', projectId],
+      queryFn: () => getGithubOrgRepos(projectId),
+    }),
+  projectRepos: (projectId: number) =>
+    queryOptions({
+      queryKey: [...githubQueries.all(), 'projectRepos', projectId],
+      queryFn: () => getProjectGithubRepos(projectId),
+    }),
+  // 한 저장소의 PR 보드·상세·변경 파일 키를 모두 포함하는 접두사예요. 무효화할 때 사용해요.
+  pulls: (projectId: number, repoId: number) =>
+    [...githubQueries.all(), projectId, repoId, 'pulls'] as const,
+  pullBoard: (projectId: number, repoId: number) =>
+    queryOptions({
+      queryKey: [...githubQueries.pulls(projectId, repoId), 'board'],
+      queryFn: () => getGithubPullBoard(projectId, repoId),
+    }),
+  pull: (projectId: number, repoId: number, prNumber: number) =>
+    queryOptions({
+      queryKey: [...githubQueries.pulls(projectId, repoId), prNumber],
+      queryFn: () => getGithubPull(projectId, repoId, prNumber),
+    }),
+  pullFiles: (projectId: number, repoId: number, prNumber: number) =>
+    queryOptions({
+      queryKey: [...githubQueries.pulls(projectId, repoId), prNumber, 'files'],
+      queryFn: () => getGithubPullFiles(projectId, repoId, prNumber),
+    }),
+} as const;
