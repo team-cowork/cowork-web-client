@@ -114,14 +114,16 @@ function ChannelOptions({
           ))}
         </ul>
       )}
-      <Button
-        variant="weak"
-        color="danger"
-        disabled={isPending || repo.githubWebhookChannelId == null}
-        onClick={() => clearChannel.mutate()}
-      >
-        알림 해제
-      </Button>
+      {repo.githubWebhookChannelId != null && (
+        <Button
+          variant="weak"
+          color="danger"
+          disabled={isPending}
+          onClick={() => clearChannel.mutate()}
+        >
+          알림 해제
+        </Button>
+      )}
       {isPending && (
         <p
           role="status"
