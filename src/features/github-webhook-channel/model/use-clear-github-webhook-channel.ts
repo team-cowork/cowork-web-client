@@ -18,7 +18,7 @@ export function useClearGithubWebhookChannel(
     mutationFn: () => deleteGithubWebhookChannel(projectId, repoId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: githubQueries.projectRepos(projectId),
+        queryKey: githubQueries.projectRepos(projectId).queryKey,
       });
       toast('GitHub 알림을 해제했어요.');
       onClose();

@@ -20,7 +20,7 @@ export function useConnectGithubRepo(
       postProjectGithubRepo(projectId, { githubRepoUrl }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: githubQueries.projectRepos(projectId),
+        queryKey: githubQueries.projectRepos(projectId).queryKey,
       });
       toast('저장소를 연결했어요.');
       onClose();

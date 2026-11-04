@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 
-import { getGithubOrgRepos } from '@/entities/github/api/get-github-org-repos';
 import { githubQueries } from '@/entities/github/api/github-queries';
 import { useConnectGithubRepo } from '@/features/github-repo-connect/model/use-connect-github-repo';
 import { teamSettingsGithubPath } from '@/shared/model/paths';
@@ -59,9 +58,9 @@ function ConnectRepos({
   const router = useRouter();
   const [filter, setFilter] = useState('');
   const [needsInstallation, setNeedsInstallation] = useState(false);
+  // 400(팀 GitHub 미연동)은 재시도해도 같으므로 바로 안내 화면을 보여줘요.
   const repos = useQuery({
-    queryKey: githubQueries.orgRepos(projectId),
-    queryFn: () => getGithubOrgRepos(projectId),
+    ...githubQueries.orgRepos(projectId),
     retry: false,
   });
   const connect = useConnectGithubRepo(

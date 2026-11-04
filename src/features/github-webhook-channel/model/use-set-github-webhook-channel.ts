@@ -21,7 +21,7 @@ export function useSetGithubWebhookChannel(
       putGithubWebhookChannel(projectId, repoId, { channelId }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: githubQueries.projectRepos(projectId),
+        queryKey: githubQueries.projectRepos(projectId).queryKey,
       });
       toast('GitHub 알림 채널을 설정했어요.');
       onClose();

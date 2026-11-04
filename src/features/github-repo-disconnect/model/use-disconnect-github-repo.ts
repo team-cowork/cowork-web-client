@@ -18,7 +18,7 @@ export function useDisconnectGithubRepo(
     mutationFn: () => deleteProjectGithubRepo(projectId, repoId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: githubQueries.projectRepos(projectId),
+        queryKey: githubQueries.projectRepos(projectId).queryKey,
       });
       toast('저장소 연결을 해제했어요.');
       onSuccess();
