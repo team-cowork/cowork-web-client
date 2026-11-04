@@ -1,8 +1,8 @@
 name: CI
 
 on:
+  # 스택 PR은 base가 다른 기능 브랜치이므로 base 브랜치를 제한하지 않습니다.
   pull_request:
-    branches: [develop, main]
   push:
     branches: [develop]
 
