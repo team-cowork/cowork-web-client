@@ -19,12 +19,14 @@ import { LiveStreamTile } from '@/features/live-session/ui/live-stream-tile';
 import { useVoiceSession } from '@/features/voice-session/model/voice-session-provider';
 import { VoiceControls } from '@/features/voice-session/ui/voice-controls';
 import { cn } from '@/shared/lib/cn';
+import { type CameraControl } from '@/shared/model/camera-control';
 import { Avatar } from '@/shared/ui/avatar';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { HeadphonesIcon } from '@/shared/ui/icons/headphones-icon';
 import { MonitorIcon } from '@/shared/ui/icons/monitor-icon';
+import { TrackVideo } from '@/shared/ui/track-video';
 
 export interface VoiceStageProps {
   channelId: number;
@@ -68,6 +70,22 @@ const WATCH_ERRORS: LiveErrorMessages = {
   forbidden: '이 채널의 방송을 볼 권한이 없습니다',
 };
 
+// 카메라 송출은 서버가 screen_share 권한으로 판정한다
+const CAMERA_FORBIDDEN =
+  '카메라 권한이 없습니다. 팀 관리자에게 화면 공유 권한을 요청하세요';
+
+function toCameraError(error: unknown): string {
+  const name = error instanceof Error ? error.name : undefined;
+
+  if (name === 'NotAllowedError')
+    return '브라우저에서 카메라가 차단되어 있습니다. 주소창의 사이트 설정에서 허용해 주세요';
+  if (name === 'NotFoundError') return '연결된 카메라를 찾지 못했습니다';
+  if (name === 'NotReadableError')
+    return '다른 앱이 카메라를 사용하고 있습니다';
+
+  return '카메라를 켜지 못했습니다';
+}
+
 function toLiveError(
   error: unknown,
   messages: LiveErrorMessages,
@@ -90,6 +108,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
   const [pending, setPending] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [focusOwnStream, setFocusOwnStream] = useState(false);
+  const [cameraPending, setCameraPending] = useState(false);
 
   const isCurrentChannel = session.channelId === channelId;
   const isConnected = isCurrentChannel && session.status === 'connected';
@@ -136,6 +155,12 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
   // 새로고침 등으로 연결이 끊긴 내 방송은 서버가 방을 지우는 중이라 이어갈 수
   // 없다. 다음 갱신에서 사라질 때까지 시청 타일로도 보여 주지 않는다
   const showLiveTile = hasLive && (activeLive !== null || !isMyLive);
+  // 카메라는 음성 방으로 송출되므로 이 채널 음성에 연결돼 있을 때만 보인다
+  const cameraByUserId = new Map(
+    (isConnected ? session.cameras : []).flatMap((camera) =>
+      camera.userId === null ? [] : [[camera.userId, camera]],
+    ),
+  );
 
   const stage: StageParticipant[] = isConnected
     ? session.participants.map((participant) => ({
@@ -207,6 +232,28 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
     }
   }
 
+  async function toggleCamera() {
+    setActionError(null);
+    setCameraPending(true);
+
+    try {
+      await session.toggleCamera();
+    } catch (error) {
+      setActionError(toCameraError(error));
+    } finally {
+      setCameraPending(false);
+    }
+  }
+
+  const cameraControl: CameraControl = {
+    enabled: session.cameraEnabled,
+    onToggle:
+      session.canUseCamera && !cameraPending
+        ? () => void toggleCamera()
+        : undefined,
+    unavailableLabel: session.canUseCamera ? undefined : CAMERA_FORBIDDEN,
+  };
+
   function goLive() {
     setFocusOwnStream(false);
 
@@ -243,6 +290,11 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
   }
 
   function renderParticipantCard(participant: StageParticipant) {
+    const camera =
+      participant.userId === null
+        ? undefined
+        : cameraByUserId.get(participant.userId);
+
     return (
       <VoiceParticipantCard
         user={
@@ -258,6 +310,8 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
         speaking={participant.speaking}
         muted={participant.muted}
         live={showLiveTile && participant.userId === liveHostUserId}
+        videoTrack={camera?.track}
+        mirrored={camera?.isLocal}
       />
     );
   }
@@ -308,23 +362,43 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
                     participant.userId === null
                       ? undefined
                       : userById.get(participant.userId);
+                  const camera =
+                    participant.userId === null
+                      ? undefined
+                      : cameraByUserId.get(participant.userId);
+                  const name =
+                    user?.nickname ??
+                    user?.name ??
+                    `#${participant.userId ?? participant.key}`;
 
                   return (
-                    <li key={participant.key}>
+                    <li key={participant.key} title={name}>
                       <span
                         className={cn(
-                          'inline-flex rounded-full border-2 p-0.5',
+                          'relative flex h-20 w-36 items-center justify-center overflow-hidden rounded-xl border-2 bg-surface-container',
                           participant.speaking
                             ? 'border-cowork-green-500'
                             : 'border-transparent',
                         )}
                       >
-                        <Avatar
-                          src={user?.profile_image_url ?? undefined}
-                          name={user?.name ?? `#${participant.userId ?? ''}`}
-                          size={40}
-                          shape="circle"
-                        />
+                        {camera ? (
+                          <TrackVideo
+                            track={camera.track}
+                            fit="cover"
+                            mirrored={camera.isLocal}
+                            className="rounded-none"
+                          />
+                        ) : (
+                          <Avatar
+                            src={user?.profile_image_url ?? undefined}
+                            name={user?.name ?? name}
+                            size={40}
+                            shape="circle"
+                          />
+                        )}
+                        <span className="absolute bottom-1 left-1.5 max-w-[calc(100%-0.75rem)] truncate rounded bg-black/60 px-1.5 typography-subtext-small text-white">
+                          {name}
+                        </span>
                       </span>
                     </li>
                   );
@@ -423,6 +497,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
             onToggleMic={() => void runVoice(session.toggleMic)}
             audioEnabled={session.audioEnabled}
             onToggleAudio={session.toggleAudio}
+            camera={cameraControl}
             screenSharing={isStreaming}
             onShareScreen={
               canShareScreen && !isLiveConnecting
