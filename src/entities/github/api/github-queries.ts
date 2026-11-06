@@ -18,7 +18,7 @@ export const githubQueries = {
       queryKey: [...githubQueries.all(), 'projectRepos', projectId],
       queryFn: () => getProjectGithubRepos(projectId),
     }),
-  // 한 저장소의 PR 보드·상세·변경 파일 키를 모두 포함하는 접두사예요. 무효화할 때 사용해요.
+  // 한 저장소의 PR 보드·상세·변경 파일 키를 모두 포함하는 접두사. 무효화할 때 쓴다.
   pulls: (projectId: number, repoId: number) =>
     [...githubQueries.all(), projectId, repoId, 'pulls'] as const,
   pullBoard: (projectId: number, repoId: number) =>
