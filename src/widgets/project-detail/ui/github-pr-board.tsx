@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
+import { type FallbackProps } from 'react-error-boundary';
 
 import { githubQueries } from '@/entities/github/api/github-queries';
 import { type GithubPullSummary } from '@/entities/github/model/github';
@@ -12,6 +13,8 @@ import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
+import { LoadingPane } from '@/shared/ui/loading-pane';
+import { QueryBoundary } from '@/shared/ui/query-boundary';
 import { SegmentedControl } from '@/shared/ui/segmented-control';
 import { GithubPrDetailModal } from '@/widgets/project-detail/ui/github-pr-detail-modal';
 
@@ -20,29 +23,51 @@ interface GithubPrBoardProps {
   canWrite: boolean;
 }
 
-export function GithubPrBoard({ projectId, canWrite }: GithubPrBoardProps) {
-  const [selectedRepoId, setSelectedRepoId] = useState<string>();
-  const repos = useQuery(githubQueries.projectRepos(projectId));
+function GithubPrReposError({ resetErrorBoundary }: FallbackProps) {
+  return (
+    <ErrorState
+      title="저장소를 불러오지 못했어요"
+      description="잠시 후 다시 시도해 주세요."
+      action={<Button onClick={resetErrorBoundary}>다시 시도</Button>}
+    />
+  );
+}
 
-  if (repos.isPending) {
-    return (
-      <p
-        role="status"
-        className="typography-subtext-medium text-on-surface-variant"
-      >
-        저장소를 불러오는 중이에요…
-      </p>
-    );
-  }
-  if (repos.isError) {
-    return (
-      <ErrorState
-        title="저장소를 불러오지 못했어요"
-        action={<Button onClick={() => void repos.refetch()}>다시 시도</Button>}
-      />
-    );
-  }
-  if (repos.data.length === 0) {
+function PullBoardError({ error, resetErrorBoundary }: FallbackProps) {
+  const upstreamError = isAxiosError(error) && error.response?.status === 502;
+
+  return (
+    <ErrorState
+      title="PR 보드를 불러오지 못했어요"
+      description={
+        upstreamError
+          ? 'GitHub 응답에 문제가 있어요. 잠시 후 다시 시도해 주세요.'
+          : '잠시 후 다시 시도해 주세요.'
+      }
+      action={<Button onClick={resetErrorBoundary}>다시 시도</Button>}
+    />
+  );
+}
+
+export function GithubPrBoard({ projectId, canWrite }: GithubPrBoardProps) {
+  return (
+    <QueryBoundary
+      loadingFallback={<LoadingPane label="저장소를 불러오는 중…" />}
+      errorFallback={GithubPrReposError}
+      resetKeys={[projectId]}
+    >
+      <GithubPrBoardContent projectId={projectId} canWrite={canWrite} />
+    </QueryBoundary>
+  );
+}
+
+function GithubPrBoardContent({ projectId, canWrite }: GithubPrBoardProps) {
+  const [selectedRepoId, setSelectedRepoId] = useState<string>();
+  const { data: repos } = useSuspenseQuery(
+    githubQueries.projectRepos(projectId),
+  );
+
+  if (repos.length === 0) {
     return (
       <EmptyState
         title="연결된 GitHub 저장소가 없어요"
@@ -52,17 +77,16 @@ export function GithubPrBoard({ projectId, canWrite }: GithubPrBoardProps) {
   }
 
   const selectedRepo =
-    repos.data.find((repo) => String(repo.id) === selectedRepoId) ??
-    repos.data[0];
+    repos.find((repo) => String(repo.id) === selectedRepoId) ?? repos[0];
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
-      {repos.data.length > 1 && (
+      {repos.length > 1 && (
         <div className="overflow-x-auto" aria-label="PR 저장소 선택">
           <SegmentedControl
             value={String(selectedRepo.id)}
             onChange={setSelectedRepoId}
-            options={repos.data.map((repo) => ({
+            options={repos.map((repo) => ({
               value: String(repo.id),
               label: repo.githubRepoUrl
                 .replace(/^https?:\/\/github\.com\//, '')
@@ -72,12 +96,18 @@ export function GithubPrBoard({ projectId, canWrite }: GithubPrBoardProps) {
           />
         </div>
       )}
-      <PullBoard
-        key={`${projectId}-${selectedRepo.id}`}
-        projectId={projectId}
-        repoId={selectedRepo.id}
-        canWrite={canWrite}
-      />
+      <QueryBoundary
+        loadingFallback={<LoadingPane label="PR을 불러오는 중…" />}
+        errorFallback={PullBoardError}
+        resetKeys={[projectId, selectedRepo.id]}
+      >
+        <PullBoard
+          key={`${projectId}-${selectedRepo.id}`}
+          projectId={projectId}
+          repoId={selectedRepo.id}
+          canWrite={canWrite}
+        />
+      </QueryBoundary>
     </div>
   );
 }
@@ -90,38 +120,14 @@ function PullBoard({
   const [selectedPull, setSelectedPull] = useState<GithubPullSummary | null>(
     null,
   );
-  const board = useQuery(githubQueries.pullBoard(projectId, repoId));
-
-  if (board.isPending) {
-    return (
-      <p
-        role="status"
-        className="typography-subtext-medium text-on-surface-variant"
-      >
-        PR을 불러오는 중이에요…
-      </p>
-    );
-  }
-  if (board.isError) {
-    const upstreamError =
-      isAxiosError(board.error) && board.error.response?.status === 502;
-    return (
-      <ErrorState
-        title="PR 보드를 불러오지 못했어요"
-        description={
-          upstreamError
-            ? 'GitHub 응답에 문제가 있어요. 잠시 후 다시 시도해 주세요.'
-            : '잠시 후 다시 시도해 주세요.'
-        }
-        action={<Button onClick={() => void board.refetch()}>다시 시도</Button>}
-      />
-    );
-  }
+  const { data: board } = useSuspenseQuery(
+    githubQueries.pullBoard(projectId, repoId),
+  );
 
   // 서버가 분류한 그룹과 순서를 그대로 보여준다.
   const columns = [
-    { title: 'Draft', pulls: board.data.draft },
-    { title: '리뷰 중', pulls: board.data.inReview },
+    { title: 'Draft', pulls: board.draft },
+    { title: '리뷰 중', pulls: board.inReview },
   ];
 
   return (
