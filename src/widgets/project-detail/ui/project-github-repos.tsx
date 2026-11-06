@@ -57,7 +57,7 @@ export function ProjectGithubRepos({
             const channel = channels.data?.find(
               (candidate) => candidate.id === repo.githubWebhookChannelId,
             );
-            // 저장소 응답에는 이름이 없어 GitHub URL의 owner/name을 표시해요.
+            // 저장소 응답에는 이름이 없어 GitHub URL의 owner/name을 표시한다.
             const name = repo.githubRepoUrl
               .replace(/^https?:\/\/github\.com\//, '')
               .replace(/\/$/, '')
