@@ -1,8 +1,11 @@
+import { type Track } from 'livekit-client';
+
 import { type User } from '@/entities/user/model/user';
 import { cn } from '@/shared/lib/cn';
 import { Avatar } from '@/shared/ui/avatar';
 import { MicIcon } from '@/shared/ui/icons/mic-icon';
 import { MicOffIcon } from '@/shared/ui/icons/mic-off-icon';
+import { TrackVideo } from '@/shared/ui/track-video';
 
 export interface VoiceParticipantCardProps {
   user?: User;
@@ -10,6 +13,9 @@ export interface VoiceParticipantCardProps {
   speaking?: boolean;
   muted?: boolean;
   live?: boolean;
+  /** 카메라를 켰으면 아바타 대신 영상을 보여 준다 */
+  videoTrack?: Track;
+  mirrored?: boolean;
   className?: string;
 }
 
@@ -19,11 +25,47 @@ export function VoiceParticipantCard({
   speaking = false,
   muted = false,
   live = false,
+  videoTrack,
+  mirrored = false,
   className,
 }: VoiceParticipantCardProps) {
   const displayName =
     user?.nickname ?? user?.name ?? fallbackName ?? '알 수 없음';
   const MicStateIcon = muted ? MicOffIcon : MicIcon;
+  const liveBadge = live && (
+    <span className="shrink-0 rounded-md bg-error px-1.5 py-0.5 text-[0.6875rem] font-bold text-on-error">
+      LIVE
+    </span>
+  );
+
+  if (videoTrack)
+    return (
+      <div
+        className={cn(
+          'relative h-49 w-70 overflow-hidden rounded-2xl border-[3px] bg-black',
+          speaking ? 'border-cowork-green-500' : 'border-transparent',
+          className,
+        )}
+      >
+        <TrackVideo
+          track={videoTrack}
+          fit="cover"
+          mirrored={mirrored}
+          className="rounded-none"
+        />
+        <span className="absolute bottom-2 left-2 flex max-w-[calc(100%-1rem)] items-center gap-1.5 rounded-lg bg-black/60 px-2 py-1">
+          <MicStateIcon
+            size={14}
+            aria-label={muted ? '마이크 꺼짐' : '마이크 켜짐'}
+            className="shrink-0 text-white"
+          />
+          <span className="truncate typography-subtext-medium text-white">
+            {displayName}
+          </span>
+          {liveBadge}
+        </span>
+      </div>
+    );
 
   return (
     <div
@@ -58,11 +100,7 @@ export function VoiceParticipantCard({
         <span className="truncate typography-label-small text-on-surface">
           {displayName}
         </span>
-        {live && (
-          <span className="shrink-0 rounded-md bg-error px-1.5 py-0.5 text-[0.6875rem] font-bold text-on-error">
-            LIVE
-          </span>
-        )}
+        {liveBadge}
       </span>
     </div>
   );
