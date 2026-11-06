@@ -12,7 +12,7 @@ export interface DialogProps {
   description?: string;
   children?: ReactNode;
   className?: string;
-  /** false면 바깥 클릭과 ESC로 닫히지 않고, 안의 버튼으로만 닫을 수 있어요. */
+  /** false면 바깥 클릭과 ESC로 닫히지 않고, 안의 버튼으로만 닫을 수 있다. */
   dismissible?: boolean;
 }
 
