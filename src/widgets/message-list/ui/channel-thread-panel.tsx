@@ -5,7 +5,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { type Message } from '@/entities/message/model/message';
 import { useSendMessage } from '@/features/message-send/model/use-send-message';
-import { ThreadPanel } from '@/widgets/thread-panel/ui/thread-panel';
+import { ThreadPanel } from '@/widgets/message-list/ui/thread-panel';
 
 export interface ChannelThreadPanelProps {
   channelId: number;

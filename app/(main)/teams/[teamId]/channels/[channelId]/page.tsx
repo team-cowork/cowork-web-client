@@ -13,14 +13,14 @@ import { useLastChannelStore } from '@/entities/channel/model/last-channel-store
 import { LiveStatusBadge } from '@/entities/live/ui/live-status-badge';
 import { toThreadRoot } from '@/entities/message/lib/to-thread-root';
 import { type Message } from '@/entities/message/model/message';
-import { VoiceParticipantBadge } from '@/entities/voice/ui/voice-participant-badge';
+import { VoiceParticipantBadge } from '@/features/voice-session/ui/voice-participant-badge';
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
 import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { FileSharePanel } from '@/widgets/file-share/ui/file-share-panel';
 import { MemberPanel } from '@/widgets/member-panel/ui/member-panel';
 import { MessageSearchPanel } from '@/widgets/message-search/ui/message-search-panel';
-import { PinnedMessagesPanel } from '@/widgets/pinned-panel/ui/pinned-messages-panel';
-import { ChannelThreadPanel } from '@/widgets/thread-panel/ui/channel-thread-panel';
+import { PinnedMessagesPanel } from '@/widgets/message-list/ui/pinned-messages-panel';
+import { ChannelThreadPanel } from '@/widgets/message-list/ui/channel-thread-panel';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';

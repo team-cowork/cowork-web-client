@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -8,17 +8,23 @@ import { UserStatusPopover } from '@/features/user-status/ui/user-status-popover
 import { userQueries } from '@/entities/user/api/user-queries';
 import { USER_STATUS_LABEL, type UserStatus } from '@/entities/user/model/user';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
-import { MyProfile } from '@/widgets/my-profile/ui/my-profile';
-import { ProfileSettings } from '@/widgets/profile-settings/ui/profile-settings';
 import { cn } from '@/shared/lib/cn';
 import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 import { Modal } from '@/shared/ui/modal';
 
 export interface UserFooterProps {
+  /** 프로필 모달 내용. 편집을 누르면 onEdit으로 설정 모달로 넘어간다. */
+  renderProfile: (onEdit: () => void) => ReactNode;
+  /** 설정 모달 내용 */
+  settings: ReactNode;
   className?: string;
 }
 
-export function UserFooter({ className }: UserFooterProps) {
+export function UserFooter({
+  renderProfile,
+  settings,
+  className,
+}: UserFooterProps) {
   const { data: user } = useQuery(userQueries.me());
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -103,7 +109,7 @@ export function UserFooter({ className }: UserFooterProps) {
         title="프로필"
         className="w-[800px]"
       >
-        <MyProfile onEdit={handleEdit} />
+        {renderProfile(handleEdit)}
       </Modal>
 
       <Modal
@@ -112,7 +118,7 @@ export function UserFooter({ className }: UserFooterProps) {
         title="설정 · 프로필"
         className="w-[760px]"
       >
-        <ProfileSettings />
+        {settings}
       </Modal>
     </div>
   );
