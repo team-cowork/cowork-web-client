@@ -20,7 +20,7 @@ export function useCreateWebhook(
   const submission = useRef<{ signature: string; key: string } | null>(null);
 
   return useMutation({
-    // 요청 실패 시 같은 제출을 재시도할 수 있도록 키를 유지합니다.
+    // 요청이 실패해도 같은 제출을 재시도할 수 있도록 키를 유지한다.
     mutationFn: async (request: CreateWebhookRequest) => {
       const signature = JSON.stringify(request);
       if (submission.current?.signature !== signature) {
@@ -32,7 +32,7 @@ export function useCreateWebhook(
         submission.current.key,
       );
       submission.current = null;
-      // 비밀키는 React Query mutation 캐시에 저장하지 않습니다.
+      // 비밀키는 React Query mutation 캐시에 저장하지 않는다.
       onCreated(webhook.token ?? null);
     },
     onSuccess: () => {

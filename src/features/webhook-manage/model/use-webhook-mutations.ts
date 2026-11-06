@@ -67,7 +67,7 @@ export function useWebhookMutations(
         securitySubmission.current.key,
       );
       securitySubmission.current = null;
-      // 비밀키는 일회성 다이얼로그로만 전달하고 mutation 캐시에 담지 않습니다.
+      // 비밀키는 일회성 다이얼로그로만 전달하고 mutation 캐시에 담지 않는다.
       if (isSecure && webhook.token != null) onToken(webhook.token);
     },
     onSuccess: () => {
