@@ -11,7 +11,7 @@ interface GithubPrActionsProps {
   projectId: number;
   repoId: number;
   prNumber: number;
-  /** 머지할 수 없는 이유. 값이 있으면 머지 버튼을 막고 이유를 보여줘요. */
+  /** 머지할 수 없는 이유. 값이 있으면 머지 버튼을 막고 이유를 보여준다. */
   mergeBlockedReason?: string;
 }
 
