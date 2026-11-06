@@ -20,6 +20,9 @@ import { voiceQueries } from '@/entities/voice/api/voice-queries';
 import { type VoiceRoomParticipant } from '@/entities/voice/model/voice';
 import {
   applyRemoteVolume,
+  canPublishCamera,
+  type RoomCamera,
+  toRoomCameras,
   toRoomParticipants,
 } from '@/shared/lib/livekit-room';
 
@@ -31,12 +34,17 @@ interface VoiceSessionContextValue {
   connectedAt: string | null;
   status: VoiceSessionStatus;
   participants: VoiceRoomParticipant[];
+  /** 카메라를 켠 참가자. 서버는 screen_share 권한이 있을 때만 카메라 송출을 허용한다 */
+  cameras: RoomCamera[];
+  cameraEnabled: boolean;
+  canUseCamera: boolean;
   micEnabled: boolean;
   audioEnabled: boolean;
   join: (channelId: number) => Promise<void>;
   leave: () => Promise<void>;
   toggleMic: () => Promise<void>;
   toggleAudio: () => void;
+  toggleCamera: () => Promise<void>;
 }
 
 const VoiceSessionContext = createContext<VoiceSessionContextValue | null>(
@@ -65,6 +73,9 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const [connectedAt, setConnectedAt] = useState<string | null>(null);
   const [status, setStatus] = useState<VoiceSessionStatus>('idle');
   const [participants, setParticipants] = useState<VoiceRoomParticipant[]>([]);
+  const [cameras, setCameras] = useState<RoomCamera[]>([]);
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [canUseCamera, setCanUseCamera] = useState(false);
   const [micEnabled, setMicEnabled] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
 
@@ -77,6 +88,15 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     setConnectedAt(null);
     setStatus('idle');
     setParticipants([]);
+    setCameras([]);
+    setCameraEnabled(false);
+    setCanUseCamera(false);
+  }, []);
+
+  const syncRoom = useCallback((room: Room) => {
+    setParticipants(toRoomParticipants(room));
+    setCameras(toRoomCameras(room));
+    setCameraEnabled(room.localParticipant.isCameraEnabled);
   }, []);
 
   const runExclusive = useCallback((task: () => Promise<void>) => {
@@ -134,7 +154,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
         room = new Room({ adaptiveStream: true, dynacast: true });
         const boundRoom = room;
         const sync = () => {
-          if (isCurrent()) setParticipants(toRoomParticipants(boundRoom));
+          if (isCurrent()) syncRoom(boundRoom);
         };
 
         room
@@ -148,6 +168,15 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
           .on(RoomEvent.TrackUnmuted, sync)
           .on(RoomEvent.LocalTrackPublished, sync)
           .on(RoomEvent.LocalTrackUnpublished, sync)
+          .on(RoomEvent.TrackSubscribed, sync)
+          .on(RoomEvent.TrackUnsubscribed, sync)
+          // 팀 역할이 바뀌면 서버가 접속 중에도 카메라 송출 권한을 갱신한다
+          .on(RoomEvent.ParticipantPermissionsChanged, (_, participant) => {
+            if (!participant.isLocal || !isCurrent()) return;
+
+            setCanUseCamera(canPublishCamera(boundRoom));
+            sync();
+          })
           .on(RoomEvent.Disconnected, () => {
             if (!isCurrent()) return;
 
@@ -171,6 +200,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
         if (!room.canPlaybackAudio) await room.startAudio();
         applyRemoteVolume(room, audioEnabledRef.current);
 
+        setCanUseCamera(canPublishCamera(room));
         setSessionId(session.session_id);
         setStatus('connected');
         setConnectedAt(new Date().toISOString());
@@ -190,7 +220,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    [disconnect, micEnabled, notifyLeave, queryClient, reset],
+    [disconnect, micEnabled, notifyLeave, queryClient, reset, syncRoom],
   );
 
   const join = useCallback(
@@ -229,6 +259,18 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     if (roomRef.current) applyRemoteVolume(roomRef.current, next);
   }, [audioEnabled]);
 
+  const toggleCamera = useCallback(async () => {
+    const room = roomRef.current;
+    if (!room) return;
+
+    await room.localParticipant.setCameraEnabled(
+      !room.localParticipant.isCameraEnabled,
+    );
+
+    // 기다리는 사이 채널을 나갔다면 새 연결의 상태를 덮어쓰지 않는다
+    if (roomRef.current === room) syncRoom(room);
+  }, [syncRoom]);
+
   useEffect(() => {
     return () => {
       roomRef.current?.disconnect();
@@ -242,15 +284,22 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       connectedAt,
       status,
       participants,
+      cameras,
+      cameraEnabled,
+      canUseCamera,
       micEnabled,
       audioEnabled,
       join,
       leave,
       toggleMic,
       toggleAudio,
+      toggleCamera,
     }),
     [
       audioEnabled,
+      cameraEnabled,
+      cameras,
+      canUseCamera,
       channelId,
       join,
       leave,
@@ -260,6 +309,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       connectedAt,
       status,
       toggleAudio,
+      toggleCamera,
       toggleMic,
     ],
   );
