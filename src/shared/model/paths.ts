@@ -59,3 +59,7 @@ export function channelSettingsWebhooksPath(
 ): string {
   return `/teams/${teamId}/channels/${channelId}/settings/webhooks`;
 }
+
+export function teamSettingsGithubPath(teamId: number): string {
+  return `/teams/${teamId}/settings/github`;
+}
