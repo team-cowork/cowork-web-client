@@ -22,7 +22,7 @@ export function useConnectGithubRepo(projectId: number, onClose: () => void) {
       onClose();
     },
     onError: (error) => {
-      // 연결 요청의 400은 GitHub 미연동이 아니라 유효하지 않은 저장소 URL이에요.
+      // 연결 요청의 400은 GitHub 미연동이 아니라 유효하지 않은 저장소 URL을 뜻한다.
       const status = isAxiosError(error) ? error.response?.status : undefined;
       toast(
         status === 400

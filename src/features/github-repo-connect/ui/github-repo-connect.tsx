@@ -57,7 +57,7 @@ function ConnectRepos({
 }) {
   const router = useRouter();
   const [filter, setFilter] = useState('');
-  // 400(팀 GitHub 미연동)은 재시도해도 같으므로 바로 안내 화면을 보여줘요.
+  // 400(팀 GitHub 미연동)은 재시도해도 같으므로 바로 안내 화면을 보여준다.
   const repos = useQuery({
     ...githubQueries.orgRepos(projectId),
     retry: false,
