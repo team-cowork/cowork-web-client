@@ -18,7 +18,7 @@ export function useApprovePull(
   return useMutation({
     mutationFn: () => postGithubPullApprove(projectId, repoId, prNumber),
     onSuccess: () => {
-      // 비동기 요청 접수이므로 승인·머지 완료로 표시하지 않아요.
+      // 비동기 요청 접수이므로 승인·머지 완료로 표시하지 않는다.
       toast('요청을 보냈어요. 결과는 GitHub에서 확인해 주세요');
       void queryClient.invalidateQueries({
         queryKey: githubQueries.pulls(projectId, repoId),

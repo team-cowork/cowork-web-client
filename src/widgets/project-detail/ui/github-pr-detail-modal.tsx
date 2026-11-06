@@ -14,7 +14,7 @@ interface GithubPrDetailModalProps {
   projectId: number;
   repoId: number;
   prNumber: number;
-  /** 상세 응답에는 Draft 여부가 없어 보드 카드 값을 받아요. */
+  /** 상세 응답에는 Draft 여부가 없어 보드 카드 값을 받는다. */
   draft: boolean;
   canWrite: boolean;
   onClose: () => void;
@@ -30,7 +30,7 @@ export function GithubPrDetailModal({
 }: GithubPrDetailModalProps) {
   const pull = useQuery(githubQueries.pull(projectId, repoId, prNumber));
   const files = useQuery(githubQueries.pullFiles(projectId, repoId, prNumber));
-  // 머지 API는 결과를 알려주지 않아서, 실패가 확실한 요청은 미리 막아요.
+  // 머지 API는 결과를 알려주지 않아서, 실패가 확실한 요청은 미리 막는다.
   const mergeBlockedReason = draft
     ? 'Draft PR은 머지할 수 없어요.'
     : pull.data?.mergeable === false

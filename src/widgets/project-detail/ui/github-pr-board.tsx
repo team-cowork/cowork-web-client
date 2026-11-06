@@ -118,7 +118,7 @@ function PullBoard({
     );
   }
 
-  // 서버가 분류한 그룹과 순서를 그대로 보여줘요.
+  // 서버가 분류한 그룹과 순서를 그대로 보여준다.
   const columns = [
     { title: 'Draft', pulls: board.data.draft },
     { title: '리뷰 중', pulls: board.data.inReview },
