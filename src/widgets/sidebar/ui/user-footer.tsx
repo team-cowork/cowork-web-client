@@ -13,7 +13,7 @@ import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 import { Modal } from '@/shared/ui/modal';
 
 export interface UserFooterProps {
-  /** 프로필 모달 내용. 편집을 누르면 onEdit으로 설정 모달로 넘어가요. */
+  /** 프로필 모달 내용. 편집을 누르면 onEdit으로 설정 모달로 넘어간다. */
   renderProfile: (onEdit: () => void) => ReactNode;
   /** 설정 모달 내용 */
   settings: ReactNode;

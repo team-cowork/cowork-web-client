@@ -38,7 +38,7 @@ export interface InviteTeamMembersModalProps {
   open: boolean;
   teamId: number;
   onClose: () => void;
-  /** 초대 링크처럼 다른 기능이 제공하는 영역. 폼 아래에 그대로 붙여요. */
+  /** 초대 링크처럼 다른 기능이 제공하는 영역. 폼 아래에 그대로 붙인다. */
   inviteLinkSection?: ReactNode;
 }
 

@@ -8,8 +8,8 @@ import { ProfileSettings } from '@/widgets/profile-settings/ui/profile-settings'
 import { UserFooter } from '@/widgets/sidebar/ui/user-footer';
 
 /**
- * 메인 화면 왼쪽 사이드바. 여러 위젯을 조합하므로 위젯이 아닌 app 레이어에 둡니다.
- * 팀 화면이면 채널 목록, 아니면 DM 목록을 보여줘요.
+ * 메인 화면 왼쪽 사이드바. 여러 위젯을 조합하므로 위젯이 아닌 app 레이어에 둔다.
+ * 팀 화면이면 채널 목록, 아니면 DM 목록을 보여준다.
  */
 export function MainSidebar() {
   const { teamId } = useRouteIds();
