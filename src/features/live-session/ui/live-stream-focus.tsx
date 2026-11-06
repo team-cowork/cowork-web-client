@@ -4,10 +4,10 @@ import { type ReactNode } from 'react';
 
 import { type Track } from 'livekit-client';
 
-import { LiveScreenView } from '@/features/live-session/ui/live-screen-view';
 import { cn } from '@/shared/lib/cn';
 import { useElapsedTime } from '@/shared/lib/use-elapsed-time';
 import { HeadphonesIcon } from '@/shared/ui/icons/headphones-icon';
+import { TrackVideo } from '@/shared/ui/track-video';
 
 export interface LiveStreamFocusProps {
   track: Track | null;
@@ -40,7 +40,7 @@ export function LiveStreamFocus({
     <div className={cn('flex min-h-0 w-full flex-1 flex-col gap-4', className)}>
       <div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl bg-black">
         {track ? (
-          <LiveScreenView track={track} className="rounded-none" />
+          <TrackVideo track={track} className="rounded-none" />
         ) : (
           <div className="flex h-full items-center justify-center">
             <p className="typography-label-small text-cowork-neutral-300">

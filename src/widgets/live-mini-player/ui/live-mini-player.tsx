@@ -10,12 +10,12 @@ import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { liveQueries } from '@/entities/live/api/live-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { useLiveSession } from '@/features/live-session/model/live-session-provider';
-import { LiveScreenView } from '@/features/live-session/ui/live-screen-view';
 import { cn } from '@/shared/lib/cn';
 import { useElapsedTime } from '@/shared/lib/use-elapsed-time';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { channelPath } from '@/shared/model/paths';
 import { MonitorIcon } from '@/shared/ui/icons/monitor-icon';
+import { TrackVideo } from '@/shared/ui/track-video';
 
 const EDGE_GAP = 8;
 const DRAG_THRESHOLD = 4;
@@ -219,7 +219,7 @@ export function LiveMiniPlayer() {
         className="block aspect-video w-full cursor-grab"
       >
         {live.screenShareTrack ? (
-          <LiveScreenView
+          <TrackVideo
             track={live.screenShareTrack}
             className="pointer-events-none rounded-none"
           />

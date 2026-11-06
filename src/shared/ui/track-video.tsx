@@ -6,12 +6,12 @@ import { type Track } from 'livekit-client';
 
 import { cn } from '@/shared/lib/cn';
 
-export interface LiveScreenViewProps {
+export interface TrackVideoProps {
   track: Track;
   className?: string;
 }
 
-export function LiveScreenView({ track, className }: LiveScreenViewProps) {
+export function TrackVideo({ track, className }: TrackVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export function LiveScreenView({ track, className }: LiveScreenViewProps) {
     };
   }, [track]);
 
-  // 화면 공유 오디오는 별도 트랙으로 재생되므로 영상은 항상 음소거한다
+  // 소리는 별도 오디오 트랙으로 재생되므로 영상은 항상 음소거한다
   return (
     <video
       ref={videoRef}

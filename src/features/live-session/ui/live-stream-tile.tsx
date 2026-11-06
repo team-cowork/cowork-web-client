@@ -2,11 +2,11 @@
 
 import { type Track } from 'livekit-client';
 
-import { LiveScreenView } from '@/features/live-session/ui/live-screen-view';
 import { cn } from '@/shared/lib/cn';
 import { useElapsedTime } from '@/shared/lib/use-elapsed-time';
 import { Button } from '@/shared/ui/button';
 import { MonitorIcon } from '@/shared/ui/icons/monitor-icon';
+import { TrackVideo } from '@/shared/ui/track-video';
 
 export interface LiveStreamTileProps {
   hostName: string;
@@ -41,7 +41,7 @@ export function LiveStreamTile({
       )}
     >
       {previewTrack ? (
-        <LiveScreenView
+        <TrackVideo
           track={previewTrack}
           className="absolute inset-0 rounded-none opacity-60"
         />
