@@ -39,6 +39,7 @@ import {
   applyRemoteVolume,
   type RoomParticipantSnapshot,
   toRoomParticipants,
+  toUserId,
 } from '@/shared/lib/livekit-room';
 
 type ConnectIntent = 'start' | 'watch';
@@ -299,7 +300,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
         await room.connect(session.livekit_url, session.token);
         roomRef.current = room;
 
-        const localUserId = Number.parseInt(room.localParticipant.identity, 10);
+        const localUserId = toUserId(room.localParticipant.identity);
         const isHost = intent === 'start';
 
         isHostRef.current = isHost;
@@ -319,11 +320,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
           type: 'CONNECTED',
           sessionId: session.session_id,
           role: isHost ? 'host' : 'viewer',
-          hostUserId: isHost
-            ? Number.isNaN(localUserId)
-              ? null
-              : localUserId
-            : session.host_user_id,
+          hostUserId: isHost ? localUserId : session.host_user_id,
         });
         sync();
 
