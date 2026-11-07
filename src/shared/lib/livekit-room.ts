@@ -8,20 +8,23 @@ export interface RoomParticipantSnapshot {
   isLocal: boolean;
 }
 
+// 서버는 LiveKit identity에 사용자 ID를 넣는다. 참여자와 카메라를 같은 규칙으로 묶어야 카드에 영상이 붙는다
+export function toUserId(identity: string): number | null {
+  const userId = Number.parseInt(identity, 10);
+
+  return Number.isNaN(userId) ? null : userId;
+}
+
 export function toRoomParticipants(room: Room): RoomParticipantSnapshot[] {
   const all = [room.localParticipant, ...room.remoteParticipants.values()];
 
-  return all.map((participant) => {
-    const userId = Number.parseInt(participant.identity, 10);
-
-    return {
-      identity: participant.identity,
-      userId: Number.isNaN(userId) ? null : userId,
-      speaking: participant.isSpeaking,
-      muted: !participant.isMicrophoneEnabled,
-      isLocal: participant.isLocal,
-    };
-  });
+  return all.map((participant) => ({
+    identity: participant.identity,
+    userId: toUserId(participant.identity),
+    speaking: participant.isSpeaking,
+    muted: !participant.isMicrophoneEnabled,
+    isLocal: participant.isLocal,
+  }));
 }
 
 export interface RoomCamera {
@@ -39,12 +42,10 @@ export function toRoomCameras(room: Room): RoomCamera[] {
     // 카메라를 끄면 발행은 남기고 음소거만 하므로 꺼진 트랙은 뺀다
     if (!publication?.track || publication.isMuted) return [];
 
-    const userId = Number.parseInt(participant.identity, 10);
-
     return [
       {
         identity: participant.identity,
-        userId: Number.isNaN(userId) ? null : userId,
+        userId: toUserId(participant.identity),
         track: publication.track,
         isLocal: participant.isLocal,
       },
