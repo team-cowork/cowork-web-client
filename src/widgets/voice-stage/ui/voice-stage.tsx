@@ -258,11 +258,13 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
 
   const cameraControl: CameraControl = {
     enabled: session.cameraEnabled,
-    onToggle:
-      session.canUseCamera && !cameraPending
-        ? () => void toggleCamera()
-        : undefined,
-    unavailableLabel: session.canUseCamera ? undefined : CAMERA_FORBIDDEN,
+    // 권한이 없으면 화면 공유처럼 컨트롤 위 문구로 이유를 보여 준다
+    onToggle: !session.canUseCamera
+      ? () => setActionError(CAMERA_FORBIDDEN)
+      : cameraPending
+        ? undefined
+        : () => void toggleCamera(),
+    unavailable: !session.canUseCamera,
   };
 
   function goLive() {

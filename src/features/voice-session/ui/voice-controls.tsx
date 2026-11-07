@@ -79,9 +79,15 @@ export function VoiceControls({
       {camera && (
         <button
           type="button"
-          aria-label={camera.enabled ? '카메라 끄기' : '카메라 켜기'}
+          aria-label={
+            camera.unavailable
+              ? '카메라 권한 없음'
+              : camera.enabled
+                ? '카메라 끄기'
+                : '카메라 켜기'
+          }
           aria-pressed={camera.enabled}
-          title={camera.onToggle ? undefined : camera.unavailableLabel}
+          aria-disabled={camera.unavailable}
           onClick={camera.onToggle}
           disabled={!camera.onToggle}
           className={cn(
@@ -89,6 +95,7 @@ export function VoiceControls({
             camera.enabled
               ? 'bg-primary text-on-primary'
               : 'bg-surface-container text-on-surface hover:bg-surface-container-high',
+            camera.unavailable && 'opacity-50',
           )}
         >
           {camera.enabled ? (
