@@ -259,17 +259,22 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     if (roomRef.current) applyRemoteVolume(roomRef.current, next);
   }, [audioEnabled]);
 
-  const toggleCamera = useCallback(async () => {
-    const room = roomRef.current;
-    if (!room) return;
+  // 브라우저 권한 창을 기다리는 사이 나가기가 먼저 끝나면 새로 만든 카메라
+  // 트랙을 정리하지 못하므로, 입장·나가기와 같은 대기열에서 순서대로 처리한다
+  const toggleCamera = useCallback(
+    () =>
+      runExclusive(async () => {
+        const room = roomRef.current;
+        if (!room) return;
 
-    await room.localParticipant.setCameraEnabled(
-      !room.localParticipant.isCameraEnabled,
-    );
+        await room.localParticipant.setCameraEnabled(
+          !room.localParticipant.isCameraEnabled,
+        );
 
-    // 기다리는 사이 채널을 나갔다면 새 연결의 상태를 덮어쓰지 않는다
-    if (roomRef.current === room) syncRoom(room);
-  }, [syncRoom]);
+        if (roomRef.current === room) syncRoom(room);
+      }),
+    [runExclusive, syncRoom],
+  );
 
   useEffect(() => {
     return () => {
