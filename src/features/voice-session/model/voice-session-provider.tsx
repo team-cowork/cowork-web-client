@@ -45,6 +45,7 @@ interface VoiceSessionContextValue {
   toggleMic: () => Promise<void>;
   toggleAudio: () => void;
   toggleCamera: () => Promise<void>;
+  stopCamera: () => Promise<void>;
 }
 
 const VoiceSessionContext = createContext<VoiceSessionContextValue | null>(
@@ -276,6 +277,19 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     [runExclusive, syncRoom],
   );
 
+  const stopCamera = useCallback(
+    () =>
+      runExclusive(async () => {
+        const room = roomRef.current;
+        if (!room?.localParticipant.isCameraEnabled) return;
+
+        await room.localParticipant.setCameraEnabled(false);
+
+        if (roomRef.current === room) syncRoom(room);
+      }),
+    [runExclusive, syncRoom],
+  );
+
   useEffect(() => {
     return () => {
       roomRef.current?.disconnect();
@@ -299,6 +313,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       toggleMic,
       toggleAudio,
       toggleCamera,
+      stopCamera,
     }),
     [
       audioEnabled,
@@ -313,6 +328,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       sessionId,
       connectedAt,
       status,
+      stopCamera,
       toggleAudio,
       toggleCamera,
       toggleMic,

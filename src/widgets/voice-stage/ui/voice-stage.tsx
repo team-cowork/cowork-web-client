@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
@@ -109,6 +109,17 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [focusOwnStream, setFocusOwnStream] = useState(false);
   const [cameraPending, setCameraPending] = useState(false);
+
+  // 음성 연결은 다른 화면에서도 유지되지만, 카메라는 켜져 있다는 표시와 끌
+  // 수단이 이 화면에만 있다. 모르는 사이 영상이 나가지 않게 벗어나면 끈다
+  const { stopCamera } = session;
+
+  useEffect(
+    () => () => {
+      void stopCamera().catch(() => undefined);
+    },
+    [channelId, stopCamera],
+  );
 
   const isCurrentChannel = session.channelId === channelId;
   const isConnected = isCurrentChannel && session.status === 'connected';
