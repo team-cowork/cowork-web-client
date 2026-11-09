@@ -8,19 +8,48 @@ export interface RoomParticipantSnapshot {
   isLocal: boolean;
 }
 
+// 서버는 LiveKit identity에 사용자 ID를 넣는다. 참여자와 카메라를 같은 규칙으로 묶어야 카드에 영상이 붙는다
+export function toUserId(identity: string): number | null {
+  const userId = Number.parseInt(identity, 10);
+
+  return Number.isNaN(userId) ? null : userId;
+}
+
 export function toRoomParticipants(room: Room): RoomParticipantSnapshot[] {
   const all = [room.localParticipant, ...room.remoteParticipants.values()];
 
-  return all.map((participant) => {
-    const userId = Number.parseInt(participant.identity, 10);
+  return all.map((participant) => ({
+    identity: participant.identity,
+    userId: toUserId(participant.identity),
+    speaking: participant.isSpeaking,
+    muted: !participant.isMicrophoneEnabled,
+    isLocal: participant.isLocal,
+  }));
+}
 
-    return {
-      identity: participant.identity,
-      userId: Number.isNaN(userId) ? null : userId,
-      speaking: participant.isSpeaking,
-      muted: !participant.isMicrophoneEnabled,
-      isLocal: participant.isLocal,
-    };
+export interface RoomCamera {
+  identity: string;
+  userId: number | null;
+  track: Track;
+  isLocal: boolean;
+}
+
+export function toRoomCameras(room: Room): RoomCamera[] {
+  const all = [room.localParticipant, ...room.remoteParticipants.values()];
+
+  return all.flatMap((participant) => {
+    const publication = participant.getTrackPublication(Track.Source.Camera);
+    // 카메라를 끄면 발행은 남기고 음소거만 하므로 꺼진 트랙은 뺀다
+    if (!publication?.track || publication.isMuted) return [];
+
+    return [
+      {
+        identity: participant.identity,
+        userId: toUserId(participant.identity),
+        track: publication.track,
+        isLocal: participant.isLocal,
+      },
+    ];
   });
 }
 
@@ -31,4 +60,18 @@ export function applyRemoteVolume(room: Room, enabled: boolean) {
     participant.setVolume(volume);
     participant.setVolume(volume, Track.Source.ScreenShareAudio);
   });
+}
+
+// 서버는 screen_share 권한이 있을 때만 토큰에 카메라 송출을 넣는다
+export function canPublishCamera(room: Room) {
+  const permissions = room.localParticipant.permissions;
+
+  if (!permissions?.canPublish) return false;
+
+  const sources = permissions.canPublishSources;
+
+  return (
+    sources.length === 0 ||
+    sources.includes(Track.sourceToProto(Track.Source.Camera))
+  );
 }
