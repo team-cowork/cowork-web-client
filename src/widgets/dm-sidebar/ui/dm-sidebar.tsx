@@ -8,6 +8,7 @@ import { type FallbackProps } from 'react-error-boundary';
 import { NewDmModal } from '@/features/dm-open/ui/new-dm-modal';
 import { JoinTeamModal } from '@/features/team-join/ui/join-team-modal';
 import { dmQueries } from '@/entities/dm/api/dm-queries';
+import { useDmListEvents } from '@/entities/dm/model/use-dm-list-events';
 import { DmListItem } from '@/entities/dm/ui/dm-list-item';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { cn } from '@/shared/lib/cn';
@@ -127,6 +128,7 @@ interface DmListProps {
 
 function DmList({ currentChannelId, onStartDm }: DmListProps) {
   const { data: conversations } = useSuspenseQuery(dmQueries.list());
+  useDmListEvents(conversations.map((conversation) => conversation.channelId));
 
   const users = useQueries({
     queries: conversations.map((conversation) => ({

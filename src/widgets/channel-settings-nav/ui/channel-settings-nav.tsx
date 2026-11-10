@@ -7,6 +7,7 @@ import { cn } from '@/shared/lib/cn';
 import {
   channelSettingsOverviewPath,
   channelSettingsPermissionsPath,
+  channelSettingsWebhooksPath,
 } from '@/shared/model/paths';
 
 interface SettingsNavSection {
@@ -31,6 +32,7 @@ export function ChannelSettingsNav({
   const sections: SettingsNavSection[] = [
     { label: '개요', href: channelSettingsOverviewPath(teamId, channelId) },
     { label: '권한', href: channelSettingsPermissionsPath(teamId, channelId) },
+    { label: '웹훅', href: channelSettingsWebhooksPath(teamId, channelId) },
   ];
 
   return (

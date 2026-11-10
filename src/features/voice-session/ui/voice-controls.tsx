@@ -1,6 +1,9 @@
 'use client';
 
 import { cn } from '@/shared/lib/cn';
+import { type CameraControl } from '@/shared/model/camera-control';
+import { CameraIcon } from '@/shared/ui/icons/camera-icon';
+import { CameraOffIcon } from '@/shared/ui/icons/camera-off-icon';
 import { HeadphonesIcon } from '@/shared/ui/icons/headphones-icon';
 import { MicIcon } from '@/shared/ui/icons/mic-icon';
 import { MicOffIcon } from '@/shared/ui/icons/mic-off-icon';
@@ -12,7 +15,10 @@ export interface VoiceControlsProps {
   onToggleMic: () => void;
   audioEnabled: boolean;
   onToggleAudio: () => void;
+  /** 없으면 카메라 버튼을 그리지 않는다 */
+  camera?: CameraControl;
   onShareScreen?: () => void;
+  screenSharing?: boolean;
   onLeave?: () => void;
   className?: string;
 }
@@ -25,7 +31,9 @@ export function VoiceControls({
   onToggleMic,
   audioEnabled,
   onToggleAudio,
+  camera,
   onShareScreen,
+  screenSharing = false,
   onLeave,
   className,
 }: VoiceControlsProps) {
@@ -68,14 +76,47 @@ export function VoiceControls({
         <HeadphonesIcon size={22} />
       </button>
 
+      {camera && (
+        <button
+          type="button"
+          aria-label={
+            camera.unavailable
+              ? '카메라 권한 없음'
+              : camera.enabled
+                ? '카메라 끄기'
+                : '카메라 켜기'
+          }
+          aria-pressed={camera.enabled}
+          aria-disabled={camera.unavailable}
+          onClick={camera.onToggle}
+          disabled={!camera.onToggle}
+          className={cn(
+            buttonClass,
+            camera.enabled
+              ? 'bg-primary text-on-primary'
+              : 'bg-surface-container text-on-surface hover:bg-surface-container-high',
+            camera.unavailable && 'opacity-50',
+          )}
+        >
+          {camera.enabled ? (
+            <CameraIcon size={22} />
+          ) : (
+            <CameraOffIcon size={22} />
+          )}
+        </button>
+      )}
+
       <button
         type="button"
-        aria-label="화면 공유"
+        aria-label={screenSharing ? '화면 공유 중지' : '화면 공유'}
+        aria-pressed={screenSharing}
         onClick={onShareScreen}
         disabled={!onShareScreen}
         className={cn(
           buttonClass,
-          'bg-surface-container text-on-surface-variant',
+          screenSharing
+            ? 'bg-primary text-on-primary'
+            : 'bg-surface-container text-on-surface hover:bg-surface-container-high',
         )}
       >
         <MonitorIcon size={22} />

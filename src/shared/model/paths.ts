@@ -8,6 +8,10 @@ export function channelPath(teamId: number, channelId: number): string {
   return `/teams/${teamId}/channels/${channelId}`;
 }
 
+export function projectPath(teamId: number, projectId: number): string {
+  return `/teams/${teamId}/projects/${projectId}`;
+}
+
 export function dmPath(channelId: number): string {
   return `/dms/${channelId}`;
 }
@@ -47,4 +51,15 @@ export function channelSettingsPermissionsPath(
   channelId: number,
 ): string {
   return `/teams/${teamId}/channels/${channelId}/settings/permissions`;
+}
+
+export function channelSettingsWebhooksPath(
+  teamId: number,
+  channelId: number,
+): string {
+  return `/teams/${teamId}/channels/${channelId}/settings/webhooks`;
+}
+
+export function teamSettingsGithubPath(teamId: number): string {
+  return `/teams/${teamId}/settings/github`;
 }

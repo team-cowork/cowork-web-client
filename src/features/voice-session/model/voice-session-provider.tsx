@@ -18,20 +18,34 @@ import { postVoiceJoin } from '@/entities/voice/api/post-voice-join';
 import { postVoiceLeave } from '@/entities/voice/api/post-voice-leave';
 import { voiceQueries } from '@/entities/voice/api/voice-queries';
 import { type VoiceRoomParticipant } from '@/entities/voice/model/voice';
+import {
+  applyRemoteVolume,
+  canPublishCamera,
+  type RoomCamera,
+  toRoomCameras,
+  toRoomParticipants,
+} from '@/shared/lib/livekit-room';
 
 export type VoiceSessionStatus = 'idle' | 'connecting' | 'connected';
 
 interface VoiceSessionContextValue {
   channelId: number | null;
   sessionId: string | null;
+  connectedAt: string | null;
   status: VoiceSessionStatus;
   participants: VoiceRoomParticipant[];
+  /** 카메라를 켠 참가자. 서버는 screen_share 권한이 있을 때만 카메라 송출을 허용한다 */
+  cameras: RoomCamera[];
+  cameraEnabled: boolean;
+  canUseCamera: boolean;
   micEnabled: boolean;
   audioEnabled: boolean;
   join: (channelId: number) => Promise<void>;
   leave: () => Promise<void>;
   toggleMic: () => Promise<void>;
   toggleAudio: () => void;
+  toggleCamera: () => Promise<void>;
+  stopCamera: () => Promise<void>;
 }
 
 const VoiceSessionContext = createContext<VoiceSessionContextValue | null>(
@@ -47,28 +61,6 @@ export function useVoiceSession() {
   return ctx;
 }
 
-function toRoomParticipants(room: Room): VoiceRoomParticipant[] {
-  const all = [room.localParticipant, ...room.remoteParticipants.values()];
-
-  return all.map((participant) => {
-    const userId = Number.parseInt(participant.identity, 10);
-
-    return {
-      identity: participant.identity,
-      userId: Number.isNaN(userId) ? null : userId,
-      speaking: participant.isSpeaking,
-      muted: !participant.isMicrophoneEnabled,
-      isLocal: participant.isLocal,
-    };
-  });
-}
-
-function applyRemoteVolume(room: Room, enabled: boolean) {
-  room.remoteParticipants.forEach((participant) => {
-    participant.setVolume(enabled ? 1 : 0);
-  });
-}
-
 export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const roomRef = useRef<Room | null>(null);
@@ -79,8 +71,12 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
 
   const [channelId, setChannelId] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [connectedAt, setConnectedAt] = useState<string | null>(null);
   const [status, setStatus] = useState<VoiceSessionStatus>('idle');
   const [participants, setParticipants] = useState<VoiceRoomParticipant[]>([]);
+  const [cameras, setCameras] = useState<RoomCamera[]>([]);
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [canUseCamera, setCanUseCamera] = useState(false);
   const [micEnabled, setMicEnabled] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
 
@@ -90,8 +86,18 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     channelIdRef.current = null;
     setChannelId(null);
     setSessionId(null);
+    setConnectedAt(null);
     setStatus('idle');
     setParticipants([]);
+    setCameras([]);
+    setCameraEnabled(false);
+    setCanUseCamera(false);
+  }, []);
+
+  const syncRoom = useCallback((room: Room) => {
+    setParticipants(toRoomParticipants(room));
+    setCameras(toRoomCameras(room));
+    setCameraEnabled(room.localParticipant.isCameraEnabled);
   }, []);
 
   const runExclusive = useCallback((task: () => Promise<void>) => {
@@ -149,7 +155,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
         room = new Room({ adaptiveStream: true, dynacast: true });
         const boundRoom = room;
         const sync = () => {
-          if (isCurrent()) setParticipants(toRoomParticipants(boundRoom));
+          if (isCurrent()) syncRoom(boundRoom);
         };
 
         room
@@ -163,6 +169,15 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
           .on(RoomEvent.TrackUnmuted, sync)
           .on(RoomEvent.LocalTrackPublished, sync)
           .on(RoomEvent.LocalTrackUnpublished, sync)
+          .on(RoomEvent.TrackSubscribed, sync)
+          .on(RoomEvent.TrackUnsubscribed, sync)
+          // 팀 역할이 바뀌면 서버가 접속 중에도 카메라 송출 권한을 갱신한다
+          .on(RoomEvent.ParticipantPermissionsChanged, (_, participant) => {
+            if (!participant.isLocal || !isCurrent()) return;
+
+            setCanUseCamera(canPublishCamera(boundRoom));
+            sync();
+          })
           .on(RoomEvent.Disconnected, () => {
             if (!isCurrent()) return;
 
@@ -186,8 +201,10 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
         if (!room.canPlaybackAudio) await room.startAudio();
         applyRemoteVolume(room, audioEnabledRef.current);
 
+        setCanUseCamera(canPublishCamera(room));
         setSessionId(session.session_id);
         setStatus('connected');
+        setConnectedAt(new Date().toISOString());
         sync();
 
         await queryClient.invalidateQueries({
@@ -204,7 +221,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    [disconnect, micEnabled, notifyLeave, queryClient, reset],
+    [disconnect, micEnabled, notifyLeave, queryClient, reset, syncRoom],
   );
 
   const join = useCallback(
@@ -243,6 +260,36 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     if (roomRef.current) applyRemoteVolume(roomRef.current, next);
   }, [audioEnabled]);
 
+  // 브라우저 권한 창을 기다리는 사이 나가기가 먼저 끝나면 새로 만든 카메라
+  // 트랙을 정리하지 못하므로, 입장·나가기와 같은 대기열에서 순서대로 처리한다
+  const toggleCamera = useCallback(
+    () =>
+      runExclusive(async () => {
+        const room = roomRef.current;
+        if (!room) return;
+
+        await room.localParticipant.setCameraEnabled(
+          !room.localParticipant.isCameraEnabled,
+        );
+
+        if (roomRef.current === room) syncRoom(room);
+      }),
+    [runExclusive, syncRoom],
+  );
+
+  const stopCamera = useCallback(
+    () =>
+      runExclusive(async () => {
+        const room = roomRef.current;
+        if (!room?.localParticipant.isCameraEnabled) return;
+
+        await room.localParticipant.setCameraEnabled(false);
+
+        if (roomRef.current === room) syncRoom(room);
+      }),
+    [runExclusive, syncRoom],
+  );
+
   useEffect(() => {
     return () => {
       roomRef.current?.disconnect();
@@ -253,25 +300,37 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     () => ({
       channelId,
       sessionId,
+      connectedAt,
       status,
       participants,
+      cameras,
+      cameraEnabled,
+      canUseCamera,
       micEnabled,
       audioEnabled,
       join,
       leave,
       toggleMic,
       toggleAudio,
+      toggleCamera,
+      stopCamera,
     }),
     [
       audioEnabled,
+      cameraEnabled,
+      cameras,
+      canUseCamera,
       channelId,
       join,
       leave,
       micEnabled,
       participants,
       sessionId,
+      connectedAt,
       status,
+      stopCamera,
       toggleAudio,
+      toggleCamera,
       toggleMic,
     ],
   );
