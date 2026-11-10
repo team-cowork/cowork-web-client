@@ -10,10 +10,9 @@ import { teamQueries } from '@/entities/team/api/team-queries';
 import { cn } from '@/shared/lib/cn';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
-import { CheckIcon } from '@/shared/ui/icons/check-icon';
-import { CloseIcon } from '@/shared/ui/icons/close-icon';
 import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
+import { Switch } from '@/shared/ui/switch';
 
 const EDITOR_SKELETON = (
   <div className="flex items-start gap-8">
@@ -58,62 +57,6 @@ export function ChannelRolePolicySettings({
   );
 }
 
-interface PermissionToggleProps {
-  label: string;
-  allowed: boolean;
-  disabled: boolean;
-  onChange: (allowed: boolean) => void;
-}
-
-function PermissionToggle({
-  label,
-  allowed,
-  disabled,
-  onChange,
-}: PermissionToggleProps) {
-  const base =
-    'flex h-8 w-11 cursor-pointer items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40';
-
-  return (
-    <div
-      role="group"
-      aria-label={label}
-      className="inline-flex shrink-0 overflow-hidden rounded-lg bg-surface-container"
-    >
-      <button
-        type="button"
-        aria-label={`${label} 거부`}
-        aria-pressed={!allowed}
-        disabled={disabled}
-        onClick={() => onChange(false)}
-        className={cn(
-          base,
-          allowed
-            ? 'text-on-surface-variant hover:text-error'
-            : 'bg-error text-on-error',
-        )}
-      >
-        <CloseIcon size={16} />
-      </button>
-      <button
-        type="button"
-        aria-label={`${label} 허용`}
-        aria-pressed={allowed}
-        disabled={disabled}
-        onClick={() => onChange(true)}
-        className={cn(
-          base,
-          allowed
-            ? 'bg-success text-on-success'
-            : 'text-on-surface-variant hover:text-success',
-        )}
-      >
-        <CheckIcon size={16} />
-      </button>
-    </div>
-  );
-}
-
 function ChannelRolePolicyEditor({
   teamId,
   channelId,
@@ -133,8 +76,8 @@ function ChannelRolePolicyEditor({
     return (
       <EmptyState
         icon={<SettingsIcon />}
-        title="팀 역할이 없습니다"
-        description="팀 설정에서 역할을 만들고 멤버에게 부여한 뒤 채널 권한을 지정하세요"
+        title="팀 역할이 없어요"
+        description="팀 설정에서 역할을 만들고 멤버에게 부여한 뒤 채널 권한을 지정해 주세요"
       />
     );
   }
@@ -218,11 +161,11 @@ function ChannelRolePolicyEditor({
                       {permission.description}
                     </span>
                   </div>
-                  <PermissionToggle
-                    label={permission.title}
-                    allowed={permissions[permission.key] === true}
+                  <Switch
+                    aria-label={permission.title}
+                    checked={permissions[permission.key] === true}
                     disabled={setRolePolicy.isPending}
-                    onChange={(allowed) =>
+                    onCheckedChange={(allowed) =>
                       setRolePolicy.mutate({
                         roleId: selectedRole.id,
                         permissions: {

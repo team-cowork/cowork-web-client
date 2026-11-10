@@ -37,9 +37,7 @@ async function setRolePolicy(
   }
 
   if (operation.status !== 'SUCCEEDED') {
-    throw new Error(
-      operation.errorMessage ?? '권한 설정을 완료하지 못했습니다',
-    );
+    throw new Error(operation.errorMessage ?? '권한 설정을 완료하지 못했어요');
   }
 }
 
@@ -50,8 +48,6 @@ export function useSetChannelRolePolicy(channelId: number) {
     mutationFn: (variables: SetChannelRolePolicyVariables) =>
       setRolePolicy(channelId, variables),
     onSettled: () =>
-      queryClient.invalidateQueries({
-        queryKey: channelQueries.rolePolicies(channelId).queryKey,
-      }),
+      queryClient.invalidateQueries({ queryKey: channelQueries.all() }),
   });
 }
