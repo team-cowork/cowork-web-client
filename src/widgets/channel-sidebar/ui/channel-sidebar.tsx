@@ -15,6 +15,7 @@ import { useReorderChannels } from '@/features/channel-reorder/model/use-reorder
 import { ChannelSearchModal } from '@/features/channel-search/ui/channel-search-modal';
 import { CreateChannelModal } from '@/features/channel-create/ui/create-channel-modal';
 import { CreateProjectModal } from '@/features/project-create/ui/create-project-modal';
+import { TeamInviteLinkSection } from '@/features/team-invite/ui/team-invite-link-section';
 import { InviteTeamMembersModal } from '@/features/team-members/ui/invite-team-members-modal';
 import { useTeamEvents } from '@/features/team-realtime/model/use-team-events';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
@@ -140,6 +141,7 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
         open={inviteOpen}
         teamId={teamId}
         onClose={() => setInviteOpen(false)}
+        inviteLinkSection={<TeamInviteLinkSection teamId={teamId} />}
       />
       <ChannelSearchModal
         open={searchOpen}
