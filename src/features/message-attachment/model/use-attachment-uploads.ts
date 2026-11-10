@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { uploadChatFile } from '@/entities/message/lib/upload-chat-file';
 import { type ConfirmedFile } from '@/entities/message/model/message';
@@ -22,6 +22,21 @@ export interface AttachmentUpload {
  */
 export function useAttachmentUploads(channelId: number) {
   const [uploads, setUploads] = useState<AttachmentUpload[]>([]);
+  // 지운 첨부의 업로드를 멈춰 쓰이지 않을 파일이 서버에 확인되지 않게 한다.
+  const controllers = useRef(new Map<string, AbortController>());
+
+  useEffect(() => {
+    const pending = controllers.current;
+    return () => {
+      for (const controller of pending.values()) controller.abort();
+      pending.clear();
+    };
+  }, []);
+
+  const abort = (id: string) => {
+    controllers.current.get(id)?.abort();
+    controllers.current.delete(id);
+  };
 
   const update = (id: string, patch: Partial<AttachmentUpload>) => {
     setUploads((prev) =>
@@ -41,19 +56,34 @@ export function useAttachmentUploads(channelId: number) {
     setUploads((prev) => [...prev, ...added]);
 
     for (const { id, file } of added) {
-      uploadChatFile(channelId, file, (progress) => update(id, { progress }))
+      const controller = new AbortController();
+      controllers.current.set(id, controller);
+
+      uploadChatFile(
+        channelId,
+        file,
+        (progress) => update(id, { progress }),
+        controller.signal,
+      )
         .then((confirmed) =>
           update(id, { status: 'done', progress: 100, confirmed }),
         )
-        .catch(() => update(id, { status: 'failed' }));
+        .catch(() => {
+          if (!controller.signal.aborted) update(id, { status: 'failed' });
+        })
+        .finally(() => controllers.current.delete(id));
     }
   };
 
   const remove = (id: string) => {
+    abort(id);
     setUploads((prev) => prev.filter((upload) => upload.id !== id));
   };
 
-  const clear = () => setUploads([]);
+  const clear = () => {
+    for (const id of controllers.current.keys()) abort(id);
+    setUploads([]);
+  };
 
   // 원본 파일을 함께 넘겨 서버 미리보기를 받기 전까지 화면에서 바로 그릴 수 있게 한다.
   const confirmedFiles = uploads.flatMap((upload) =>
