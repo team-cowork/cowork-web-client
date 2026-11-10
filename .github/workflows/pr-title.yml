@@ -15,10 +15,7 @@ jobs:
         with:
           script: |
             const title = context.payload.pull_request.title;
-            const allowedScopes = [
-              'global', 'ci/cd', 'auth', 'user', 'team', 'channel',
-              'dm', 'message', 'attachment', 'voice', 'ui', 'shared/ui'
-            ];
+            const scopePattern = /^[a-z][a-z0-9-]*(\/[a-z0-9-]+)*$/;
 
             if (/^v\d{8}\.\d+$/.test(title)) {
               return;
@@ -35,7 +32,7 @@ jobs:
               return;
             }
 
-            const invalid = match[1].split(',').map(s => s.trim()).filter(s => !allowedScopes.includes(s));
+            const invalid = match[1].split(',').map(s => s.trim()).filter(s => !scopePattern.test(s));
             if (invalid.length > 0) {
-              core.setFailed(`허용되지 않은 scope: ${invalid.join(', ')} (허용: ${allowedScopes.join(', ')})`);
+              core.setFailed(`scope 형식이 올바르지 않습니다: ${invalid.join(', ')} (소문자 도메인명 예: team, ci/cd, shared/ui)`);
             }
