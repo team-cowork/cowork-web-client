@@ -15,7 +15,7 @@ export async function patchTeamRole(
       headers,
     }),
   );
-  if (!role) throw new Error('수정된 역할 정보를 받지 못했습니다');
+  if (!role) throw new Error('수정된 역할 정보를 받지 못했어요');
 
   return role;
 }

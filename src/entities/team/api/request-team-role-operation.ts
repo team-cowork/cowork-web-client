@@ -46,9 +46,7 @@ export async function requestTeamRoleOperation(
   }
 
   if (operation.status !== 'SUCCEEDED') {
-    throw new Error(
-      operation.errorMessage ?? '역할 작업을 완료하지 못했습니다',
-    );
+    throw new Error(operation.errorMessage ?? '역할 작업을 완료하지 못했어요');
   }
 
   return operation;
