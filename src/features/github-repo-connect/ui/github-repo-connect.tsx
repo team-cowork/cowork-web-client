@@ -1,11 +1,10 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { githubQueries } from '@/entities/github/api/github-queries';
@@ -50,26 +49,7 @@ export function GithubRepoConnect({
   );
 }
 
-function ConnectReposError({
-  error,
-  resetErrorBoundary,
-  teamId,
-}: FallbackProps & { teamId: number }) {
-  const router = useRouter();
-
-  if (isAxiosError(error) && error.response?.status === 400)
-    return (
-      <EmptyState
-        title="팀에 GitHub 조직을 연결해 주세요"
-        description="저장소를 연결하려면 먼저 팀의 GitHub 연동이 필요해요."
-        action={
-          <Button onClick={() => router.push(teamSettingsGithubPath(teamId))}>
-            팀 GitHub 설정으로 이동
-          </Button>
-        }
-      />
-    );
-
+function ConnectReposError({ resetErrorBoundary }: FallbackProps) {
   return (
     <ErrorState
       title="저장소를 불러오지 못했어요"
@@ -88,37 +68,47 @@ function ConnectRepos({
   projectId: number;
   onClose: () => void;
 }) {
-  // 렌더링마다 새 컴포넌트가 만들어지면 오류 화면이 다시 마운트되므로 teamId가 같을 때는 재사용한다.
-  const errorFallback = useCallback(
-    (props: FallbackProps) => <ConnectReposError {...props} teamId={teamId} />,
-    [teamId],
-  );
-
   return (
     <QueryBoundary
       loadingFallback={<LoadingPane label="저장소를 불러오는 중…" />}
-      errorFallback={errorFallback}
+      errorFallback={ConnectReposError}
       resetKeys={[projectId]}
     >
-      <ConnectReposContent projectId={projectId} onClose={onClose} />
+      <ConnectReposContent
+        teamId={teamId}
+        projectId={projectId}
+        onClose={onClose}
+      />
     </QueryBoundary>
   );
 }
 
 function ConnectReposContent({
+  teamId,
   projectId,
   onClose,
 }: {
+  teamId: number;
   projectId: number;
   onClose: () => void;
 }) {
+  const router = useRouter();
   const [filter, setFilter] = useState('');
-  // 400(팀 GitHub 미연동)은 재시도해도 같으므로 바로 안내 화면을 보여준다.
-  const { data: repos } = useSuspenseQuery({
-    ...githubQueries.orgRepos(projectId),
-    retry: false,
-  });
+  const { data: repos } = useSuspenseQuery(githubQueries.orgRepos(projectId));
   const connect = useConnectGithubRepo(projectId, onClose);
+
+  if (repos === null)
+    return (
+      <EmptyState
+        title="팀에 GitHub 조직을 연결해 주세요"
+        description="저장소를 연결하려면 먼저 팀의 GitHub 연동이 필요해요."
+        action={
+          <Button onClick={() => router.push(teamSettingsGithubPath(teamId))}>
+            팀 GitHub 설정으로 이동
+          </Button>
+        }
+      />
+    );
 
   const filtered = repos.filter((repo) =>
     repo.fullName.toLowerCase().includes(filter.trim().toLowerCase()),

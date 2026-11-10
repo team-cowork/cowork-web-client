@@ -1,12 +1,26 @@
+import { HttpStatusCode, isAxiosError } from 'axios';
+
 import { instance } from '@/shared/api/instance';
 import { type ApiResponse } from '@/shared/model/token';
 import { type GithubRepoSummary } from '@/entities/github/model/github';
 
+// 팀에 GitHub 조직이 연동되지 않았으면 서버가 400으로 응답한다.
+// 오류가 아니라 안내가 필요한 정상 상태라 예외 대신 null을 반환한다.
 export async function getGithubOrgRepos(
   projectId: number,
-): Promise<GithubRepoSummary[]> {
-  const { data } = await instance.get<ApiResponse<GithubRepoSummary[]>>(
-    `/project/projects/${projectId}/github/repos`,
-  );
-  return data.data;
+): Promise<GithubRepoSummary[] | null> {
+  try {
+    const { data } = await instance.get<ApiResponse<GithubRepoSummary[]>>(
+      `/project/projects/${projectId}/github/repos`,
+    );
+    return data.data;
+  } catch (error) {
+    if (
+      isAxiosError(error) &&
+      error.response?.status === HttpStatusCode.BadRequest
+    )
+      return null;
+
+    throw error;
+  }
 }
