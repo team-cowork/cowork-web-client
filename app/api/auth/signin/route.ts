@@ -1,28 +1,17 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { appUrl } from '@/shared/lib/app-url';
-import { setPkceCookies } from '@/shared/lib/cookies';
-import { buildAuthorizeUrl } from '@/shared/lib/oauth';
-import {
-  generateCodeChallenge,
-  generateCodeVerifier,
-  generateState,
-} from '@/shared/lib/pkce';
+import { setLoginSessionCookie } from '@/shared/lib/cookies';
+import { startLogin } from '@/shared/lib/token';
 
 export async function GET(request: NextRequest) {
-  const verifier = generateCodeVerifier();
-  const challenge = await generateCodeChallenge(verifier);
-  const state = generateState();
-
   const redirectUri = appUrl('/api/auth/callback', request).toString();
-  const authorizeUrl = buildAuthorizeUrl({
-    clientId: process.env.DATAGSM_CLIENT_ID ?? '',
-    redirectUri,
-    challenge,
-    state,
-  });
+  const login = await startLogin(redirectUri);
+  if (!login) {
+    return NextResponse.redirect(appUrl('/auth/error', request));
+  }
 
-  const response = NextResponse.redirect(authorizeUrl);
-  setPkceCookies(response, verifier, state);
+  const response = NextResponse.redirect(login.authorizationUrl);
+  setLoginSessionCookie(response, login.session);
   return response;
 }
