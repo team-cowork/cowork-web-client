@@ -18,9 +18,10 @@ import { ProjectSettingsMenu } from '@/features/project-settings/ui/project-sett
 import { formatDate } from '@/shared/lib/format-date';
 import { channelPath } from '@/shared/model/paths';
 import { Badge } from '@/shared/ui/badge';
-import { EmptyState } from '@/shared/ui/empty-state';
 import { FolderIcon } from '@/shared/ui/icons/folder-icon';
 import { MenuItem } from '@/shared/ui/menu-item';
+import { GithubPrBoard } from '@/widgets/project-detail/ui/github-pr-board';
+import { ProjectGithubRepos } from '@/widgets/project-detail/ui/project-github-repos';
 
 export interface ProjectDetailProps {
   teamId: number;
@@ -110,13 +111,16 @@ export function ProjectDetail({ teamId, projectId }: ProjectDetailProps) {
           </ul>
         </Section>
 
-        {/* PR 보드는 다른 파트에서 붙인다. 자리만 잡아 둔다. */}
-        <Section title="PR 보드">
-          <EmptyState
-            icon={<FolderIcon />}
-            title="PR 보드는 준비 중이에요"
-            description="연결된 GitHub 저장소의 진행 중인 PR이 이곳에 표시됩니다"
+        <Section title="GitHub 저장소">
+          <ProjectGithubRepos
+            teamId={teamId}
+            projectId={projectId}
+            canWrite={canWrite}
           />
+        </Section>
+
+        <Section title="PR 보드">
+          <GithubPrBoard projectId={projectId} canWrite={canWrite} />
         </Section>
       </div>
     </div>
