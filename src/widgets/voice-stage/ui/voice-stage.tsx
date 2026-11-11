@@ -10,6 +10,7 @@ import { userQueries } from '@/entities/user/api/user-queries';
 import { getUserDisplayName } from '@/entities/user/lib/user-display';
 import { voiceQueries } from '@/entities/voice/api/voice-queries';
 import { VoiceParticipantCard } from '@/entities/voice/ui/voice-participant-card';
+import { countLiveViewers } from '@/features/live-session/lib/count-live-viewers';
 import { useLiveSession } from '@/features/live-session/model/live-session-provider';
 import {
   type LiveEndReason,
@@ -157,9 +158,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
     ? activeLive.hostUserId
     : (endedLive?.hostUserId ?? liveStatus.data?.host_user_id ?? null);
   const liveViewerCount = activeLive
-    ? live.participants.filter(
-        (participant) => participant.userId !== activeLive.hostUserId,
-      ).length
+    ? countLiveViewers(live.participants, activeLive.hostUserId)
     : (liveStatus.data?.viewer_count ?? 0);
   const liveStartedAt =
     hasLive && liveStatus.data?.live ? liveStatus.data.started_at : undefined;
