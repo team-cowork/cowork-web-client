@@ -4,18 +4,22 @@ import { useEffect, useState } from 'react';
 
 import { useQueries, useQuery } from '@tanstack/react-query';
 
-import { getHttpStatus } from '@/shared/api/http-error';
 import { liveQueries } from '@/entities/live/api/live-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { getUserDisplayName } from '@/entities/user/lib/user-display';
 import { voiceQueries } from '@/entities/voice/api/voice-queries';
 import { VoiceParticipantCard } from '@/entities/voice/ui/voice-participant-card';
 import { countLiveViewers } from '@/features/live-session/lib/count-live-viewers';
-import { useLiveSession } from '@/features/live-session/model/live-session-provider';
 import {
-  type LiveEndReason,
-  type LiveRole,
-} from '@/features/live-session/model/live-session-state';
+  END_LIVE_ERRORS,
+  GO_LIVE_ERRORS,
+  LEAVE_WATCH_ERRORS,
+  LIVE_END_MESSAGE,
+  type LiveErrorMessages,
+  toLiveError,
+  WATCH_ERRORS,
+} from '@/features/live-session/lib/live-errors';
+import { useLiveSession } from '@/features/live-session/model/live-session-provider';
 import { LiveStreamFocus } from '@/features/live-session/ui/live-stream-focus';
 import { LiveStreamTile } from '@/features/live-session/ui/live-stream-tile';
 import { useVoiceSession } from '@/features/voice-session/model/voice-session-provider';
@@ -42,36 +46,6 @@ interface StageParticipant {
   muted: boolean;
 }
 
-const LIVE_END_MESSAGE: Record<LiveRole, Record<LiveEndReason, string>> = {
-  host: {
-    'host-ended': '방송이 종료되었습니다',
-    removed: '방송에서 퇴장 처리되었습니다',
-    'connection-lost': '연결이 끊겨 방송이 종료되었습니다',
-  },
-  viewer: {
-    'host-ended': '방송이 종료되었습니다',
-    removed: '방송에서 퇴장 처리되었습니다',
-    'connection-lost': '연결이 끊겨 방송에서 나왔습니다',
-  },
-};
-
-interface LiveErrorMessages {
-  fallback: string;
-  forbidden?: string;
-}
-
-const GO_LIVE_ERRORS: LiveErrorMessages = {
-  fallback: '화면 공유를 시작하지 못했습니다',
-  // 라이브 시작에는 팀·채널 역할의 live_broadcast 권한이 필요하다 (OWNER·ADMIN은 기본 보유)
-  forbidden:
-    '방송 권한이 없습니다. 팀 관리자에게 라이브 방송 권한을 요청하세요',
-};
-
-const WATCH_ERRORS: LiveErrorMessages = {
-  fallback: '방송에 연결하지 못했습니다',
-  forbidden: '이 채널의 방송을 볼 권한이 없습니다',
-};
-
 // 카메라 송출은 서버가 screen_share 권한으로 판정한다
 const CAMERA_FORBIDDEN =
   '카메라 권한이 없습니다. 팀 관리자에게 화면 공유 권한을 요청하세요';
@@ -86,22 +60,6 @@ function toCameraError(error: unknown): string {
     return '다른 앱이 카메라를 사용하고 있습니다';
 
   return '카메라를 켜지 못했습니다';
-}
-
-function toLiveError(
-  error: unknown,
-  messages: LiveErrorMessages,
-): string | null {
-  // 화면 선택 창에서 취소한 경우는 오류로 보지 않는다
-  if (error instanceof Error && error.name === 'NotAllowedError') return null;
-
-  const status = getHttpStatus(error);
-
-  if (status === 403) return messages.forbidden ?? messages.fallback;
-  if (status === 409) return '이 채널에서 이미 방송이 진행 중입니다';
-  if (status === 404) return '방송이 이미 종료되었습니다';
-
-  return messages.fallback;
 }
 
 export function VoiceStage({ channelId, className }: VoiceStageProps) {
@@ -364,9 +322,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
           closeLabel={isWatching ? '나가기' : '작게 보기'}
           onClose={() =>
             isWatching
-              ? void runLive(live.leave, {
-                  fallback: '방송에서 나가지 못했습니다',
-                })
+              ? void runLive(live.leave, LEAVE_WATCH_ERRORS)
               : setFocusOwnStream(false)
           }
           footer={
@@ -546,9 +502,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
               canShareScreen && !isLiveConnecting
                 ? () =>
                     void (isStreaming
-                      ? runLive(live.leave, {
-                          fallback: '방송을 종료하지 못했습니다',
-                        })
+                      ? runLive(live.leave, END_LIVE_ERRORS)
                       : runLive(goLive, GO_LIVE_ERRORS))
                 : undefined
             }
