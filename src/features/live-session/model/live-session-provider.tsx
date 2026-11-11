@@ -42,6 +42,7 @@ import {
   toRoomParticipants,
   toUserId,
 } from '@/shared/lib/livekit-room';
+import { useRemoteAudioToggle } from '@/shared/lib/use-remote-audio-toggle';
 
 type ConnectIntent = 'start' | 'watch';
 
@@ -133,7 +134,8 @@ function detachAudio(track: RemoteTrack) {
 export function LiveSessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const roomRef = useRef<Room | null>(null);
-  const audioEnabledRef = useRef(true);
+  const { audioEnabled, audioEnabledRef, toggleAudio } =
+    useRemoteAudioToggle(roomRef);
   const channelIdRef = useRef<number | null>(null);
   const generationRef = useRef(0);
   const isHostRef = useRef(false);
@@ -146,7 +148,6 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
     [],
   );
   const [screenShareTrack, setScreenShareTrack] = useState<Track | null>(null);
-  const [audioEnabled, setAudioEnabled] = useState(true);
   const [audioPlaybackBlocked, setAudioPlaybackBlocked] = useState(false);
 
   const clearRoom = useCallback(() => {
@@ -355,6 +356,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
       }
     },
     [
+      audioEnabledRef,
       clearRoom,
       disconnect,
       markLiveEnded,
@@ -393,15 +395,6 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
   );
 
   const dismiss = useCallback(() => dispatch({ type: 'DISMISS' }), []);
-
-  const toggleAudio = useCallback(() => {
-    const next = !audioEnabled;
-
-    audioEnabledRef.current = next;
-    setAudioEnabled(next);
-
-    if (roomRef.current) applyRemoteVolume(roomRef.current, next);
-  }, [audioEnabled]);
 
   useEffect(() => {
     return () => {
