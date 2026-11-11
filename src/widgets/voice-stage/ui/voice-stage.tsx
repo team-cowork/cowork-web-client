@@ -7,6 +7,7 @@ import { useQueries, useQuery } from '@tanstack/react-query';
 import { getHttpStatus } from '@/shared/api/http-error';
 import { liveQueries } from '@/entities/live/api/live-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
+import { getUserDisplayName } from '@/entities/user/lib/user-display';
 import { voiceQueries } from '@/entities/voice/api/voice-queries';
 import { VoiceParticipantCard } from '@/entities/voice/ui/voice-participant-card';
 import { useLiveSession } from '@/features/live-session/model/live-session-provider';
@@ -206,8 +207,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
 
   const liveHost =
     liveHostUserId === null ? undefined : userById.get(liveHostUserId);
-  const liveHostName =
-    liveHost?.nickname ?? liveHost?.name ?? `#${liveHostUserId ?? ''}`;
+  const liveHostName = getUserDisplayName(liveHost, `#${liveHostUserId ?? ''}`);
 
   const showFocus = isWatching || (isStreaming && focusOwnStream);
   const showPreviewPending = !isConnected && preview.isPending;
@@ -382,10 +382,10 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
                     participant.userId === null
                       ? undefined
                       : cameraByUserId.get(participant.userId);
-                  const name =
-                    user?.nickname ??
-                    user?.name ??
-                    `#${participant.userId ?? participant.key}`;
+                  const name = getUserDisplayName(
+                    user,
+                    `#${participant.userId ?? participant.key}`,
+                  );
 
                   return (
                     <li key={participant.key} title={name}>
