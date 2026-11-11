@@ -6,10 +6,12 @@ import { type ConfirmedFile } from '@/entities/message/model/message';
 export async function postFileConfirm(
   channelId: number,
   objectKey: string,
+  signal?: AbortSignal,
 ): Promise<ConfirmedFile> {
   const { data } = await instance.post<ApiResponse<ConfirmedFile>>(
     `/chat/chat/channels/${channelId}/files/confirm`,
     { objectKey },
+    { signal },
   );
 
   return data.data;

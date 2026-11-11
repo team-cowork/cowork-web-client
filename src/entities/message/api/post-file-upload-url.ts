@@ -8,10 +8,12 @@ import {
 export async function postFileUploadUrl(
   channelId: number,
   request: CreateFileUploadUrlRequest,
+  signal?: AbortSignal,
 ): Promise<FileUploadUrl> {
   const { data } = await instance.post<ApiResponse<FileUploadUrl>>(
     `/chat/chat/channels/${channelId}/files/presigned-url`,
     request,
+    { signal },
   );
 
   return data.data;

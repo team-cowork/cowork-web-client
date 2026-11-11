@@ -5,6 +5,8 @@ export interface MessageAttachment {
   objectKey?: string;
   size: number;
   mimeType: string;
+  /** 내가 방금 보낸 첨부의 원본 파일. 서버 응답에는 없고 로컬 미리보기에만 쓴다. */
+  localFile?: File;
 }
 
 /** 답글이 가리키는 원본 메시지 요약. 메시지 목록 조회 응답에만 포함된다. */
@@ -79,6 +81,8 @@ export interface ConfirmedFile {
   name: string;
   size: number;
   mimeType: string;
+  /** 올린 원본 파일. 전송 중 로컬 미리보기에 쓴다. */
+  localFile?: File;
 }
 
 export interface AttachmentDownload {

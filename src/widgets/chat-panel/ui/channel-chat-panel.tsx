@@ -89,6 +89,9 @@ const COMMAND_STATUS_TEXT = {
     'GitHub 이슈를 만들지 못했어요. 프로젝트에 저장소가 연결돼 있는지 확인해 주세요.',
 } as const;
 
+const UPLOADING_HINT =
+  '파일을 올리는 중이에요. 업로드가 끝나면 보낼 수 있어요.';
+
 const COMMAND_PROBLEM_TEXT = {
   noProject: '/issue는 프로젝트에 속한 채널에서만 쓸 수 있어요.',
   noTitle: '/issue 뒤에 이슈 제목을 적어 주세요.',
@@ -138,7 +141,7 @@ function ChannelChatBody({
         attachments.clear();
       }}
       onAttachFiles={attachments.add}
-      attachmentDrafts={
+      composerStatus={
         <>
           <TypingIndicator userIds={typing.typingUserIds} />
           {command.problem && (
@@ -162,14 +165,17 @@ function ChannelChatBody({
               {COMMAND_STATUS_TEXT[command.status]}
             </p>
           )}
-          <AttachmentDrafts
-            uploads={attachments.uploads}
-            onRemove={attachments.remove}
-          />
         </>
+      }
+      attachmentDrafts={
+        <AttachmentDrafts
+          uploads={attachments.uploads}
+          onRemove={attachments.remove}
+        />
       }
       canSendEmpty={attachments.confirmedFiles.length > 0}
       sendDisabled={attachments.isUploading}
+      sendDisabledReason={UPLOADING_HINT}
       onRetryMessage={retry}
       onSelectMessage={onSelectMessage}
       hasOlder={hasNextPage}

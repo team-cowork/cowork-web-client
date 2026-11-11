@@ -4,6 +4,7 @@ import { messageQueries } from '@/entities/message/api/message-queries';
 import {
   type MentionedMessage,
   type Message,
+  type MessageAttachment,
   type MessageReaction,
 } from '@/entities/message/model/message';
 
@@ -20,10 +21,31 @@ function isSameMessage(a: Message, b: Message): boolean {
   return a.clientMessageId !== null && a.clientMessageId === b.clientMessageId;
 }
 
+// 서버가 준 첨부에는 로컬 원본이 없다. 썸네일 URL을 받는 동안에도 같은 그림을 보여주도록 유지한다.
+// 순서가 바뀌어도 다른 파일과 섞이지 않도록 objectKey가 같을 때만 잇는다.
+function keepLocalFiles(
+  current: MessageAttachment[],
+  incoming: MessageAttachment[],
+): MessageAttachment[] {
+  if (!current.some((attachment) => attachment.localFile)) return incoming;
+
+  return incoming.map((attachment) => {
+    if (attachment.localFile || attachment.objectKey === undefined) {
+      return attachment;
+    }
+
+    const localFile = current.find(
+      (cached) => cached.objectKey === attachment.objectKey,
+    )?.localFile;
+    return localFile ? { ...attachment, localFile } : attachment;
+  });
+}
+
 // 소켓으로 온 메시지에는 원본 인용이 없으므로 이미 가진 값을 유지한다.
 function mergeMessage(current: Message, incoming: Message): Message {
   return {
     ...incoming,
+    attachments: keepLocalFiles(current.attachments, incoming.attachments),
     mentionedMessage: incoming.mentionedMessage ?? current.mentionedMessage,
   };
 }

@@ -25,12 +25,16 @@ export interface ChatPanelProps {
   emptyState?: ReactNode;
   /** 없으면 첨부 버튼을 비활성화한다 */
   onAttachFiles?: (files: FileList) => void;
-  /** 컴포저 위에 보여줄 전송 대기 첨부 */
+  /** 컴포저 위에 보여줄 상태(예: 입력 중 표시, 커맨드 안내) */
+  composerStatus?: ReactNode;
+  /** 컴포저 안, 입력란 위에 보여줄 전송 전 첨부 */
   attachmentDrafts?: ReactNode;
   /** 첨부만으로도 보낼 수 있는지 */
   canSendEmpty?: boolean;
   /** 첨부 업로드 중처럼 잠시 전송을 막아야 할 때 */
   sendDisabled?: boolean;
+  /** 전송을 막은 이유. 전송 버튼에서 알려준다. */
+  sendDisabledReason?: string;
   className?: string;
 }
 
@@ -50,9 +54,11 @@ export function ChatPanel({
   placeholder,
   emptyState,
   onAttachFiles,
+  composerStatus,
   attachmentDrafts,
   canSendEmpty = false,
   sendDisabled = false,
+  sendDisabledReason,
   className,
 }: ChatPanelProps) {
   const draft = useMessageDraft({
@@ -74,7 +80,7 @@ export function ChatPanel({
       />
 
       <div className="flex shrink-0 flex-col gap-2 px-4 pb-6">
-        {attachmentDrafts}
+        {composerStatus}
         <MessageComposer
           value={draft.value}
           onChange={(value) => {
@@ -83,8 +89,10 @@ export function ChatPanel({
           }}
           onSend={draft.onSend}
           placeholder={placeholder}
+          attachments={attachmentDrafts}
           canSendEmpty={canSendEmpty}
           sendDisabled={sendDisabled}
+          sendDisabledReason={sendDisabledReason}
           leading={
             <AttachButton
               onClick={onAttachFiles && (() => fileInputRef.current?.click())}
