@@ -88,7 +88,7 @@ export function UserFooter({
             <span className="truncate text-[0.875rem] font-semibold text-on-surface">
               {user?.name ?? ''}
             </span>
-            <span className="truncate text-[0.75rem] text-on-surface-variant">
+            <span className="truncate typography-subtext-small leading-normal text-on-surface-variant">
               {statusLabel}
             </span>
           </span>
