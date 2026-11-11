@@ -4,7 +4,8 @@ import { useState } from 'react';
 
 import Link from 'next/link';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { type FallbackProps } from 'react-error-boundary';
 
 import { projectQueries } from '@/entities/project/api/project-queries';
 import { PROJECT_STATUS_LABEL } from '@/entities/project/model/project';
@@ -17,6 +18,7 @@ import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { FolderIcon } from '@/shared/ui/icons/folder-icon';
 import { LoadingPane } from '@/shared/ui/loading-pane';
+import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 export interface TeamProjectGridProps {
   teamId: number;
@@ -26,9 +28,6 @@ export interface TeamProjectGridProps {
 /** 팀 홈에서 팀 프로젝트를 카드로 모아 보여준다. 내가 참여한 프로젝트를 표시한다. */
 export function TeamProjectGrid({ teamId, className }: TeamProjectGridProps) {
   const [createOpen, setCreateOpen] = useState(false);
-  const projects = useQuery(projectQueries.byTeam(teamId));
-  const { data: myProjects } = useQuery(projectQueries.mine());
-  const mine = new Set(myProjects?.map((project) => project.id));
 
   return (
     <div
@@ -49,56 +48,13 @@ export function TeamProjectGrid({ teamId, className }: TeamProjectGridProps) {
         </Button>
       </div>
 
-      {projects.isPending ? (
-        <LoadingPane label="프로젝트를 불러오는 중…" />
-      ) : projects.isError ? (
-        <ErrorState
-          title="프로젝트를 불러오지 못했습니다"
-          action={
-            <Button
-              size="S"
-              variant="weak"
-              onClick={() => void projects.refetch()}
-            >
-              다시 시도
-            </Button>
-          }
-        />
-      ) : projects.data.length === 0 ? (
-        <EmptyState
-          icon={<FolderIcon />}
-          title="아직 프로젝트가 없습니다"
-          description="프로젝트를 만들어 채널과 멤버를 묶어 관리해 보세요"
-        />
-      ) : (
-        <ul className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3">
-          {projects.data.map((project) => (
-            <li key={project.id}>
-              <Link
-                href={projectPath(teamId, project.id)}
-                className="flex h-full flex-col gap-2 rounded-[16px] border border-outline-variant bg-surface p-4 hover:border-outline"
-              >
-                <div className="flex items-center gap-2">
-                  <FolderIcon
-                    size={18}
-                    className="shrink-0 text-on-surface-variant"
-                  />
-                  <span className="min-w-0 flex-1 truncate typography-label-small text-on-surface">
-                    {project.name}
-                  </span>
-                  {project.status === 'ARCHIVED' && (
-                    <Badge>{PROJECT_STATUS_LABEL[project.status]}</Badge>
-                  )}
-                  {mine.has(project.id) && <Badge color="brand">참여 중</Badge>}
-                </div>
-                <p className="line-clamp-2 typography-subtext-medium text-on-surface-variant">
-                  {project.description ?? '설명이 없습니다'}
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+      <QueryBoundary
+        loadingFallback={<LoadingPane label="프로젝트를 불러오는 중…" />}
+        errorFallback={TeamProjectsError}
+        resetKeys={[teamId]}
+      >
+        <TeamProjectsContent teamId={teamId} />
+      </QueryBoundary>
 
       <CreateProjectModal
         open={createOpen}
@@ -106,5 +62,60 @@ export function TeamProjectGrid({ teamId, className }: TeamProjectGridProps) {
         onClose={() => setCreateOpen(false)}
       />
     </div>
+  );
+}
+
+function TeamProjectsError({ resetErrorBoundary }: FallbackProps) {
+  return (
+    <ErrorState
+      title="프로젝트를 불러오지 못했습니다"
+      action={
+        <Button size="S" variant="weak" onClick={resetErrorBoundary}>
+          다시 시도
+        </Button>
+      }
+    />
+  );
+}
+
+function TeamProjectsContent({ teamId }: Pick<TeamProjectGridProps, 'teamId'>) {
+  const { data: projects } = useSuspenseQuery(projectQueries.byTeam(teamId));
+  const { data: myProjects } = useQuery(projectQueries.mine());
+  const mine = new Set(myProjects?.map((project) => project.id));
+
+  return projects.length === 0 ? (
+    <EmptyState
+      icon={<FolderIcon />}
+      title="아직 프로젝트가 없습니다"
+      description="프로젝트를 만들어 채널과 멤버를 묶어 관리해 보세요"
+    />
+  ) : (
+    <ul className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3">
+      {projects.map((project) => (
+        <li key={project.id}>
+          <Link
+            href={projectPath(teamId, project.id)}
+            className="flex h-full flex-col gap-2 rounded-[16px] border border-outline-variant bg-surface p-4 hover:border-outline"
+          >
+            <div className="flex items-center gap-2">
+              <FolderIcon
+                size={18}
+                className="shrink-0 text-on-surface-variant"
+              />
+              <span className="min-w-0 flex-1 truncate typography-label-small text-on-surface">
+                {project.name}
+              </span>
+              {project.status === 'ARCHIVED' && (
+                <Badge>{PROJECT_STATUS_LABEL[project.status]}</Badge>
+              )}
+              {mine.has(project.id) && <Badge color="brand">참여 중</Badge>}
+            </div>
+            <p className="line-clamp-2 typography-subtext-medium text-on-surface-variant">
+              {project.description ?? '설명이 없습니다'}
+            </p>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
