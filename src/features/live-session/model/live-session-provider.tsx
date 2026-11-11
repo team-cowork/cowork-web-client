@@ -35,6 +35,7 @@ import {
   liveSessionReducer,
   type LiveSessionState,
 } from '@/features/live-session/model/live-session-state';
+import { createExclusiveQueue } from '@/shared/lib/exclusive-queue';
 import {
   applyRemoteVolume,
   type RoomParticipantSnapshot,
@@ -133,7 +134,6 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const roomRef = useRef<Room | null>(null);
   const audioEnabledRef = useRef(true);
-  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
   const channelIdRef = useRef<number | null>(null);
   const generationRef = useRef(0);
   const isHostRef = useRef(false);
@@ -159,13 +159,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
     setAudioPlaybackBlocked(false);
   }, []);
 
-  const runExclusive = useCallback((task: () => Promise<void>) => {
-    const run = queueRef.current.then(task, task);
-
-    queueRef.current = run.catch(() => undefined);
-
-    return run;
-  }, []);
+  const [runExclusive] = useState(createExclusiveQueue);
 
   // 서버는 웹훅을 처리한 뒤에야 세션을 끝내므로, 바로 다시 조회하면 아직
   // 방송 중으로 나온다. 방송이 끝난 게 확실할 때는 캐시를 직접 비운다.

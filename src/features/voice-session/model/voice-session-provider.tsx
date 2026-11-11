@@ -18,6 +18,7 @@ import { postVoiceJoin } from '@/entities/voice/api/post-voice-join';
 import { postVoiceLeave } from '@/entities/voice/api/post-voice-leave';
 import { voiceQueries } from '@/entities/voice/api/voice-queries';
 import { type VoiceRoomParticipant } from '@/entities/voice/model/voice';
+import { createExclusiveQueue } from '@/shared/lib/exclusive-queue';
 import {
   applyRemoteVolume,
   canPublishCamera,
@@ -71,7 +72,6 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const audioTracksRef = useRef(new Set<RemoteTrack>());
   const audioEnabledRef = useRef(true);
   const micEnabledRef = useRef(true);
-  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
   const channelIdRef = useRef<number | null>(null);
   const generationRef = useRef(0);
 
@@ -116,13 +116,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     setCameraEnabled(room.localParticipant.isCameraEnabled);
   }, []);
 
-  const runExclusive = useCallback((task: () => Promise<void>) => {
-    const run = queueRef.current.then(task, task);
-
-    queueRef.current = run.catch(() => undefined);
-
-    return run;
-  }, []);
+  const [runExclusive] = useState(createExclusiveQueue);
 
   const notifyLeave = useCallback(
     async (leftChannelId: number) => {
