@@ -1,8 +1,8 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 
+import { getHttpStatus } from '@/shared/api/http-error';
 import { githubQueries } from '@/entities/github/api/github-queries';
 import { postProjectGithubRepo } from '@/entities/github/api/post-project-github-repo';
 import { useToast } from '@/shared/ui/toast-provider';
@@ -23,7 +23,7 @@ export function useConnectGithubRepo(projectId: number, onClose: () => void) {
     },
     onError: (error) => {
       // 연결 요청의 400은 GitHub 미연동이 아니라 유효하지 않은 저장소 URL을 뜻한다.
-      const status = isAxiosError(error) ? error.response?.status : undefined;
+      const status = getHttpStatus(error);
       toast(
         status === 400
           ? '연결할 수 없는 저장소 주소예요. 목록을 새로 불러온 뒤 다시 선택해 주세요.'

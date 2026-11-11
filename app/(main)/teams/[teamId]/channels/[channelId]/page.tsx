@@ -5,9 +5,9 @@ import { useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
+import { isHttpStatus } from '@/shared/api/http-error';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { useLastChannelStore } from '@/entities/channel/model/last-channel-store';
 import { LiveStatusBadge } from '@/entities/live/ui/live-status-badge';
@@ -29,7 +29,7 @@ import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 function ChannelPageError({ error, resetErrorBoundary }: FallbackProps) {
-  if (isAxiosError(error) && error.response?.status === 404) notFound();
+  if (isHttpStatus(error, 404)) notFound();
 
   return (
     <div className="flex flex-1 items-center justify-center p-6">
@@ -61,7 +61,7 @@ export default function ChannelPage() {
       errorFallback={ChannelPageError}
       resetKeys={[teamId, channelId]}
       onError={(error) => {
-        if (isAxiosError(error) && error.response?.status === 404) {
+        if (isHttpStatus(error, 404)) {
           useLastChannelStore.getState().clearLastChannelId(teamId, channelId);
         }
       }}

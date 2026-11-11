@@ -3,8 +3,8 @@
 import { useRef } from 'react';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 
+import { isHttpStatus } from '@/shared/api/http-error';
 import { deleteWebhook } from '@/entities/webhook/api/delete-webhook';
 import { patchWebhook } from '@/entities/webhook/api/patch-webhook';
 import { postWebhookExecutionId } from '@/entities/webhook/api/post-webhook-execution-id';
@@ -39,7 +39,7 @@ export function useWebhookMutations(
       return;
     }
     toast(
-      axios.isAxiosError(error) && error.response?.status === 403
+      isHttpStatus(error, 403)
         ? '웹훅을 관리할 권한이 없어요'
         : '변경하지 못했어요. 다시 시도해 주세요.',
     );
@@ -90,7 +90,7 @@ export function useWebhookMutations(
       return invalidate();
     },
     onError: (error) => {
-      if (axios.isAxiosError(error) && error.response?.status === 409) {
+      if (isHttpStatus(error, 409)) {
         executionKey.current = null;
       }
       onError(error);

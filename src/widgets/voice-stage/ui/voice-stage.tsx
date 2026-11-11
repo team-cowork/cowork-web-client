@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 
 import { useQueries, useQuery } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 
+import { getHttpStatus } from '@/shared/api/http-error';
 import { liveQueries } from '@/entities/live/api/live-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { voiceQueries } from '@/entities/voice/api/voice-queries';
@@ -93,7 +93,7 @@ function toLiveError(
   // 화면 선택 창에서 취소한 경우는 오류로 보지 않는다
   if (error instanceof Error && error.name === 'NotAllowedError') return null;
 
-  const status = isAxiosError(error) ? error.response?.status : undefined;
+  const status = getHttpStatus(error);
 
   if (status === 403) return messages.forbidden ?? messages.fallback;
   if (status === 409) return '이 채널에서 이미 방송이 진행 중입니다';

@@ -1,8 +1,8 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 
+import { getHttpStatus } from '@/shared/api/http-error';
 import { githubQueries } from '@/entities/github/api/github-queries';
 import { postGithubPullApprove } from '@/entities/github/api/post-github-pull-approve';
 import { useToast } from '@/shared/ui/toast-provider';
@@ -25,7 +25,7 @@ export function useApprovePull(
       });
     },
     onError: (error) => {
-      const status = isAxiosError(error) ? error.response?.status : undefined;
+      const status = getHttpStatus(error);
       toast(
         status === 400
           ? '저장소 또는 내 GitHub 계정이 연결되어 있지 않아요. 연결 상태를 확인한 뒤 다시 시도해 주세요.'

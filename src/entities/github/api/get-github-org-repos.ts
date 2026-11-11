@@ -1,5 +1,6 @@
-import { HttpStatusCode, isAxiosError } from 'axios';
+import { HttpStatusCode } from 'axios';
 
+import { isHttpStatus } from '@/shared/api/http-error';
 import { instance } from '@/shared/api/instance';
 import { type ApiResponse } from '@/shared/model/token';
 import { type GithubRepoSummary } from '@/entities/github/model/github';
@@ -15,11 +16,7 @@ export async function getGithubOrgRepos(
     );
     return data.data;
   } catch (error) {
-    if (
-      isAxiosError(error) &&
-      error.response?.status === HttpStatusCode.BadRequest
-    )
-      return null;
+    if (isHttpStatus(error, HttpStatusCode.BadRequest)) return null;
 
     throw error;
   }

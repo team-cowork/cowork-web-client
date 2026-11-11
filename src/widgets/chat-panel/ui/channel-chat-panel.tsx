@@ -1,9 +1,9 @@
 'use client';
 
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
+import { isHttpStatus } from '@/shared/api/http-error';
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { type Message } from '@/entities/message/model/message';
 import { useChannelMessageEvents } from '@/entities/message/model/use-channel-message-events';
@@ -31,7 +31,7 @@ export interface ChannelChatPanelProps {
 }
 
 function ChannelChatError({ error, resetErrorBoundary }: FallbackProps) {
-  const isForbidden = isAxiosError(error) && error.response?.status === 403;
+  const isForbidden = isHttpStatus(error, 403);
 
   return (
     <div className="flex flex-1 items-center justify-center p-6">
