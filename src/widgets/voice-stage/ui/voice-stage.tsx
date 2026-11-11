@@ -2,13 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { useQueries, useQuery } from '@tanstack/react-query';
-
-import { liveQueries } from '@/entities/live/api/live-queries';
-import { userQueries } from '@/entities/user/api/user-queries';
-import { getUserDisplayName } from '@/entities/user/lib/user-display';
 import { VoiceParticipantCard } from '@/entities/voice/ui/voice-participant-card';
-import { countLiveViewers } from '@/features/live-session/lib/count-live-viewers';
 import {
   END_LIVE_ERRORS,
   GO_LIVE_ERRORS,
@@ -26,10 +20,7 @@ import {
   toCameraError,
   VOICE_ERRORS,
 } from '@/features/voice-session/lib/voice-errors';
-import {
-  useVoiceChannelParticipants,
-  type VoiceChannelParticipant,
-} from '@/features/voice-session/model/use-voice-channel-participants';
+import { type VoiceChannelParticipant } from '@/features/voice-session/model/use-voice-channel-participants';
 import { useVoiceSession } from '@/features/voice-session/model/voice-session-provider';
 import { VoiceControls } from '@/features/voice-session/ui/voice-controls';
 import { cn } from '@/shared/lib/cn';
@@ -39,6 +30,7 @@ import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { HeadphonesIcon } from '@/shared/ui/icons/headphones-icon';
 import { MonitorIcon } from '@/shared/ui/icons/monitor-icon';
+import { useVoiceStageView } from '@/widgets/voice-stage/model/use-voice-stage-view';
 import { LiveFocusFooter } from '@/widgets/voice-stage/ui/live-focus-footer';
 
 export interface VoiceStageProps {
@@ -65,80 +57,30 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
     [channelId, stopCamera],
   );
 
-  const isCurrentChannel = session.channelId === channelId;
-  const isConnected = isCurrentChannel && session.status === 'connected';
-  const isConnecting = isCurrentChannel && session.status === 'connecting';
-  const isBusyElsewhere = session.channelId !== null && !isCurrentChannel;
-
-  const liveState = live.state;
-  const isLiveChannel = live.channelId === channelId;
-  const activeLive =
-    isLiveChannel &&
-    (liveState.status === 'broadcasting' || liveState.status === 'watching')
-      ? liveState
-      : null;
-  const isStreaming = activeLive?.status === 'broadcasting';
-  const isWatching = activeLive?.status === 'watching';
-  const isLiveConnecting = isLiveChannel && liveState.status === 'connecting';
-  const isLiveElsewhere =
-    live.channelId !== null && !isLiveChannel && liveState.status !== 'ended';
-
-  const { participants, preview } = useVoiceChannelParticipants(channelId);
-  const liveStatus = useQuery({
-    ...liveQueries.status(channelId),
-    enabled: activeLive === null,
-  });
-  const me = useQuery(userQueries.me());
-
-  const hasLive = activeLive !== null || liveStatus.data?.live === true;
-  const endedLive =
-    isLiveChannel && liveState.status === 'ended' ? liveState : null;
-  const liveHostUserId = activeLive
-    ? activeLive.hostUserId
-    : (endedLive?.hostUserId ?? liveStatus.data?.host_user_id ?? null);
-  const liveViewerCount = activeLive
-    ? countLiveViewers(live.participants, activeLive.hostUserId)
-    : (liveStatus.data?.viewer_count ?? 0);
-  const liveStartedAt =
-    hasLive && liveStatus.data?.live ? liveStatus.data.started_at : undefined;
-  const isMyLive = liveHostUserId !== null && me.data?.id === liveHostUserId;
-  // 새로고침 등으로 연결이 끊긴 내 방송은 서버가 방을 지우는 중이라 이어갈 수
-  // 없다. 다음 갱신에서 사라질 때까지 시청 타일로도 보여 주지 않는다
-  const showLiveTile = hasLive && (activeLive !== null || !isMyLive);
-  // 카메라는 음성 방으로 송출되므로 이 채널 음성에 연결돼 있을 때만 보인다
-  const cameraByUserId = new Map(
-    (isConnected ? session.cameras : []).flatMap((camera) =>
-      camera.userId === null ? [] : [[camera.userId, camera]],
-    ),
-  );
-
-  const stage = participants ?? [];
-
-  const userIds = Array.from(
-    new Set(
-      [
-        ...stage.map((participant) => participant.userId),
-        liveHostUserId,
-      ].filter((id) => id !== null),
-    ),
-  );
-  const users = useQueries({
-    queries: userIds.map((userId) => userQueries.detail(userId)),
-  });
-  const userById = new Map(
-    users.flatMap((result) =>
-      result.data ? [[result.data.id, result.data]] : [],
-    ),
-  );
-
-  const liveHost =
-    liveHostUserId === null ? undefined : userById.get(liveHostUserId);
-  const liveHostName = getUserDisplayName(liveHost, `#${liveHostUserId ?? ''}`);
-
-  const showFocus = isWatching || (isStreaming && focusOwnStream);
-  const showPreviewPending = !isConnected && preview.isPending;
-  const showPreviewError = !isConnected && preview.isError;
-  const canShareScreen = isStreaming || !hasLive || isMyLive;
+  const {
+    isConnected,
+    isConnecting,
+    isBusyElsewhere,
+    isStreaming,
+    isWatching,
+    isLiveConnecting,
+    isLiveElsewhere,
+    preview,
+    me,
+    endedLive,
+    liveHostUserId,
+    liveViewerCount,
+    liveStartedAt,
+    showLiveTile,
+    cameraByUserId,
+    stage,
+    userById,
+    liveHostName,
+    showFocus,
+    showPreviewPending,
+    showPreviewError,
+    canShareScreen,
+  } = useVoiceStageView(channelId, focusOwnStream);
 
   async function runVoice(
     action: () => Promise<void>,
