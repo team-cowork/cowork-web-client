@@ -218,6 +218,10 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
           });
 
         await room.connect(session.livekit_url, session.token);
+        if (!isCurrent()) {
+          await room.disconnect();
+          return;
+        }
         roomRef.current = room;
 
         try {
@@ -227,6 +231,10 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
         }
 
         if (!room.canPlaybackAudio) await room.startAudio();
+        if (!isCurrent()) {
+          await room.disconnect();
+          return;
+        }
         applyRemoteVolume(room, audioEnabledRef.current);
 
         setCanUseCamera(canPublishCamera(room));
