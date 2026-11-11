@@ -1,15 +1,21 @@
 import { serverInstance } from '@/shared/api/instance';
 import { type ApiResponse, type TokenPairResponse } from '@/shared/model/token';
 
-const SERVER_LOGIN_SESSION_COOKIE = '__Host-cowork_oauth';
+// 서버는 로그인 시도마다 state로 이름을 정한 쿠키(`__Host-cowork_oauth_{state 해시}`)를 내려 준다.
+// 콜백 때 같은 이름으로 돌려보내야 하므로 이름과 값을 `name=value` 그대로 보관한다.
+const SERVER_LOGIN_SESSION_COOKIE_PREFIX = '__Host-cowork_oauth_';
 
 function getLoginSession(setCookies: string[] | undefined): string | null {
-  const prefix = `${SERVER_LOGIN_SESSION_COOKIE}=`;
   const cookie = setCookies
     ?.map((value) => value.split(';')[0].trim())
-    .find((value) => value.startsWith(prefix));
+    .find((value) => value.startsWith(SERVER_LOGIN_SESSION_COOKIE_PREFIX));
+  if (!cookie) return null;
 
-  return cookie?.slice(prefix.length) || null;
+  const separator = cookie.indexOf('=');
+  if (separator <= SERVER_LOGIN_SESSION_COOKIE_PREFIX.length) return null;
+  if (separator === cookie.length - 1) return null;
+
+  return cookie;
 }
 
 export async function startLogin(
@@ -45,7 +51,7 @@ export async function completeLogin(input: {
           : { code: input.code }),
       },
       {
-        headers: { Cookie: `${SERVER_LOGIN_SESSION_COOKIE}=${input.session}` },
+        headers: { Cookie: input.session },
       },
     );
     const data = response.data.data;
