@@ -1,5 +1,5 @@
 import { instance } from '@/shared/api/instance';
-import { type ApiResponse } from '@/shared/model/token';
+import { type ApiResponse } from '@/shared/model/api-response';
 import { type Channel } from '@/entities/channel/model/channel';
 
 /** 프로젝트에 속한 채널. 채널 서비스가 내려준다. */

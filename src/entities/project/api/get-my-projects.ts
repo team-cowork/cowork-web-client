@@ -1,5 +1,5 @@
 import { instance } from '@/shared/api/instance';
-import { type ApiResponse } from '@/shared/model/token';
+import { type ApiResponse } from '@/shared/model/api-response';
 import { type Page, type Project } from '@/entities/project/model/project';
 
 const MY_PROJECT_PAGE_SIZE = 100;

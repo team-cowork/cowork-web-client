@@ -2,7 +2,7 @@ import { type AxiosResponse } from 'axios';
 
 import { instance } from '@/shared/api/instance';
 import { unwrapApiResponse } from '@/shared/api/unwrap';
-import { type ApiResponse } from '@/shared/model/token';
+import { type ApiResponse } from '@/shared/model/api-response';
 import { type TeamRoleOperation } from '@/entities/team/model/team';
 
 const POLL_INTERVAL_MS = 500;

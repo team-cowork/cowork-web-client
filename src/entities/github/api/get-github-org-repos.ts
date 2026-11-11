@@ -2,7 +2,7 @@ import { HttpStatusCode } from 'axios';
 
 import { isHttpStatus } from '@/shared/api/http-error';
 import { instance } from '@/shared/api/instance';
-import { type ApiResponse } from '@/shared/model/token';
+import { type ApiResponse } from '@/shared/model/api-response';
 import { type GithubRepoSummary } from '@/entities/github/model/github';
 
 // 팀에 GitHub 조직이 연동되지 않았으면 서버가 400으로 응답한다.
