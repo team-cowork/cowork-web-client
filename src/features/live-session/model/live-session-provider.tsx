@@ -38,6 +38,7 @@ import {
 import { createExclusiveQueue } from '@/shared/lib/exclusive-queue';
 import {
   applyRemoteVolume,
+  listParticipants,
   type RoomParticipantSnapshot,
   toRoomParticipants,
   toUserId,
@@ -81,9 +82,7 @@ function toEndReason(reason: DisconnectReason | undefined): LiveEndReason {
 }
 
 function findScreenShareTrack(room: Room): Track | null {
-  const all = [room.localParticipant, ...room.remoteParticipants.values()];
-
-  for (const participant of all) {
+  for (const participant of listParticipants(room)) {
     const track = participant.getTrackPublication(
       Track.Source.ScreenShare,
     )?.track;
