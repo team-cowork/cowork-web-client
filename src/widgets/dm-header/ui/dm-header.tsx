@@ -1,5 +1,7 @@
 'use client';
 
+import { type ReactNode } from 'react';
+
 import {
   USER_STATUS_LABEL,
   toUserStatus,
@@ -8,14 +10,23 @@ import {
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { cn } from '@/shared/lib/cn';
 import { MoreIcon } from '@/shared/ui/icons/more-icon';
+import { PinIcon } from '@/shared/ui/icons/pin-icon';
 import { SearchIcon } from '@/shared/ui/icons/search-icon';
 
 export interface DmHeaderProps {
   user?: User;
+  /** 오른쪽 끝 대화 설정 메뉴. 없으면 비활성 버튼을 보여준다. */
+  menu?: ReactNode;
+  onTogglePins?: () => void;
   className?: string;
 }
 
-export function DmHeader({ user, className }: DmHeaderProps) {
+export function DmHeader({
+  user,
+  menu,
+  onTogglePins,
+  className,
+}: DmHeaderProps) {
   const status = user ? toUserStatus(user.status) : null;
   const subtitle =
     user?.status_message ?? (status ? USER_STATUS_LABEL[status] : null);
@@ -39,6 +50,16 @@ export function DmHeader({ user, className }: DmHeaderProps) {
       )}
 
       <div className="ml-auto flex shrink-0 items-center gap-4 pl-4">
+        {onTogglePins && (
+          <button
+            type="button"
+            aria-label="고정된 메시지"
+            onClick={onTogglePins}
+            className="cursor-pointer text-on-surface-variant hover:text-on-surface"
+          >
+            <PinIcon size={20} />
+          </button>
+        )}
         <button
           type="button"
           aria-label="메시지 검색"
@@ -47,14 +68,16 @@ export function DmHeader({ user, className }: DmHeaderProps) {
         >
           <SearchIcon size={20} />
         </button>
-        <button
-          type="button"
-          aria-label="대화 설정"
-          disabled
-          className="text-on-surface-variant disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <MoreIcon size={20} />
-        </button>
+        {menu ?? (
+          <button
+            type="button"
+            aria-label="대화 설정"
+            disabled
+            className="text-on-surface-variant disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <MoreIcon size={20} />
+          </button>
+        )}
       </div>
     </header>
   );

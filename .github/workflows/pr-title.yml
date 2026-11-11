@@ -1,0 +1,38 @@
+name: Validate PR Title
+
+on:
+  pull_request:
+    branches: [develop, main]
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  validate-title:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/github-script@v9
+        with:
+          script: |
+            const title = context.payload.pull_request.title;
+            const scopePattern = /^[a-z][a-z0-9-]*(\/[a-z0-9-]+)*$/;
+
+            if (/^v\d{8}\.\d+$/.test(title)) {
+              return;
+            }
+
+            const match = title.match(/^\[([^\]]+)\]\s+(.+)$/);
+            if (!match) {
+              core.setFailed('제목 형식이 올바르지 않습니다. [scope] 설명 또는 vYYYYMMDD.n 형식을 사용하세요');
+              return;
+            }
+
+            if (match[2].includes(':')) {
+              core.setFailed('제목에는 콜론(:)을 사용할 수 없습니다');
+              return;
+            }
+
+            const invalid = match[1].split(',').map(s => s.trim()).filter(s => !scopePattern.test(s));
+            if (invalid.length > 0) {
+              core.setFailed(`scope 형식이 올바르지 않습니다: ${invalid.join(', ')} (소문자 도메인명 예: team, ci/cd, shared/ui)`);
+            }

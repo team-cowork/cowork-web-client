@@ -12,6 +12,8 @@ export interface DialogProps {
   description?: string;
   children?: ReactNode;
   className?: string;
+  /** false면 바깥 클릭과 ESC로 닫히지 않고, 안의 버튼으로만 닫을 수 있다. */
+  dismissible?: boolean;
 }
 
 export function Dialog({
@@ -21,6 +23,7 @@ export function Dialog({
   description,
   children,
   className,
+  dismissible = true,
 }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
 
@@ -37,8 +40,11 @@ export function Dialog({
     <dialog
       ref={ref}
       onClose={onClose}
+      onCancel={(e) => {
+        if (!dismissible) e.preventDefault();
+      }}
       onClick={(e) => {
-        if (e.target === ref.current) onClose();
+        if (dismissible && e.target === ref.current) onClose();
       }}
       className={cn(
         'm-auto w-[420px] max-w-[calc(100vw-2rem)] rounded-[24px] border border-outline-variant bg-surface text-on-surface backdrop:bg-black/50',

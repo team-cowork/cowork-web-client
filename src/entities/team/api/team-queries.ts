@@ -4,6 +4,7 @@ import { getTeam } from '@/entities/team/api/get-team';
 import { getTeamInvites } from '@/entities/team/api/get-team-invites';
 import { getTeamMemberRoles } from '@/entities/team/api/get-team-member-roles';
 import { getTeamMembers } from '@/entities/team/api/get-team-members';
+import { getTeamRolePermissions } from '@/entities/team/api/get-team-role-permissions';
 import { getTeamRoles } from '@/entities/team/api/get-team-roles';
 import { getTeams } from '@/entities/team/api/get-teams';
 
@@ -33,6 +34,12 @@ export const teamQueries = {
     queryOptions({
       queryKey: [...teamQueries.all(), 'roles', teamId],
       queryFn: () => getTeamRoles(teamId),
+    }),
+  rolePermissions: () =>
+    queryOptions({
+      queryKey: [...teamQueries.all(), 'rolePermissions'],
+      queryFn: getTeamRolePermissions,
+      staleTime: Infinity,
     }),
   invites: (teamId: number) =>
     queryOptions({

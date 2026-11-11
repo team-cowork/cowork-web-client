@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 
 import { cn } from '@/shared/lib/cn';
 import {
+  teamSettingsGithubPath,
   teamSettingsInvitesPath,
   teamSettingsMembersPath,
   teamSettingsProfilePath,
@@ -33,6 +34,7 @@ export function TeamSettingsNav({
     { label: '멤버', href: teamSettingsMembersPath(teamId) },
     { label: '역할', href: teamSettingsRolesPath(teamId) },
     { label: '초대 링크', href: teamSettingsInvitesPath(teamId) },
+    { label: 'GitHub 연동', href: teamSettingsGithubPath(teamId) },
   ];
 
   return (

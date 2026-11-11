@@ -1,13 +1,12 @@
 import { type NextResponse } from 'next/server';
 
 import {
-  CODE_VERIFIER_COOKIE,
-  OAUTH_STATE_COOKIE,
+  LOGIN_SESSION_COOKIE,
   REFRESH_TOKEN_COOKIE,
   type TokenPairResponse,
 } from '@/shared/model/token';
 
-const PKCE_MAX_AGE = 600;
+const LOGIN_SESSION_MAX_AGE = 600;
 const REFRESH_MAX_AGE = 60 * 60 * 24 * 30;
 
 function baseCookieOptions() {
@@ -19,19 +18,16 @@ function baseCookieOptions() {
   };
 }
 
-export function setPkceCookies(
-  response: NextResponse,
-  verifier: string,
-  state: string,
-) {
-  const options = { ...baseCookieOptions(), maxAge: PKCE_MAX_AGE };
-  response.cookies.set(CODE_VERIFIER_COOKIE, verifier, options);
-  response.cookies.set(OAUTH_STATE_COOKIE, state, options);
+export function setLoginSessionCookie(response: NextResponse, session: string) {
+  // HTTP 로컬 환경에서도 중계할 수 있도록 __Host- 접두사 없는 자체 쿠키를 사용한다.
+  response.cookies.set(LOGIN_SESSION_COOKIE, session, {
+    ...baseCookieOptions(),
+    maxAge: LOGIN_SESSION_MAX_AGE,
+  });
 }
 
-export function clearPkceCookies(response: NextResponse) {
-  response.cookies.delete(CODE_VERIFIER_COOKIE);
-  response.cookies.delete(OAUTH_STATE_COOKIE);
+export function clearLoginSessionCookie(response: NextResponse) {
+  response.cookies.delete(LOGIN_SESSION_COOKIE);
 }
 
 export function setRefreshTokenCookie(
