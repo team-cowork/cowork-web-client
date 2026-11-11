@@ -1,6 +1,7 @@
 import { type AxiosResponse } from 'axios';
 
 import { instance } from '@/shared/api/instance';
+import { unwrapApiResponse } from '@/shared/api/unwrap';
 import { type ApiResponse } from '@/shared/model/token';
 import { type TeamRoleOperation } from '@/entities/team/model/team';
 
@@ -11,10 +12,6 @@ type OperationBody = ApiResponse<TeamRoleOperation> | TeamRoleOperation;
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function unwrap(body: OperationBody): TeamRoleOperation {
-  return 'operationId' in body ? body : body.data;
-}
-
 async function getTeamRoleOperation(
   teamId: number,
   operationId: string,
@@ -23,7 +20,7 @@ async function getTeamRoleOperation(
     `/team/teams/${teamId}/role-operations/${operationId}`,
   );
 
-  return unwrap(data);
+  return unwrapApiResponse(data, 'operationId');
 }
 
 export async function requestTeamRoleOperation(
@@ -33,7 +30,7 @@ export async function requestTeamRoleOperation(
   }) => Promise<AxiosResponse<OperationBody>>,
 ): Promise<TeamRoleOperation> {
   const { data } = await send({ 'Idempotency-Key': crypto.randomUUID() });
-  let operation = unwrap(data);
+  let operation = unwrapApiResponse(data, 'operationId');
 
   for (
     let attempt = 0;

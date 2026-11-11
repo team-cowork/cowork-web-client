@@ -1,4 +1,5 @@
 import { instance } from '@/shared/api/instance';
+import { unwrapApiResponse } from '@/shared/api/unwrap';
 import { type ApiResponse } from '@/shared/model/token';
 import { type ChannelRolePolicyOperation } from '@/entities/channel/model/channel';
 
@@ -15,5 +16,5 @@ export async function putChannelRolePolicy(
     { headers: { 'Idempotency-Key': crypto.randomUUID() } },
   );
 
-  return 'operationId' in data ? data : data.data;
+  return unwrapApiResponse(data, 'operationId');
 }
