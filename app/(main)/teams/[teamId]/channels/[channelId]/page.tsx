@@ -19,6 +19,7 @@ import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { FileSharePanel } from '@/widgets/file-share/ui/file-share-panel';
 import { MemberPanel } from '@/widgets/member-panel/ui/member-panel';
 import { MessageSearchPanel } from '@/widgets/message-search/ui/message-search-panel';
+import { MessageList } from '@/widgets/message-list/ui/message-list';
 import { PinnedMessagesPanel } from '@/widgets/message-list/ui/pinned-messages-panel';
 import { ChannelThreadPanel } from '@/widgets/message-list/ui/channel-thread-panel';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
@@ -129,6 +130,7 @@ function ChannelView({
           <FileSharePanel channelId={channelId} />
         ) : (
           <ChannelChatPanel
+            renderMessageList={(props) => <MessageList {...props} />}
             channelId={channelId}
             projectId={channel.projectId}
             placeholder={`#${channel.name}에 메시지 보내기`}

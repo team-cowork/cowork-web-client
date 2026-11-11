@@ -15,6 +15,7 @@ import { userQueries } from '@/entities/user/api/user-queries';
 import { DmConversationMenu } from '@/features/dm-manage/ui/dm-conversation-menu';
 import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { DmHeader } from '@/widgets/dm-header/ui/dm-header';
+import { MessageList } from '@/widgets/message-list/ui/message-list';
 import { PinnedMessagesPanel } from '@/widgets/message-list/ui/pinned-messages-panel';
 import { ChannelThreadPanel } from '@/widgets/message-list/ui/channel-thread-panel';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
@@ -103,6 +104,7 @@ function DmView({ channelId }: { channelId: number }) {
         />
 
         <ChannelChatPanel
+          renderMessageList={(props) => <MessageList {...props} />}
           channelId={channelId}
           onSelectMessage={(message) => setThreadRoot(toThreadRoot(message))}
         />

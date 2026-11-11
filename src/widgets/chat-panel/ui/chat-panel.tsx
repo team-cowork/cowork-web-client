@@ -2,27 +2,18 @@
 
 import { type ReactNode, useRef } from 'react';
 
-import { type Message } from '@/entities/message/model/message';
 import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
 import { AttachButton } from '@/features/message-composer/ui/attach-button';
 import { MessageComposer } from '@/features/message-composer/ui/message-composer';
-import { MessageList } from '@/widgets/message-list/ui/message-list';
 import { cn } from '@/shared/lib/cn';
 
 export interface ChatPanelProps {
-  /** 오래된 메시지부터 순서대로 */
-  messages: Message[];
+  messageList: ReactNode;
   /** `false`를 돌려주면 입력값을 비우지 않는다 */
   onSendMessage: (content: string) => boolean | void;
   /** 입력값이 바뀔 때마다 불린다(예: 입력 중 알림) */
   onDraftChange?: (value: string) => void;
-  onRetryMessage?: (message: Message) => void;
-  onSelectMessage?: (message: Message) => void;
-  hasOlder?: boolean;
-  isLoadingOlder?: boolean;
-  onLoadOlder?: () => void;
   placeholder?: string;
-  emptyState?: ReactNode;
   /** 없으면 첨부 버튼을 비활성화한다 */
   onAttachFiles?: (files: FileList) => void;
   /** 컴포저 위에 보여줄 상태(예: 입력 중 표시, 커맨드 안내) */
@@ -43,16 +34,10 @@ export interface ChatPanelProps {
  * 채널·DM·스레드 등 대화가 필요한 화면이라면 어디서든 그대로 사용한다.
  */
 export function ChatPanel({
-  messages,
+  messageList,
   onSendMessage,
   onDraftChange,
-  onRetryMessage,
-  onSelectMessage,
-  hasOlder,
-  isLoadingOlder,
-  onLoadOlder,
   placeholder,
-  emptyState,
   onAttachFiles,
   composerStatus,
   attachmentDrafts,
@@ -69,15 +54,7 @@ export function ChatPanel({
 
   return (
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
-      <MessageList
-        messages={messages}
-        onSelectMessage={onSelectMessage}
-        onRetryMessage={onRetryMessage}
-        hasOlder={hasOlder}
-        isLoadingOlder={isLoadingOlder}
-        onLoadOlder={onLoadOlder}
-        emptyState={emptyState}
-      />
+      {messageList}
 
       <div className="flex shrink-0 flex-col gap-2 px-4 pb-6">
         {composerStatus}
