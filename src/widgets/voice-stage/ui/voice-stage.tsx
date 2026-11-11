@@ -22,6 +22,11 @@ import {
 import { useLiveSession } from '@/features/live-session/model/live-session-provider';
 import { LiveStreamFocus } from '@/features/live-session/ui/live-stream-focus';
 import { LiveStreamTile } from '@/features/live-session/ui/live-stream-tile';
+import {
+  CAMERA_FORBIDDEN,
+  toCameraError,
+  VOICE_ERRORS,
+} from '@/features/voice-session/lib/voice-errors';
 import { useVoiceSession } from '@/features/voice-session/model/voice-session-provider';
 import { VoiceControls } from '@/features/voice-session/ui/voice-controls';
 import { cn } from '@/shared/lib/cn';
@@ -44,22 +49,6 @@ interface StageParticipant {
   userId: number | null;
   speaking: boolean;
   muted: boolean;
-}
-
-// 카메라 송출은 서버가 screen_share 권한으로 판정한다
-const CAMERA_FORBIDDEN =
-  '카메라 권한이 없습니다. 팀 관리자에게 화면 공유 권한을 요청하세요';
-
-function toCameraError(error: unknown): string {
-  const name = error instanceof Error ? error.name : undefined;
-
-  if (name === 'NotAllowedError')
-    return '브라우저에서 카메라가 차단되어 있습니다. 주소창의 사이트 설정에서 허용해 주세요';
-  if (name === 'NotFoundError') return '연결된 카메라를 찾지 못했습니다';
-  if (name === 'NotReadableError')
-    return '다른 앱이 카메라를 사용하고 있습니다';
-
-  return '카메라를 켜지 못했습니다';
 }
 
 export function VoiceStage({ channelId, className }: VoiceStageProps) {
@@ -173,7 +162,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
 
   async function runVoice(
     action: () => Promise<void>,
-    errorMessage = '음성 채널에 연결하지 못했습니다',
+    errorMessage: string = VOICE_ERRORS.join,
   ) {
     setActionError(null);
     setPending(true);
@@ -456,7 +445,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
                 void Promise.all([
                   session.resumeAudio(),
                   live.resumeAudio(),
-                ]).catch(() => setActionError('소리를 켜지 못했습니다'))
+                ]).catch(() => setActionError(VOICE_ERRORS.resumeAudio))
               }
             >
               소리 켜기
@@ -492,7 +481,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
               setActionError(null);
               void session
                 .toggleMic()
-                .catch(() => setActionError('마이크 상태를 바꾸지 못했습니다'));
+                .catch(() => setActionError(VOICE_ERRORS.toggleMic));
             }}
             audioEnabled={session.audioEnabled}
             onToggleAudio={session.toggleAudio}
