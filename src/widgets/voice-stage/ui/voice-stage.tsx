@@ -3,33 +3,20 @@
 import { useEffect, useState } from 'react';
 
 import { VoiceParticipantCard } from '@/entities/voice/ui/voice-participant-card';
-import {
-  END_LIVE_ERRORS,
-  GO_LIVE_ERRORS,
-  LEAVE_WATCH_ERRORS,
-  LIVE_END_MESSAGE,
-  type LiveErrorMessages,
-  toLiveError,
-  WATCH_ERRORS,
-} from '@/features/live-session/lib/live-errors';
+import { LIVE_END_MESSAGE } from '@/features/live-session/lib/live-errors';
 import { useLiveSession } from '@/features/live-session/model/live-session-provider';
 import { LiveStreamFocus } from '@/features/live-session/ui/live-stream-focus';
 import { LiveStreamTile } from '@/features/live-session/ui/live-stream-tile';
-import {
-  CAMERA_FORBIDDEN,
-  toCameraError,
-  VOICE_ERRORS,
-} from '@/features/voice-session/lib/voice-errors';
 import { type VoiceChannelParticipant } from '@/features/voice-session/model/use-voice-channel-participants';
 import { useVoiceSession } from '@/features/voice-session/model/voice-session-provider';
 import { VoiceControls } from '@/features/voice-session/ui/voice-controls';
 import { cn } from '@/shared/lib/cn';
-import { type CameraControl } from '@/shared/model/camera-control';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { HeadphonesIcon } from '@/shared/ui/icons/headphones-icon';
 import { MonitorIcon } from '@/shared/ui/icons/monitor-icon';
+import { useStageActions } from '@/widgets/voice-stage/model/use-stage-actions';
 import { useVoiceStageView } from '@/widgets/voice-stage/model/use-voice-stage-view';
 import { LiveFocusFooter } from '@/widgets/voice-stage/ui/live-focus-footer';
 
@@ -41,10 +28,7 @@ export interface VoiceStageProps {
 export function VoiceStage({ channelId, className }: VoiceStageProps) {
   const session = useVoiceSession();
   const live = useLiveSession();
-  const [pending, setPending] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [focusOwnStream, setFocusOwnStream] = useState(false);
-  const [cameraPending, setCameraPending] = useState(false);
 
   // 음성 연결은 다른 화면에서도 유지되지만, 카메라는 켜져 있다는 표시와 끌
   // 수단이 이 화면에만 있다. 모르는 사이 영상이 나가지 않게 벗어나면 끈다
@@ -81,68 +65,23 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
     showPreviewError,
     canShareScreen,
   } = useVoiceStageView(channelId, focusOwnStream);
-
-  async function runVoice(
-    action: () => Promise<void>,
-    errorMessage: string = VOICE_ERRORS.join,
-  ) {
-    setActionError(null);
-    setPending(true);
-
-    try {
-      await action();
-    } catch {
-      setActionError(errorMessage);
-    } finally {
-      setPending(false);
-    }
-  }
-
-  async function runLive(
-    action: () => Promise<void>,
-    messages: LiveErrorMessages,
-  ) {
-    setActionError(null);
-    setPending(true);
-
-    try {
-      await action();
-    } catch (error) {
-      setActionError(toLiveError(error, messages));
-    } finally {
-      setPending(false);
-    }
-  }
-
-  async function toggleCamera() {
-    setActionError(null);
-    setCameraPending(true);
-
-    try {
-      await session.toggleCamera();
-    } catch (error) {
-      setActionError(toCameraError(error));
-    } finally {
-      setCameraPending(false);
-    }
-  }
-
-  const cameraControl: CameraControl = {
-    enabled: session.cameraEnabled,
-    // 권한이 없으면 화면 공유처럼 컨트롤 위 문구로 이유를 보여 준다
-    onToggle: !session.canUseCamera
-      ? () => setActionError(CAMERA_FORBIDDEN)
-      : cameraPending
-        ? undefined
-        : () => void toggleCamera(),
-    unavailable: !session.canUseCamera,
-  };
-
-  function goLive() {
-    setFocusOwnStream(false);
-
-    return live.goLive(channelId);
-  }
+  const {
+    pending,
+    actionError,
+    cameraControl,
+    joinVoice,
+    toggleMic,
+    leaveVoice,
+    resumeAudio,
+    watchLive,
+    leaveWatch,
+    startLive,
+    endLive,
+  } = useStageActions({
+    channelId,
+    isLiveElsewhere,
+    onGoLive: () => setFocusOwnStream(false),
+  });
 
   function renderLiveTile() {
     if (isStreaming)
@@ -165,7 +104,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
         startedAt={liveStartedAt}
         isMine={false}
         actionLabel={isLiveConnecting ? '연결 중…' : '방송 보기'}
-        onAction={() => void runLive(() => live.watch(channelId), WATCH_ERRORS)}
+        onAction={watchLive}
         // 내 정보를 모르면 내 방송인지 판단할 수 없어, 호스트가 시청자로
         // 들어가 화면 없는 방송 상태가 되지 않도록 불러올 때까지 막는다
         disabled={pending || isLiveConnecting || me.data === undefined}
@@ -231,11 +170,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
           audioEnabled={live.audioEnabled}
           onToggleAudio={isWatching ? live.toggleAudio : undefined}
           closeLabel={isWatching ? '나가기' : '작게 보기'}
-          onClose={() =>
-            isWatching
-              ? void runLive(live.leave, LEAVE_WATCH_ERRORS)
-              : setFocusOwnStream(false)
-          }
+          onClose={() => (isWatching ? leaveWatch() : setFocusOwnStream(false))}
           footer={
             stage.length > 0 && (
               <LiveFocusFooter
@@ -316,17 +251,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
             <p className="typography-subtext-medium text-on-surface-variant">
               브라우저가 소리 재생을 막았습니다.
             </p>
-            <Button
-              size="S"
-              variant="weak"
-              onClick={() =>
-                // 방이 없는 쪽은 바로 끝나므로 음성과 방송을 함께 다시 시도한다
-                void Promise.all([
-                  session.resumeAudio(),
-                  live.resumeAudio(),
-                ]).catch(() => setActionError(VOICE_ERRORS.resumeAudio))
-              }
-            >
+            <Button size="S" variant="weak" onClick={resumeAudio}>
               소리 켜기
             </Button>
           </div>
@@ -355,43 +280,20 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
         {isConnected ? (
           <VoiceControls
             micEnabled={session.micEnabled}
-            // 마이크 전환은 다른 버튼을 막을 만큼 오래 걸리지 않아 pending을 쓰지 않는다
-            onToggleMic={() => {
-              setActionError(null);
-              void session
-                .toggleMic()
-                .catch(() => setActionError(VOICE_ERRORS.toggleMic));
-            }}
+            onToggleMic={toggleMic}
             audioEnabled={session.audioEnabled}
             onToggleAudio={session.toggleAudio}
             camera={cameraControl}
             screenSharing={isStreaming}
             onShareScreen={
               canShareScreen && !isLiveConnecting
-                ? () =>
-                    void (isStreaming
-                      ? runLive(live.leave, END_LIVE_ERRORS)
-                      : runLive(goLive, GO_LIVE_ERRORS))
+                ? () => void (isStreaming ? endLive() : startLive())
                 : undefined
             }
-            // 음성에서 나가면 LiveVoiceGuard가 내 방송도 함께 끝낸다
-            // leave는 연결을 먼저 정리한 뒤 서버에 알리므로, 실패해도 이미 나간 상태다.
-            // 남은 서버 기록은 LiveKit 웹훅이 정리하므로 오류 문구를 띄우지 않는다
-            onLeave={() =>
-              void runVoice(() => session.leave().catch(() => undefined))
-            }
+            onLeave={leaveVoice}
           />
         ) : (
-          <Button
-            onClick={() =>
-              void runVoice(async () => {
-                if (isLiveElsewhere) await live.leave().catch(() => undefined);
-
-                await session.join(channelId);
-              })
-            }
-            disabled={pending || isConnecting}
-          >
+          <Button onClick={joinVoice} disabled={pending || isConnecting}>
             {isConnecting ? '연결 중…' : '음성 채널 참여'}
           </Button>
         )}
