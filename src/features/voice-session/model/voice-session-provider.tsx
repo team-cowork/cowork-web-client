@@ -12,7 +12,7 @@ import {
 } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { Room, RoomEvent } from 'livekit-client';
+import { type RemoteTrack, Room, RoomEvent, Track } from 'livekit-client';
 
 import { postVoiceJoin } from '@/entities/voice/api/post-voice-join';
 import { postVoiceLeave } from '@/entities/voice/api/post-voice-leave';
@@ -64,6 +64,7 @@ export function useVoiceSession() {
 export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const roomRef = useRef<Room | null>(null);
+  const audioTracksRef = useRef(new Set<RemoteTrack>());
   const audioEnabledRef = useRef(true);
   const queueRef = useRef<Promise<unknown>>(Promise.resolve());
   const channelIdRef = useRef<number | null>(null);
@@ -80,8 +81,16 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const [micEnabled, setMicEnabled] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
 
+  const clearAudio = useCallback(() => {
+    audioTracksRef.current.forEach((track) => {
+      track.detach().forEach((element) => element.remove());
+    });
+    audioTracksRef.current.clear();
+  }, []);
+
   const reset = useCallback(() => {
     generationRef.current += 1;
+    clearAudio();
     roomRef.current = null;
     channelIdRef.current = null;
     setChannelId(null);
@@ -92,7 +101,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     setCameras([]);
     setCameraEnabled(false);
     setCanUseCamera(false);
-  }, []);
+  }, [clearAudio]);
 
   const syncRoom = useCallback((room: Room) => {
     setParticipants(toRoomParticipants(room));
@@ -169,8 +178,27 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
           .on(RoomEvent.TrackUnmuted, sync)
           .on(RoomEvent.LocalTrackPublished, sync)
           .on(RoomEvent.LocalTrackUnpublished, sync)
-          .on(RoomEvent.TrackSubscribed, sync)
-          .on(RoomEvent.TrackUnsubscribed, sync)
+          .on(RoomEvent.TrackSubscribed, (track) => {
+            if (!isCurrent()) return;
+
+            if (
+              track.kind === Track.Kind.Audio &&
+              track.source === Track.Source.Microphone &&
+              !audioTracksRef.current.has(track)
+            ) {
+              const element = track.attach();
+              element.hidden = true;
+              document.body.appendChild(element);
+              audioTracksRef.current.add(track);
+              applyRemoteVolume(boundRoom, audioEnabledRef.current);
+            }
+            sync();
+          })
+          .on(RoomEvent.TrackUnsubscribed, (track) => {
+            if (audioTracksRef.current.delete(track))
+              track.detach().forEach((element) => element.remove());
+            sync();
+          })
           // 팀 역할이 바뀌면 서버가 접속 중에도 카메라 송출 권한을 갱신한다
           .on(RoomEvent.ParticipantPermissionsChanged, (_, participant) => {
             if (!participant.isLocal || !isCurrent()) return;
@@ -292,9 +320,10 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     return () => {
+      clearAudio();
       roomRef.current?.disconnect();
     };
-  }, []);
+  }, [clearAudio]);
 
   const value = useMemo(
     () => ({
