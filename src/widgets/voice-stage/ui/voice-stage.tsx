@@ -7,7 +7,6 @@ import { useQueries, useQuery } from '@tanstack/react-query';
 import { liveQueries } from '@/entities/live/api/live-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { getUserDisplayName } from '@/entities/user/lib/user-display';
-import { voiceQueries } from '@/entities/voice/api/voice-queries';
 import { VoiceParticipantCard } from '@/entities/voice/ui/voice-participant-card';
 import { countLiveViewers } from '@/features/live-session/lib/count-live-viewers';
 import {
@@ -27,6 +26,10 @@ import {
   toCameraError,
   VOICE_ERRORS,
 } from '@/features/voice-session/lib/voice-errors';
+import {
+  useVoiceChannelParticipants,
+  type VoiceChannelParticipant,
+} from '@/features/voice-session/model/use-voice-channel-participants';
 import { useVoiceSession } from '@/features/voice-session/model/voice-session-provider';
 import { VoiceControls } from '@/features/voice-session/ui/voice-controls';
 import { cn } from '@/shared/lib/cn';
@@ -42,13 +45,6 @@ import { TrackVideo } from '@/shared/ui/track-video';
 export interface VoiceStageProps {
   channelId: number;
   className?: string;
-}
-
-interface StageParticipant {
-  key: string;
-  userId: number | null;
-  speaking: boolean;
-  muted: boolean;
 }
 
 export function VoiceStage({ channelId, className }: VoiceStageProps) {
@@ -88,10 +84,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
   const isLiveElsewhere =
     live.channelId !== null && !isLiveChannel && liveState.status !== 'ended';
 
-  const preview = useQuery({
-    ...voiceQueries.participants(channelId),
-    enabled: !isConnected,
-  });
+  const { participants, preview } = useVoiceChannelParticipants(channelId);
   const liveStatus = useQuery({
     ...liveQueries.status(channelId),
     enabled: activeLive === null,
@@ -120,19 +113,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
     ),
   );
 
-  const stage: StageParticipant[] = isConnected
-    ? session.participants.map((participant) => ({
-        key: participant.identity,
-        userId: participant.userId,
-        speaking: participant.speaking,
-        muted: participant.muted,
-      }))
-    : (preview.data?.participants ?? []).map((participant) => ({
-        key: String(participant.user_id),
-        userId: participant.user_id,
-        speaking: false,
-        muted: false,
-      }));
+  const stage = participants ?? [];
 
   const userIds = Array.from(
     new Set(
@@ -251,7 +232,7 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
     );
   }
 
-  function renderParticipantCard(participant: StageParticipant) {
+  function renderParticipantCard(participant: VoiceChannelParticipant) {
     const camera =
       participant.userId === null
         ? undefined

@@ -1,9 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-
-import { voiceQueries } from '@/entities/voice/api/voice-queries';
-import { useVoiceSession } from '@/features/voice-session/model/voice-session-provider';
+import { useVoiceChannelParticipants } from '@/features/voice-session/model/use-voice-channel-participants';
 import { cn } from '@/shared/lib/cn';
 import { UsersIcon } from '@/shared/ui/icons/users-icon';
 
@@ -16,18 +13,8 @@ export function VoiceParticipantBadge({
   channelId,
   className,
 }: VoiceParticipantBadgeProps) {
-  const session = useVoiceSession();
-  const isConnected =
-    session.channelId === channelId && session.status === 'connected';
-
-  const { data } = useQuery({
-    ...voiceQueries.participants(channelId),
-    enabled: !isConnected,
-  });
-
-  const count = isConnected
-    ? session.participants.length
-    : data?.participants.length;
+  const { participants } = useVoiceChannelParticipants(channelId);
+  const count = participants?.length;
 
   if (count === undefined) return null;
 
