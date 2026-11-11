@@ -214,14 +214,17 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
   const showPreviewError = !isConnected && preview.isError;
   const canShareScreen = isStreaming || !hasLive || isMyLive;
 
-  async function runVoice(action: () => Promise<void>) {
+  async function runVoice(
+    action: () => Promise<void>,
+    errorMessage = '음성 채널에 연결하지 못했습니다',
+  ) {
     setActionError(null);
     setPending(true);
 
     try {
       await action();
     } catch {
-      setActionError('음성 채널에 연결하지 못했습니다');
+      setActionError(errorMessage);
     } finally {
       setPending(false);
     }
@@ -507,7 +510,12 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
         {isConnected ? (
           <VoiceControls
             micEnabled={session.micEnabled}
-            onToggleMic={() => void runVoice(session.toggleMic)}
+            onToggleMic={() =>
+              void runVoice(
+                session.toggleMic,
+                '마이크 상태를 바꾸지 못했습니다',
+              )
+            }
             audioEnabled={session.audioEnabled}
             onToggleAudio={session.toggleAudio}
             camera={cameraControl}
@@ -523,7 +531,9 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
                 : undefined
             }
             // 음성에서 나가면 LiveVoiceGuard가 내 방송도 함께 끝낸다
-            onLeave={() => void runVoice(session.leave)}
+            onLeave={() =>
+              void runVoice(session.leave, '음성 채널에서 나가지 못했습니다')
+            }
           />
         ) : (
           <Button
