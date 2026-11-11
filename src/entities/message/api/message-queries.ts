@@ -20,6 +20,9 @@ const ATTACHMENT_URL_STALE_MS = 50 * 1000;
 // 포커스 복귀 때 다시 받아오면 전송 중인 메시지가 사라지므로 끈다.
 export const messageQueries = {
   all: () => ['message'] as const,
+  unreadPrefix: () => [...messageQueries.all(), 'unread'] as const,
+  repliesPrefix: (channelId: number) =>
+    [...messageQueries.all(), 'replies', channelId] as const,
   byChannel: (channelId: number) =>
     infiniteQueryOptions({
       queryKey: [...messageQueries.all(), 'byChannel', channelId],

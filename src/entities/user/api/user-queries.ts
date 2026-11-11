@@ -6,6 +6,7 @@ import { getUsers } from '@/entities/user/api/get-users';
 import { type SearchUsersParams } from '@/entities/user/model/user';
 
 export const userQueries = {
+  all: () => ['user'] as const,
   me: () =>
     queryOptions({
       queryKey: ['user', 'me'],
