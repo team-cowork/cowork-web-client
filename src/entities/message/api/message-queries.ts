@@ -38,12 +38,7 @@ export const messageQueries = {
     }),
   replies: (channelId: number, parentMessageId: string) =>
     queryOptions({
-      queryKey: [
-        ...messageQueries.all(),
-        'replies',
-        channelId,
-        parentMessageId,
-      ],
+      queryKey: [...messageQueries.repliesPrefix(channelId), parentMessageId],
       queryFn: () => getMessages(channelId, { parentMessageId }),
       staleTime: 0,
       refetchOnWindowFocus: false,
@@ -104,7 +99,7 @@ export const messageQueries = {
   // 다른 채널에 새 메시지가 와도 서버가 알려주지 않아 주기적으로 다시 받는다.
   teamUnread: (teamId: number) =>
     queryOptions({
-      queryKey: [...messageQueries.all(), 'unread', teamId],
+      queryKey: [...messageQueries.unreadPrefix(), teamId],
       queryFn: () => getTeamUnread(teamId),
       refetchInterval: UNREAD_REFETCH_INTERVAL_MS,
     }),

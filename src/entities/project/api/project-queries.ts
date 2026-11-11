@@ -31,7 +31,7 @@ export const projectQueries = {
     }),
   channels: (projectId: number) =>
     queryOptions({
-      queryKey: [...projectQueries.all(), 'channels', projectId],
+      queryKey: [...projectQueries.channelsPrefix(), projectId],
       queryFn: () => getProjectChannels(projectId),
     }),
 } as const;

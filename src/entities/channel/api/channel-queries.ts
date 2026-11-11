@@ -22,7 +22,7 @@ export const channelQueries = {
     }),
   members: (channelId: number) =>
     queryOptions({
-      queryKey: [...channelQueries.all(), 'members', channelId],
+      queryKey: [...channelQueries.membersPrefix(), channelId],
       queryFn: () => getChannelMembers(channelId),
     }),
   rolePolicies: (channelId: number) =>

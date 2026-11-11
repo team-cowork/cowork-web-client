@@ -11,10 +11,6 @@ import {
 // 채널 목록과 스레드 답글 캐시는 모두 서버 응답 그대로 최신 메시지가 앞에 온다.
 type MessagePages = InfiniteData<Message[]>;
 
-function repliesKeyPrefix(channelId: number) {
-  return [...messageQueries.all(), 'replies', channelId] as const;
-}
-
 function isSameMessage(a: Message, b: Message): boolean {
   if (a._id === b._id) return true;
 
@@ -142,7 +138,7 @@ function mapChannelMessages(
     (data) => data && { ...data, pages: data.pages.map(transform) },
   );
   queryClient.setQueriesData<Message[]>(
-    { queryKey: repliesKeyPrefix(channelId) },
+    { queryKey: messageQueries.repliesPrefix(channelId) },
     (replies) => replies && transform(replies),
   );
   if (includePins) {
@@ -321,6 +317,8 @@ export function refetchChannelMessages(
     queryClient.invalidateQueries({
       queryKey: messageQueries.byChannel(channelId).queryKey,
     }),
-    queryClient.invalidateQueries({ queryKey: repliesKeyPrefix(channelId) }),
+    queryClient.invalidateQueries({
+      queryKey: messageQueries.repliesPrefix(channelId),
+    }),
   ]);
 }
