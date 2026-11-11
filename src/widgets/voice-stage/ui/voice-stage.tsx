@@ -34,13 +34,12 @@ import { useVoiceSession } from '@/features/voice-session/model/voice-session-pr
 import { VoiceControls } from '@/features/voice-session/ui/voice-controls';
 import { cn } from '@/shared/lib/cn';
 import { type CameraControl } from '@/shared/model/camera-control';
-import { Avatar } from '@/shared/ui/avatar';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { HeadphonesIcon } from '@/shared/ui/icons/headphones-icon';
 import { MonitorIcon } from '@/shared/ui/icons/monitor-icon';
-import { TrackVideo } from '@/shared/ui/track-video';
+import { LiveFocusFooter } from '@/widgets/voice-stage/ui/live-focus-footer';
 
 export interface VoiceStageProps {
   channelId: number;
@@ -297,54 +296,11 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
           }
           footer={
             stage.length > 0 && (
-              <ul className="flex shrink-0 justify-center gap-3 overflow-x-auto">
-                {stage.map((participant) => {
-                  const user =
-                    participant.userId === null
-                      ? undefined
-                      : userById.get(participant.userId);
-                  const camera =
-                    participant.userId === null
-                      ? undefined
-                      : cameraByUserId.get(participant.userId);
-                  const name = getUserDisplayName(
-                    user,
-                    `#${participant.userId ?? participant.key}`,
-                  );
-
-                  return (
-                    <li key={participant.key} title={name}>
-                      <span
-                        className={cn(
-                          'relative flex h-20 w-36 items-center justify-center overflow-hidden rounded-xl border-2 bg-surface-container',
-                          participant.speaking
-                            ? 'border-cowork-green-500'
-                            : 'border-transparent',
-                        )}
-                      >
-                        {camera ? (
-                          <TrackVideo
-                            track={camera.track}
-                            fit="cover"
-                            mirrored={camera.isLocal}
-                            className="rounded-none"
-                          />
-                        ) : (
-                          <Avatar
-                            src={user?.profile_image_url ?? undefined}
-                            name={user?.name ?? name}
-                            size={40}
-                            shape="circle"
-                          />
-                        )}
-                        <span className="absolute bottom-1 left-1.5 max-w-[calc(100%-0.75rem)] truncate rounded bg-black/60 px-1.5 typography-subtext-small text-white">
-                          {name}
-                        </span>
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
+              <LiveFocusFooter
+                participants={stage}
+                userById={userById}
+                cameraByUserId={cameraByUserId}
+              />
             )
           }
         />
