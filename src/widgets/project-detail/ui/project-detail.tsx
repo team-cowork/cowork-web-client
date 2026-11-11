@@ -214,7 +214,7 @@ function ProjectMembers({ projectId }: Pick<ProjectDetailProps, 'projectId'>) {
 function ProjectChannelsError({ resetErrorBoundary }: FallbackProps) {
   return (
     <ErrorState
-      title="채널을 불러오지 못했어요."
+      title="채널을 불러오지 못했어요"
       action={
         <Button size="S" variant="weak" onClick={resetErrorBoundary}>
           다시 시도
