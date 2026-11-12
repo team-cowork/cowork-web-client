@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { usePathname } from 'next/navigation';
+
 import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
@@ -19,6 +21,7 @@ import { TeamInviteLinkSection } from '@/features/team-invite/ui/team-invite-lin
 import { InviteTeamMembersModal } from '@/features/team-members/ui/invite-team-members-modal';
 import { useTeamEvents } from '@/features/team-realtime/model/use-team-events';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
+import { ChannelListItem } from '@/entities/channel/ui/channel-list-item';
 import { projectQueries } from '@/entities/project/api/project-queries';
 import { teamQueries } from '@/entities/team/api/team-queries';
 import { groupChannelsByProject } from '@/widgets/channel-sidebar/lib/group-channels-by-project';
@@ -26,9 +29,11 @@ import { ChannelGroup } from '@/widgets/channel-sidebar/ui/channel-group';
 import { TeamMenu } from '@/widgets/channel-sidebar/ui/team-menu';
 import { cn } from '@/shared/lib/cn';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
+import { issuesPath } from '@/shared/model/paths';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
+import { AlertIcon } from '@/shared/ui/icons/alert-icon';
 import { ChatIcon } from '@/shared/ui/icons/chat-icon';
 import { PlusIcon } from '@/shared/ui/icons/plus-icon';
 import { SearchIcon } from '@/shared/ui/icons/search-icon';
@@ -65,6 +70,7 @@ const CHANNEL_LIST_SKELETON = (
 
 export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
   const { channelId: currentChannelId } = useRouteIds();
+  const pathname = usePathname();
   const { data: team } = useQuery(teamQueries.detail(teamId));
   useTeamEvents(teamId);
   // 채널을 만들 그룹. `undefined`면 모달이 닫혀 있고 `null`이면 프로젝트 미소속이다.
@@ -104,6 +110,16 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 py-3">
+        {/* TODO(임시): 발표용 칸반 진입점. 칸반을 지울 때 같이 지운다. */}
+        <div className="mb-3">
+          <ChannelListItem
+            name="이슈"
+            href={issuesPath(teamId)}
+            active={pathname === issuesPath(teamId)}
+            prefix={<AlertIcon size={18} />}
+          />
+        </div>
+
         <QueryBoundary
           loadingFallback={CHANNEL_LIST_SKELETON}
           errorFallback={ChannelSidebarError}

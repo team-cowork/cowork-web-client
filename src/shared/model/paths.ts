@@ -63,3 +63,8 @@ export function channelSettingsWebhooksPath(
 export function teamSettingsGithubPath(teamId: number): string {
   return `/teams/${teamId}/settings/github`;
 }
+
+// TODO(임시): 발표용 임시 칸반 경로. 칸반을 지울 때 같이 지운다.
+export function issuesPath(teamId: number): string {
+  return `/teams/${teamId}/issues`;
+}
