@@ -2,7 +2,8 @@ name: Build and push image
 
 on:
   push:
-    branches: [main]
+    # TODO(임시): 발표용 칸반 브랜치도 푸시하면 배포한다. 발표가 끝나면 이 브랜치를 지운다.
+    branches: [main, add/issue-kanban]
   workflow_dispatch:
 
 env:
@@ -11,7 +12,8 @@ env:
 
 jobs:
   build:
-    if: github.ref == 'refs/heads/main'
+    # TODO(임시): 발표용 칸반 브랜치 허용. 발표가 끝나면 이 브랜치와 함께 지운다.
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/add/issue-kanban'
     runs-on: ubuntu-latest
     permissions:
       contents: read
