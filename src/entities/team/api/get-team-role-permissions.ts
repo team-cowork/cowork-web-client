@@ -6,7 +6,7 @@ export async function getTeamRolePermissions(): Promise<
   TeamRolePermissionGroup[]
 > {
   const { data } = await instance.get<ApiResponse<TeamRolePermissionGroup[]>>(
-    '/team/teams/role-permissions',
+    '/preference/preferences/role-permissions',
   );
 
   return data.data;
