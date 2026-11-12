@@ -41,6 +41,17 @@ export interface GithubPullBoard {
   inReview: GithubPullSummary[];
 }
 
+export interface GithubIssueSummary {
+  number: number;
+  title: string;
+  author: string;
+  state: string;
+  htmlUrl: string;
+  labels: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface GithubPull {
   number: number;
   title: string;

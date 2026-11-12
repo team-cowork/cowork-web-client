@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 
+import { getGithubIssues } from '@/entities/github/api/get-github-issues';
 import { getGithubOrgRepos } from '@/entities/github/api/get-github-org-repos';
 import { getGithubPull } from '@/entities/github/api/get-github-pull';
 import { getGithubPullBoard } from '@/entities/github/api/get-github-pull-board';
@@ -35,5 +36,10 @@ export const githubQueries = {
     queryOptions({
       queryKey: [...githubQueries.pulls(projectId, repoId), prNumber, 'files'],
       queryFn: () => getGithubPullFiles(projectId, repoId, prNumber),
+    }),
+  issues: (projectId: number, repoId: number) =>
+    queryOptions({
+      queryKey: [...githubQueries.all(), projectId, repoId, 'issues'],
+      queryFn: () => getGithubIssues(projectId, repoId),
     }),
 } as const;
