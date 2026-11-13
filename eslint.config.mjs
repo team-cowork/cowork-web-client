@@ -76,25 +76,12 @@ const eslintConfig = defineConfig([
       featureRules(slice),
     ),
   ),
-  // 열린 PR(#52)이 수정 중인 파일이라 이번에는 경고로 둔다.
-  // FileUploadProgress를 shared/ui로 옮기면 이 예외를 지운다.
-  restrict(
-    ['src/features/message-attachment/ui/attachment-drafts.tsx'],
-    'warn',
-    featureRules('message-attachment'),
-  ),
   ...slicesOf('widgets').map((slice) =>
     restrict([`src/widgets/${slice}/**/*.{ts,tsx}`], 'error', [
       RELATIVE_IMPORT,
       otherSlice('widgets', slice),
     ]),
   ),
-  // 열린 PR(#52)이 수정 중인 slice라 이번에는 경고로 둔다.
-  // chat-panel이 message-list를 쓰는 구조를 정리하면 이 예외를 지운다.
-  restrict(['src/widgets/chat-panel/**/*.{ts,tsx}'], 'warn', [
-    RELATIVE_IMPORT,
-    otherSlice('widgets', 'chat-panel'),
-  ]),
 ]);
 
 export default eslintConfig;

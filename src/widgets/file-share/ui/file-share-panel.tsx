@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useSuspenseInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { type FallbackProps } from 'react-error-boundary';
 
 import { AttachmentCard } from '@/entities/attachment/ui/attachment-card';
 import { messageQueries } from '@/entities/message/api/message-queries';
@@ -23,6 +24,7 @@ import { ErrorState } from '@/shared/ui/error-state';
 import { FileIcon } from '@/shared/ui/icons/file-icon';
 import { TrashIcon } from '@/shared/ui/icons/trash-icon';
 import { LoadingPane } from '@/shared/ui/loading-pane';
+import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 export interface FileSharePanelProps {
   channelId: number;
@@ -36,10 +38,6 @@ export interface FileSharePanelProps {
 export function FileSharePanel({ channelId, className }: FileSharePanelProps) {
   useChannelMessageEvents(channelId);
 
-  const { data: me } = useQuery(userQueries.me());
-  const files = useInfiniteQuery(messageQueries.channelFiles(channelId));
-  const deleteFile = useDeleteChannelFile(channelId);
-  const openAttachment = useOpenAttachment();
   const { send } = useSendMessage(channelId);
   const uploads = useAttachmentUploads(channelId);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,15 +52,6 @@ export function FileSharePanel({ channelId, className }: FileSharePanelProps) {
       if (draft.status === 'done') uploads.remove(draft.id);
     }
   }, [isUploading, confirmedFiles, drafts, send, uploads]);
-
-  const open = (file: ChannelFile) =>
-    openAttachment({
-      channelId,
-      messageId: file.messageId,
-      attachmentIndex: file.attachmentIndex,
-    });
-
-  const list = files.data?.pages.flatMap((page) => page.files) ?? [];
 
   return (
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
@@ -96,81 +85,108 @@ export function FileSharePanel({ channelId, className }: FileSharePanelProps) {
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
-        {files.isPending ? (
-          <div className="flex h-full items-center justify-center">
-            <LoadingPane label="파일을 불러오는 중…" />
-          </div>
-        ) : files.isError ? (
-          <div className="flex h-full items-center justify-center">
-            <ErrorState
-              title="파일 목록을 불러오지 못했습니다"
-              description="잠시 후 다시 시도해 주세요"
-              action={
-                <Button
-                  size="S"
-                  variant="weak"
-                  onClick={() => void files.refetch()}
-                >
-                  다시 시도
-                </Button>
-              }
-            />
-          </div>
-        ) : list.length === 0 ? (
-          <div className="flex h-full items-center justify-center">
-            <EmptyState
-              icon={<FileIcon />}
-              title="아직 올라온 파일이 없습니다"
-              description="파일 올리기로 첫 파일을 공유해 보세요"
-              className="max-w-md"
-            />
-          </div>
-        ) : (
-          <>
-            <ul className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
-              {list.map((file) => (
-                <li key={file.fileId} className="relative">
-                  <button
-                    type="button"
-                    aria-label={`${file.fileName} 열기`}
-                    onClick={() => open(file)}
-                    className="w-full cursor-pointer text-left"
-                  >
-                    <AttachmentCard
-                      name={file.fileName}
-                      meta={`${file.uploaderName} · ${formatDate(file.uploadedAt)} · ${formatFileSize(file.fileSize)}`}
-                      className="pr-12 hover:border-outline"
-                    />
-                  </button>
-                  {file.uploaderId === me?.id && (
-                    <button
-                      type="button"
-                      aria-label={`${file.fileName} 삭제`}
-                      disabled={deleteFile.isPending}
-                      onClick={() => deleteFile.mutate(file)}
-                      className="absolute top-1/2 right-3 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-on-surface-variant hover:bg-surface-variant hover:text-error disabled:cursor-not-allowed"
-                    >
-                      <TrashIcon size={16} />
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
-            {files.hasNextPage && (
-              <div className="flex justify-center pt-4">
-                <Button
-                  size="S"
-                  variant="weak"
-                  disabled={files.isFetchingNextPage}
-                  onClick={() => void files.fetchNextPage()}
-                >
-                  {files.isFetchingNextPage ? '불러오는 중…' : '더 보기'}
-                </Button>
-              </div>
-            )}
-          </>
-        )}
+        <QueryBoundary
+          loadingFallback={
+            <div className="flex h-full items-center justify-center">
+              <LoadingPane label="파일을 불러오는 중…" />
+            </div>
+          }
+          errorFallback={ChannelFilesError}
+          resetKeys={[channelId]}
+        >
+          <ChannelFilesContent channelId={channelId} />
+        </QueryBoundary>
       </div>
+    </div>
+  );
+}
+
+function ChannelFilesContent({
+  channelId,
+}: Pick<FileSharePanelProps, 'channelId'>) {
+  const { data: me } = useQuery(userQueries.me());
+  const files = useSuspenseInfiniteQuery(
+    messageQueries.channelFiles(channelId),
+  );
+  const deleteFile = useDeleteChannelFile(channelId);
+  const openAttachment = useOpenAttachment();
+  const open = (file: ChannelFile) =>
+    openAttachment({
+      channelId,
+      messageId: file.messageId,
+      attachmentIndex: file.attachmentIndex,
+    });
+
+  const list = files.data.pages.flatMap((page) => page.files);
+
+  return list.length === 0 ? (
+    <div className="flex h-full items-center justify-center">
+      <EmptyState
+        icon={<FileIcon />}
+        title="아직 올라온 파일이 없습니다"
+        description="파일 올리기로 첫 파일을 공유해 보세요"
+        className="max-w-md"
+      />
+    </div>
+  ) : (
+    <>
+      <ul className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
+        {list.map((file) => (
+          <li key={file.fileId} className="relative">
+            <button
+              type="button"
+              aria-label={`${file.fileName} 열기`}
+              onClick={() => open(file)}
+              className="w-full cursor-pointer text-left"
+            >
+              <AttachmentCard
+                name={file.fileName}
+                meta={`${file.uploaderName} · ${formatDate(file.uploadedAt)} · ${formatFileSize(file.fileSize)}`}
+                className="pr-12 hover:border-outline"
+              />
+            </button>
+            {file.uploaderId === me?.id && (
+              <button
+                type="button"
+                aria-label={`${file.fileName} 삭제`}
+                disabled={deleteFile.isPending}
+                onClick={() => deleteFile.mutate(file)}
+                className="absolute top-1/2 right-3 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-on-surface-variant hover:bg-surface-variant hover:text-error disabled:cursor-not-allowed"
+              >
+                <TrashIcon size={16} />
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+      {files.hasNextPage && (
+        <div className="flex justify-center pt-4">
+          <Button
+            size="S"
+            variant="weak"
+            disabled={files.isFetchingNextPage}
+            onClick={() => void files.fetchNextPage()}
+          >
+            {files.isFetchingNextPage ? '불러오는 중…' : '더 보기'}
+          </Button>
+        </div>
+      )}
+    </>
+  );
+}
+
+function ChannelFilesError({ resetErrorBoundary }: FallbackProps) {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <ErrorState
+        title="파일 목록을 불러오지 못했습니다"
+        description="잠시 후 다시 시도해 주세요"
+        action={
+          <Button size="S" variant="weak" onClick={resetErrorBoundary}>
+            다시 시도
+          </Button>
+        }
+      />
     </div>
   );
 }

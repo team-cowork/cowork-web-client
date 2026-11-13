@@ -20,6 +20,9 @@ const ATTACHMENT_URL_STALE_MS = 50 * 1000;
 // 포커스 복귀 때 다시 받아오면 전송 중인 메시지가 사라지므로 끈다.
 export const messageQueries = {
   all: () => ['message'] as const,
+  unreadPrefix: () => [...messageQueries.all(), 'unread'] as const,
+  repliesPrefix: (channelId: number) =>
+    [...messageQueries.all(), 'replies', channelId] as const,
   byChannel: (channelId: number) =>
     infiniteQueryOptions({
       queryKey: [...messageQueries.all(), 'byChannel', channelId],
@@ -35,12 +38,7 @@ export const messageQueries = {
     }),
   replies: (channelId: number, parentMessageId: string) =>
     queryOptions({
-      queryKey: [
-        ...messageQueries.all(),
-        'replies',
-        channelId,
-        parentMessageId,
-      ],
+      queryKey: [...messageQueries.repliesPrefix(channelId), parentMessageId],
       queryFn: () => getMessages(channelId, { parentMessageId }),
       staleTime: 0,
       refetchOnWindowFocus: false,
@@ -101,7 +99,7 @@ export const messageQueries = {
   // 다른 채널에 새 메시지가 와도 서버가 알려주지 않아 주기적으로 다시 받는다.
   teamUnread: (teamId: number) =>
     queryOptions({
-      queryKey: [...messageQueries.all(), 'unread', teamId],
+      queryKey: [...messageQueries.unreadPrefix(), teamId],
       queryFn: () => getTeamUnread(teamId),
       refetchInterval: UNREAD_REFETCH_INTERVAL_MS,
     }),

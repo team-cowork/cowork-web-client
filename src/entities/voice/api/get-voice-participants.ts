@@ -1,5 +1,5 @@
 import { instance } from '@/shared/api/instance';
-import { type ApiResponse } from '@/shared/model/token';
+import { type ApiResponse } from '@/shared/model/api-response';
 import { type VoiceParticipants } from '@/entities/voice/model/voice';
 
 export async function getVoiceParticipants(

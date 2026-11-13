@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import { withDevCredential } from '@/shared/api/dev-credential';
 import { instance } from '@/shared/api/instance';
-import { type ApiResponse } from '@/shared/model/token';
+import { type ApiResponse } from '@/shared/model/api-response';
 import { type ProfileImagePresignedResponse } from '@/entities/user/model/user';
 
 export async function postProfileImage(file: File): Promise<void> {

@@ -5,9 +5,9 @@ import { useState } from 'react';
 import { notFound } from 'next/navigation';
 
 import { useQueries, useSuspenseQuery } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
+import { isHttpStatus } from '@/shared/api/http-error';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { toThreadRoot } from '@/entities/message/lib/to-thread-root';
 import { type Message } from '@/entities/message/model/message';
@@ -15,6 +15,7 @@ import { userQueries } from '@/entities/user/api/user-queries';
 import { DmConversationMenu } from '@/features/dm-manage/ui/dm-conversation-menu';
 import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { DmHeader } from '@/widgets/dm-header/ui/dm-header';
+import { MessageList } from '@/widgets/message-list/ui/message-list';
 import { PinnedMessagesPanel } from '@/widgets/message-list/ui/pinned-messages-panel';
 import { ChannelThreadPanel } from '@/widgets/message-list/ui/channel-thread-panel';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
@@ -24,7 +25,7 @@ import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 function DmPageError({ error, resetErrorBoundary }: FallbackProps) {
-  if (isAxiosError(error) && error.response?.status === 404) notFound();
+  if (isHttpStatus(error, 404)) notFound();
 
   return (
     <div className="flex flex-1 items-center justify-center p-6">
@@ -103,6 +104,7 @@ function DmView({ channelId }: { channelId: number }) {
         />
 
         <ChannelChatPanel
+          renderMessageList={(props) => <MessageList {...props} />}
           channelId={channelId}
           onSelectMessage={(message) => setThreadRoot(toThreadRoot(message))}
         />

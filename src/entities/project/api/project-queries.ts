@@ -8,6 +8,7 @@ import { getTeamProjects } from '@/entities/project/api/get-team-projects';
 
 export const projectQueries = {
   all: () => ['project'] as const,
+  channelsPrefix: () => [...projectQueries.all(), 'channels'] as const,
   byTeam: (teamId: number) =>
     queryOptions({
       queryKey: [...projectQueries.all(), 'byTeam', teamId],
@@ -30,7 +31,7 @@ export const projectQueries = {
     }),
   channels: (projectId: number) =>
     queryOptions({
-      queryKey: [...projectQueries.all(), 'channels', projectId],
+      queryKey: [...projectQueries.channelsPrefix(), projectId],
       queryFn: () => getProjectChannels(projectId),
     }),
 } as const;

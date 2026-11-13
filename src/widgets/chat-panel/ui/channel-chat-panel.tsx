@@ -1,9 +1,11 @@
 'use client';
 
+import { type ReactNode } from 'react';
+
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
+import { isHttpStatus } from '@/shared/api/http-error';
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { type Message } from '@/entities/message/model/message';
 import { useChannelMessageEvents } from '@/entities/message/model/use-channel-message-events';
@@ -21,7 +23,17 @@ import { ErrorState } from '@/shared/ui/error-state';
 import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
+export interface ChannelMessageListSlotProps {
+  messages: Message[];
+  onSelectMessage?: (message: Message) => void;
+  onRetryMessage: (message: Message) => void;
+  hasOlder: boolean;
+  isLoadingOlder: boolean;
+  onLoadOlder: () => void;
+}
+
 export interface ChannelChatPanelProps {
+  renderMessageList: (props: ChannelMessageListSlotProps) => ReactNode;
   channelId: number;
   /** 프로젝트 채널이면 `/issue 제목`으로 GitHub 이슈를 만들 수 있다 */
   projectId?: number | null;
@@ -31,7 +43,7 @@ export interface ChannelChatPanelProps {
 }
 
 function ChannelChatError({ error, resetErrorBoundary }: FallbackProps) {
-  const isForbidden = isAxiosError(error) && error.response?.status === 403;
+  const isForbidden = isHttpStatus(error, 403);
 
   return (
     <div className="flex flex-1 items-center justify-center p-6">
@@ -101,6 +113,7 @@ function ChannelChatBody({
   channelId,
   projectId = null,
   placeholder,
+  renderMessageList,
   onSelectMessage,
   className,
 }: ChannelChatPanelProps) {
@@ -122,7 +135,14 @@ function ChannelChatBody({
 
   return (
     <ChatPanel
-      messages={messages}
+      messageList={renderMessageList({
+        messages,
+        onSelectMessage,
+        onRetryMessage: retry,
+        hasOlder: hasNextPage,
+        isLoadingOlder: isFetchingNextPage,
+        onLoadOlder: () => void fetchNextPage(),
+      })}
       onDraftChange={(value) => {
         if (value.trim().length > 0) typing.notify();
         else typing.stop();
@@ -176,11 +196,6 @@ function ChannelChatBody({
       canSendEmpty={attachments.confirmedFiles.length > 0}
       sendDisabled={attachments.isUploading}
       sendDisabledReason={UPLOADING_HINT}
-      onRetryMessage={retry}
-      onSelectMessage={onSelectMessage}
-      hasOlder={hasNextPage}
-      isLoadingOlder={isFetchingNextPage}
-      onLoadOlder={() => void fetchNextPage()}
       placeholder={placeholder}
       className={className}
     />

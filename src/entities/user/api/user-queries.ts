@@ -6,21 +6,22 @@ import { getUsers } from '@/entities/user/api/get-users';
 import { type SearchUsersParams } from '@/entities/user/model/user';
 
 export const userQueries = {
+  all: () => ['user'] as const,
   me: () =>
     queryOptions({
-      queryKey: ['user', 'me'],
+      queryKey: [...userQueries.all(), 'me'],
       queryFn: getMe,
       staleTime: Infinity,
     }),
   search: (params: SearchUsersParams = {}) =>
     queryOptions({
-      queryKey: ['user', 'search', params],
+      queryKey: [...userQueries.all(), 'search', params],
       queryFn: () => getUsers(params),
       staleTime: 5 * 60 * 1000,
     }),
   detail: (userId: number) =>
     queryOptions({
-      queryKey: ['user', 'detail', userId],
+      queryKey: [...userQueries.all(), 'detail', userId],
       queryFn: () => getUser(userId),
       staleTime: 5 * 60 * 1000,
     }),

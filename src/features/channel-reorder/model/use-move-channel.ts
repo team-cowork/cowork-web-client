@@ -67,7 +67,7 @@ export function useMoveChannel(teamId: number) {
           queryKey: channelQueries.detail(channelId).queryKey,
         }),
         queryClient.invalidateQueries({
-          queryKey: [...projectQueries.all(), 'channels'],
+          queryKey: projectQueries.channelsPrefix(),
         }),
       ]),
   });

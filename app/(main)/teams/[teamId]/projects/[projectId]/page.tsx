@@ -3,9 +3,9 @@
 import { notFound, useParams } from 'next/navigation';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
+import { isHttpStatus } from '@/shared/api/http-error';
 import { projectQueries } from '@/entities/project/api/project-queries';
 import { ProjectDetail } from '@/widgets/project-detail/ui/project-detail';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
@@ -15,9 +15,9 @@ import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 function ProjectPageError({ error, resetErrorBoundary }: FallbackProps) {
-  if (isAxiosError(error) && error.response?.status === 404) notFound();
+  if (isHttpStatus(error, 404)) notFound();
 
-  const isForbidden = isAxiosError(error) && error.response?.status === 403;
+  const isForbidden = isHttpStatus(error, 403);
 
   return (
     <div className="flex flex-1 items-center justify-center p-6">

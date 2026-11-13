@@ -3,8 +3,8 @@
 import { useRef } from 'react';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 
+import { isHttpStatus } from '@/shared/api/http-error';
 import { postWebhook } from '@/entities/webhook/api/post-webhook';
 import { webhookQueries } from '@/entities/webhook/api/webhook-queries';
 import { type CreateWebhookRequest } from '@/entities/webhook/model/webhook';
@@ -42,7 +42,7 @@ export function useCreateWebhook(
       });
     },
     onError: (error) => {
-      if (axios.isAxiosError(error) && error.response?.status === 409) {
+      if (isHttpStatus(error, 409)) {
         submission.current = null;
       }
       toast('웹훅을 만들지 못했어요. 다시 시도해 주세요.');

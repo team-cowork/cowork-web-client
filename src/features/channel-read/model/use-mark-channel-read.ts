@@ -25,7 +25,7 @@ export function useMarkChannelRead(
     mutationFn: (messageId: string) => postChannelRead(channelId, messageId),
     onSuccess: () => {
       queryClient.setQueriesData<ChannelUnread[]>(
-        { queryKey: [...messageQueries.all(), 'unread'] },
+        { queryKey: messageQueries.unreadPrefix() },
         (unread) =>
           unread?.map((item) =>
             item.channelId === channelId ? { ...item, unreadCount: 0 } : item,

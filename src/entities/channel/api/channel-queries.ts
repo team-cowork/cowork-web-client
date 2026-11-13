@@ -9,6 +9,7 @@ import { type SearchChannelsParams } from '@/entities/channel/model/channel';
 
 export const channelQueries = {
   all: () => ['channel'] as const,
+  membersPrefix: () => [...channelQueries.all(), 'members'] as const,
   byTeam: (teamId: number) =>
     queryOptions({
       queryKey: [...channelQueries.all(), 'byTeam', teamId],
@@ -21,7 +22,7 @@ export const channelQueries = {
     }),
   members: (channelId: number) =>
     queryOptions({
-      queryKey: [...channelQueries.all(), 'members', channelId],
+      queryKey: [...channelQueries.membersPrefix(), channelId],
       queryFn: () => getChannelMembers(channelId),
     }),
   rolePolicies: (channelId: number) =>

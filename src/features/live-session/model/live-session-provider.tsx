@@ -13,7 +13,6 @@ import {
 } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import {
   createLocalScreenTracks,
   DisconnectReason,
@@ -24,6 +23,7 @@ import {
   Track,
 } from 'livekit-client';
 
+import { isHttpStatus } from '@/shared/api/http-error';
 import { liveQueries } from '@/entities/live/api/live-queries';
 import { postLiveJoin } from '@/entities/live/api/post-live-join';
 import { postLiveLeave } from '@/entities/live/api/post-live-leave';
@@ -189,7 +189,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
         await postLiveLeave(leftChannelId);
       } catch (error) {
         // 호스트 퇴장 웹훅이 먼저 세션을 끝냈다면 404가 정상이다
-        if (!isAxiosError(error) || error.response?.status !== 404) throw error;
+        if (!isHttpStatus(error, 404)) throw error;
       } finally {
         if (endsLive) markLiveEnded(leftChannelId);
         else
