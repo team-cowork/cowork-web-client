@@ -302,22 +302,25 @@ export function isMessagePending(
   );
 }
 
+// 전송 타임아웃 판정은 메시지 목록만 기다리면 되므로, 고정 메시지·파일 목록은
+// 갱신만 요청하고 기다리지 않는다
 export function refetchChannelMessages(
   queryClient: QueryClient,
   channelId: number,
 ) {
+  void queryClient.invalidateQueries({
+    queryKey: messageQueries.pins(channelId).queryKey,
+    exact: true,
+  });
+  void queryClient.invalidateQueries({
+    queryKey: messageQueries.channelFiles(channelId).queryKey,
+    exact: true,
+  });
+
   return Promise.all([
     queryClient.invalidateQueries({
       queryKey: messageQueries.byChannel(channelId).queryKey,
     }),
     queryClient.invalidateQueries({ queryKey: repliesKeyPrefix(channelId) }),
-    queryClient.invalidateQueries({
-      queryKey: messageQueries.pins(channelId).queryKey,
-      exact: true,
-    }),
-    queryClient.invalidateQueries({
-      queryKey: messageQueries.channelFiles(channelId).queryKey,
-      exact: true,
-    }),
   ]);
 }
