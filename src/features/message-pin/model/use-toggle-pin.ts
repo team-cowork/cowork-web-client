@@ -1,7 +1,6 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { HttpStatusCode } from 'axios';
 
 import { isHttpStatus } from '@/shared/api/http-error';
 import { deletePin } from '@/entities/message/api/delete-pin';
@@ -27,7 +26,7 @@ export function useTogglePin(message: Message) {
     onSuccess: () =>
       setMessagePinned(queryClient, channelId, messageId, !isPinned),
     onError: (error) => {
-      const forbidden = isHttpStatus(error, HttpStatusCode.Forbidden);
+      const forbidden = isHttpStatus(error, 403);
       toast(
         forbidden
           ? '이 채널에서 메시지를 고정할 권한이 없어요'

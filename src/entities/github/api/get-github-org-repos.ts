@@ -1,5 +1,3 @@
-import { HttpStatusCode } from 'axios';
-
 import { isHttpStatus } from '@/shared/api/http-error';
 import { instance } from '@/shared/api/instance';
 import { type ApiResponse } from '@/shared/model/api-response';
@@ -16,7 +14,7 @@ export async function getGithubOrgRepos(
     );
     return data.data;
   } catch (error) {
-    if (isHttpStatus(error, HttpStatusCode.BadRequest)) return null;
+    if (isHttpStatus(error, 400)) return null;
 
     throw error;
   }
