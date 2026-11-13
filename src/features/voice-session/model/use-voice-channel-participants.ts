@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
 
 import { voiceQueries } from '@/entities/voice/api/voice-queries';
@@ -33,19 +35,26 @@ export function useVoiceChannelParticipants(
     ...(refetchInterval === undefined ? {} : { refetchInterval }),
   });
 
-  const participants: VoiceChannelParticipant[] | undefined = isConnected
-    ? session.participants.map((participant) => ({
-        key: participant.identity,
-        userId: participant.userId,
-        speaking: participant.speaking,
-        muted: participant.muted,
-      }))
-    : preview.data?.participants.map((participant) => ({
-        key: String(participant.user_id),
-        userId: participant.user_id,
-        speaking: false,
-        muted: false,
-      }));
+  const sessionParticipants = session.participants;
+  const previewParticipants = preview.data?.participants;
+  // 말하는 사람이 바뀔 때마다 다시 렌더되므로, 원본이 같으면 변환한 배열도 재사용한다
+  const participants = useMemo<VoiceChannelParticipant[] | undefined>(
+    () =>
+      isConnected
+        ? sessionParticipants.map((participant) => ({
+            key: participant.identity,
+            userId: participant.userId,
+            speaking: participant.speaking,
+            muted: participant.muted,
+          }))
+        : previewParticipants?.map((participant) => ({
+            key: String(participant.user_id),
+            userId: participant.user_id,
+            speaking: false,
+            muted: false,
+          })),
+    [isConnected, sessionParticipants, previewParticipants],
+  );
 
   return { isConnected, participants, preview };
 }
