@@ -13,13 +13,14 @@ export function useRemoteAudioToggle(roomRef: RefObject<Room | null>) {
   const [audioEnabled, setAudioEnabled] = useState(true);
 
   const toggleAudio = useCallback(() => {
-    const next = !audioEnabled;
+    // 다시 렌더되기 전에 연달아 눌러도 직전 클릭을 기준으로 바꾸도록 ref를 쓴다
+    const next = !audioEnabledRef.current;
 
     audioEnabledRef.current = next;
     setAudioEnabled(next);
 
     if (roomRef.current) applyRemoteVolume(roomRef.current, next);
-  }, [audioEnabled, roomRef]);
+  }, [roomRef]);
 
   return { audioEnabled, audioEnabledRef, toggleAudio };
 }
