@@ -487,6 +487,25 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
           </p>
         )}
 
+        {isConnected && session.audioPlaybackBlocked && (
+          <div className="flex items-center gap-2">
+            <p className="typography-subtext-medium text-on-surface-variant">
+              브라우저가 소리 재생을 막았습니다.
+            </p>
+            <Button
+              size="S"
+              variant="weak"
+              onClick={() =>
+                void session
+                  .resumeAudio()
+                  .catch(() => setActionError('소리를 켜지 못했습니다'))
+              }
+            >
+              소리 켜기
+            </Button>
+          </div>
+        )}
+
         {isBusyElsewhere && (
           <p className="typography-subtext-medium text-on-surface-variant">
             다른 채널의 음성에 연결되어 있습니다. 참여하면 기존 연결이
