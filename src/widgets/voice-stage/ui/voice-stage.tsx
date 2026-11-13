@@ -214,14 +214,17 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
   const showPreviewError = !isConnected && preview.isError;
   const canShareScreen = isStreaming || !hasLive || isMyLive;
 
-  async function runVoice(action: () => Promise<void>) {
+  async function runVoice(
+    action: () => Promise<void>,
+    errorMessage = '음성 채널에 연결하지 못했습니다',
+  ) {
     setActionError(null);
     setPending(true);
 
     try {
       await action();
     } catch {
-      setActionError('음성 채널에 연결하지 못했습니다');
+      setActionError(errorMessage);
     } finally {
       setPending(false);
     }
@@ -484,6 +487,28 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
           </p>
         )}
 
+        {((isConnected && session.audioPlaybackBlocked) ||
+          (isWatching && live.audioPlaybackBlocked)) && (
+          <div className="flex items-center gap-2">
+            <p className="typography-subtext-medium text-on-surface-variant">
+              브라우저가 소리 재생을 막았습니다.
+            </p>
+            <Button
+              size="S"
+              variant="weak"
+              onClick={() =>
+                // 방이 없는 쪽은 바로 끝나므로 음성과 방송을 함께 다시 시도한다
+                void Promise.all([
+                  session.resumeAudio(),
+                  live.resumeAudio(),
+                ]).catch(() => setActionError('소리를 켜지 못했습니다'))
+              }
+            >
+              소리 켜기
+            </Button>
+          </div>
+        )}
+
         {isBusyElsewhere && (
           <p className="typography-subtext-medium text-on-surface-variant">
             다른 채널의 음성에 연결되어 있습니다. 참여하면 기존 연결이
@@ -507,7 +532,13 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
         {isConnected ? (
           <VoiceControls
             micEnabled={session.micEnabled}
-            onToggleMic={() => void runVoice(session.toggleMic)}
+            // 마이크 전환은 다른 버튼을 막을 만큼 오래 걸리지 않아 pending을 쓰지 않는다
+            onToggleMic={() => {
+              setActionError(null);
+              void session
+                .toggleMic()
+                .catch(() => setActionError('마이크 상태를 바꾸지 못했습니다'));
+            }}
             audioEnabled={session.audioEnabled}
             onToggleAudio={session.toggleAudio}
             camera={cameraControl}
@@ -523,7 +554,11 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
                 : undefined
             }
             // 음성에서 나가면 LiveVoiceGuard가 내 방송도 함께 끝낸다
-            onLeave={() => void runVoice(session.leave)}
+            // leave는 연결을 먼저 정리한 뒤 서버에 알리므로, 실패해도 이미 나간 상태다.
+            // 남은 서버 기록은 LiveKit 웹훅이 정리하므로 오류 문구를 띄우지 않는다
+            onLeave={() =>
+              void runVoice(() => session.leave().catch(() => undefined))
+            }
           />
         ) : (
           <Button

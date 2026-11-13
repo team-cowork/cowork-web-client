@@ -135,6 +135,7 @@ function mapChannelMessages(
   queryClient: QueryClient,
   channelId: number,
   transform: (messages: Message[]) => Message[],
+  includePins = false,
 ) {
   queryClient.setQueryData(
     messageQueries.byChannel(channelId).queryKey,
@@ -144,6 +145,12 @@ function mapChannelMessages(
     { queryKey: repliesKeyPrefix(channelId) },
     (replies) => replies && transform(replies),
   );
+  if (includePins) {
+    queryClient.setQueryData(
+      messageQueries.pins(channelId).queryKey,
+      (pins) => pins && transform(pins),
+    );
+  }
 }
 
 export function editMessageContent(
@@ -152,19 +159,23 @@ export function editMessageContent(
   messageId: string,
   content: string,
 ) {
-  mapChannelMessages(queryClient, channelId, (messages) =>
-    messages.map((message) => {
-      if (message._id === messageId) {
-        return { ...message, content, isEdited: true };
-      }
-      if (message.mentionedMessage?._id === messageId) {
-        return {
-          ...message,
-          mentionedMessage: { ...message.mentionedMessage, content },
-        };
-      }
-      return message;
-    }),
+  mapChannelMessages(
+    queryClient,
+    channelId,
+    (messages) =>
+      messages.map((message) => {
+        if (message._id === messageId) {
+          return { ...message, content, isEdited: true };
+        }
+        if (message.mentionedMessage?._id === messageId) {
+          return {
+            ...message,
+            mentionedMessage: { ...message.mentionedMessage, content },
+          };
+        }
+        return message;
+      }),
+    true,
   );
 }
 
@@ -173,14 +184,29 @@ export function removeMessage(
   channelId: number,
   messageId: string,
 ) {
-  mapChannelMessages(queryClient, channelId, (messages) =>
-    messages
-      .filter((message) => message._id !== messageId)
-      .map((message) =>
-        message.mentionedMessage?._id === messageId
-          ? { ...message, mentionedMessage: null }
-          : message,
-      ),
+  mapChannelMessages(
+    queryClient,
+    channelId,
+    (messages) =>
+      messages
+        .filter((message) => message._id !== messageId)
+        .map((message) =>
+          message.mentionedMessage?._id === messageId
+            ? { ...message, mentionedMessage: null }
+            : message,
+        ),
+    true,
+  );
+  queryClient.setQueryData(
+    messageQueries.channelFiles(channelId).queryKey,
+    (data) =>
+      data && {
+        ...data,
+        pages: data.pages.map((page) => ({
+          ...page,
+          files: page.files.filter((file) => file.messageId !== messageId),
+        })),
+      },
   );
 }
 
@@ -276,10 +302,21 @@ export function isMessagePending(
   );
 }
 
+// 전송 타임아웃 판정은 메시지 목록만 기다리면 되므로, 고정 메시지·파일 목록은
+// 갱신만 요청하고 기다리지 않는다
 export function refetchChannelMessages(
   queryClient: QueryClient,
   channelId: number,
 ) {
+  void queryClient.invalidateQueries({
+    queryKey: messageQueries.pins(channelId).queryKey,
+    exact: true,
+  });
+  void queryClient.invalidateQueries({
+    queryKey: messageQueries.channelFiles(channelId).queryKey,
+    exact: true,
+  });
+
   return Promise.all([
     queryClient.invalidateQueries({
       queryKey: messageQueries.byChannel(channelId).queryKey,

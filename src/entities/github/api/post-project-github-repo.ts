@@ -1,4 +1,5 @@
 import { instance } from '@/shared/api/instance';
+import { type ApiResponse } from '@/shared/model/token';
 import {
   type AddProjectGithubRepoRequest,
   type ProjectGithubRepo,
@@ -8,9 +9,9 @@ export async function postProjectGithubRepo(
   projectId: number,
   request: AddProjectGithubRepoRequest,
 ): Promise<ProjectGithubRepo> {
-  const { data } = await instance.post<ProjectGithubRepo>(
+  const { data } = await instance.post<ApiResponse<ProjectGithubRepo>>(
     `/project/projects/${projectId}/github-repos`,
     request,
   );
-  return data;
+  return data.data;
 }
