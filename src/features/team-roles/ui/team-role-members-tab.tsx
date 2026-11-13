@@ -3,7 +3,6 @@
 import { useState } from 'react';
 
 import { useQueries, useSuspenseQuery } from '@tanstack/react-query';
-import { type FallbackProps } from 'react-error-boundary';
 
 import { useAssignTeamRole } from '@/features/team-roles/model/use-assign-team-role';
 import { useUnassignTeamRole } from '@/features/team-roles/model/use-unassign-team-role';
@@ -15,11 +14,7 @@ import {
   userDisplayName,
 } from '@/entities/user/lib/user-display';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
-import { Button } from '@/shared/ui/button';
-import { ErrorState } from '@/shared/ui/error-state';
-import { LoadingPane } from '@/shared/ui/loading-pane';
 import { EmptyState } from '@/shared/ui/empty-state';
-import { QueryBoundary } from '@/shared/ui/query-boundary';
 import { UsersIcon } from '@/shared/ui/icons/users-icon';
 import { TextField } from '@/shared/ui/text-field';
 
@@ -39,13 +34,8 @@ export function TeamRoleMembersTab({ teamId, role }: TeamRoleMembersTabProps) {
         placeholder="이름으로 검색해서 역할 부여"
       />
 
-      <QueryBoundary
-        loadingFallback={<LoadingPane label="멤버를 불러오는 중…" />}
-        errorFallback={TeamRoleMembersError}
-        resetKeys={[teamId, role.id]}
-      >
-        <TeamRoleMembersContent teamId={teamId} role={role} keyword={keyword} />
-      </QueryBoundary>
+      {/* 멤버 목록은 상위 TeamRoleDetail이 같은 쿼리를 이미 suspense로 받아 둔다 */}
+      <TeamRoleMembersContent teamId={teamId} role={role} keyword={keyword} />
     </div>
   );
 }
@@ -132,18 +122,5 @@ function TeamRoleMembersContent({
         );
       })}
     </ul>
-  );
-}
-
-function TeamRoleMembersError({ resetErrorBoundary }: FallbackProps) {
-  return (
-    <ErrorState
-      title="멤버를 불러오지 못했어요"
-      action={
-        <Button size="S" variant="weak" onClick={resetErrorBoundary}>
-          다시 시도
-        </Button>
-      }
-    />
   );
 }
