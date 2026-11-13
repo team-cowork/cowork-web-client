@@ -50,11 +50,15 @@ interface LiveSessionContextValue {
   participants: RoomParticipantSnapshot[];
   screenShareTrack: Track | null;
   audioEnabled: boolean;
+  /** 브라우저 자동재생 정책 때문에 방송 소리를 재생하지 못하는 상태 */
+  audioPlaybackBlocked: boolean;
   goLive: (channelId: number) => Promise<void>;
   watch: (channelId: number) => Promise<void>;
   leave: () => Promise<void>;
   dismiss: () => void;
   toggleAudio: () => void;
+  /** 사용자 클릭 안에서 호출해야 브라우저가 재생을 허용한다 */
+  resumeAudio: () => Promise<void>;
 }
 
 const LiveSessionContext = createContext<LiveSessionContextValue | null>(null);
@@ -143,6 +147,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
   );
   const [screenShareTrack, setScreenShareTrack] = useState<Track | null>(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const [audioPlaybackBlocked, setAudioPlaybackBlocked] = useState(false);
 
   const clearRoom = useCallback(() => {
     generationRef.current += 1;
@@ -151,6 +156,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
     isHostRef.current = false;
     setParticipants([]);
     setScreenShareTrack(null);
+    setAudioPlaybackBlocked(false);
   }, []);
 
   const runExclusive = useCallback((task: () => Promise<void>) => {
@@ -280,6 +286,10 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
             detachAudio(track);
             sync();
           })
+          .on(RoomEvent.AudioPlaybackStatusChanged, () => {
+            if (isCurrent())
+              setAudioPlaybackBlocked(!boundRoom.canPlaybackAudio);
+          })
           .on(RoomEvent.Disconnected, (reason) => {
             if (!isCurrent()) return;
 
@@ -309,12 +319,16 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
           await room.localParticipant.publishTrack(track);
         screenTracks = [];
 
-        if (!room.canPlaybackAudio) await room.startAudio();
+        // 클릭으로 얻은 재생 허용이 만료됐으면 startAudio가 거부된다. 연결은 그대로
+        // 진행하고 소리 켜기 버튼(resumeAudio)으로 복구한다
+        if (!room.canPlaybackAudio)
+          await room.startAudio().catch(() => undefined);
         applyRemoteVolume(room, audioEnabledRef.current);
 
         // 위 작업을 기다리는 사이 방이 끊겼다면(시청 연결 직후 호스트 종료 등)
         // 끊김 처리가 이미 끝났으니 방 없이 방송·시청 상태로 남지 않게 실패로 돌린다
         if (!isCurrent()) throw new Error('라이브 연결이 끊어졌습니다');
+        setAudioPlaybackBlocked(!room.canPlaybackAudio);
 
         dispatch({
           type: 'CONNECTED',
@@ -403,6 +417,14 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
 
   const channelId = getLiveChannelId(state);
 
+  const resumeAudio = useCallback(async () => {
+    const room = roomRef.current;
+    if (!room) return;
+
+    await room.startAudio();
+    setAudioPlaybackBlocked(!room.canPlaybackAudio);
+  }, []);
+
   const value = useMemo(
     () => ({
       state,
@@ -410,14 +432,17 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
       participants,
       screenShareTrack,
       audioEnabled,
+      audioPlaybackBlocked,
       goLive,
       watch,
       leave,
       dismiss,
       toggleAudio,
+      resumeAudio,
     }),
     [
       audioEnabled,
+      audioPlaybackBlocked,
       channelId,
       dismiss,
       goLive,
@@ -426,6 +451,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
       screenShareTrack,
       state,
       toggleAudio,
+      resumeAudio,
       watch,
     ],
   );

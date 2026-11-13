@@ -487,7 +487,8 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
           </p>
         )}
 
-        {isConnected && session.audioPlaybackBlocked && (
+        {((isConnected && session.audioPlaybackBlocked) ||
+          (isWatching && live.audioPlaybackBlocked)) && (
           <div className="flex items-center gap-2">
             <p className="typography-subtext-medium text-on-surface-variant">
               브라우저가 소리 재생을 막았습니다.
@@ -496,9 +497,11 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
               size="S"
               variant="weak"
               onClick={() =>
-                void session
-                  .resumeAudio()
-                  .catch(() => setActionError('소리를 켜지 못했습니다'))
+                // 방이 없는 쪽은 바로 끝나므로 음성과 방송을 함께 다시 시도한다
+                void Promise.all([
+                  session.resumeAudio(),
+                  live.resumeAudio(),
+                ]).catch(() => setActionError('소리를 켜지 못했습니다'))
               }
             >
               소리 켜기
