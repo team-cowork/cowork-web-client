@@ -196,9 +196,9 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
           .on(RoomEvent.TrackSubscribed, (track) => {
             if (!isCurrent()) return;
 
+            // 마이크 외의 오디오(화면 공유 소리, SIP·봇 참가자)도 들리도록 종류만 확인한다
             if (
               track.kind === Track.Kind.Audio &&
-              track.source === Track.Source.Microphone &&
               !audioTracksRef.current.has(track)
             ) {
               const element = track.attach();
