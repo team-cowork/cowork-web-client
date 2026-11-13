@@ -18,6 +18,7 @@ import { postVoiceJoin } from '@/entities/voice/api/post-voice-join';
 import { postVoiceLeave } from '@/entities/voice/api/post-voice-leave';
 import { voiceQueries } from '@/entities/voice/api/voice-queries';
 import { type VoiceRoomParticipant } from '@/entities/voice/model/voice';
+import { createExclusiveQueue } from '@/shared/lib/exclusive-queue';
 import {
   applyRemoteVolume,
   canPublishCamera,
@@ -25,6 +26,7 @@ import {
   toRoomCameras,
   toRoomParticipants,
 } from '@/shared/lib/livekit-room';
+import { useRemoteAudioToggle } from '@/shared/lib/use-remote-audio-toggle';
 
 export type VoiceSessionStatus = 'idle' | 'connecting' | 'connected';
 
@@ -68,10 +70,10 @@ export function useVoiceSession() {
 export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const roomRef = useRef<Room | null>(null);
+  const { audioEnabled, audioEnabledRef, toggleAudio } =
+    useRemoteAudioToggle(roomRef);
   const audioTracksRef = useRef(new Set<RemoteTrack>());
-  const audioEnabledRef = useRef(true);
   const micEnabledRef = useRef(true);
-  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
   const channelIdRef = useRef<number | null>(null);
   const generationRef = useRef(0);
 
@@ -84,7 +86,6 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [canUseCamera, setCanUseCamera] = useState(false);
   const [micEnabled, setMicEnabled] = useState(true);
-  const [audioEnabled, setAudioEnabled] = useState(true);
   const [audioPlaybackBlocked, setAudioPlaybackBlocked] = useState(false);
 
   const clearAudio = useCallback(() => {
@@ -116,13 +117,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     setCameraEnabled(room.localParticipant.isCameraEnabled);
   }, []);
 
-  const runExclusive = useCallback((task: () => Promise<void>) => {
-    const run = queueRef.current.then(task, task);
-
-    queueRef.current = run.catch(() => undefined);
-
-    return run;
-  }, []);
+  const [runExclusive] = useState(() => createExclusiveQueue());
 
   const notifyLeave = useCallback(
     async (leftChannelId: number) => {
@@ -278,7 +273,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    [disconnect, notifyLeave, queryClient, reset, syncRoom],
+    [audioEnabledRef, disconnect, notifyLeave, queryClient, reset, syncRoom],
   );
 
   const join = useCallback(
@@ -310,15 +305,6 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       throw error;
     }
   }, []);
-
-  const toggleAudio = useCallback(() => {
-    const next = !audioEnabled;
-
-    audioEnabledRef.current = next;
-    setAudioEnabled(next);
-
-    if (roomRef.current) applyRemoteVolume(roomRef.current, next);
-  }, [audioEnabled]);
 
   const resumeAudio = useCallback(async () => {
     const room = roomRef.current;

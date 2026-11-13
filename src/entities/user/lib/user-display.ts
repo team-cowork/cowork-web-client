@@ -1,11 +1,11 @@
 import { type User } from '@/entities/user/model/user';
 
+// 별명이 없으면 이름을, 사용자 정보를 아직 모르면 fallback을 보여 준다
 export function userDisplayName(
-  userId: number,
   user: User | undefined,
+  fallback: string,
 ): string {
-  if (user) return user.nickname ?? user.name;
-  return `사용자 #${userId}`;
+  return user?.nickname ?? user?.name ?? fallback;
 }
 
 export function matchesUserKeyword(
@@ -18,7 +18,7 @@ export function matchesUserKeyword(
 
   const targets = user
     ? [user.nickname, user.name]
-    : [userDisplayName(userId, user)];
+    : [userDisplayName(user, `사용자 #${userId}`)];
 
   return targets.some((target) => target?.toLowerCase().includes(normalized));
 }
