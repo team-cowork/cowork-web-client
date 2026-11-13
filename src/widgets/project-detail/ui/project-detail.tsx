@@ -39,8 +39,8 @@ export interface ProjectDetailProps {
  */
 export function ProjectDetail({ teamId, projectId }: ProjectDetailProps) {
   const { data: project } = useSuspenseQuery(projectQueries.detail(projectId));
-  // 권한은 기존 비중단 쿼리의 캐시와 기본값을 유지하고 멤버 목록만 별도로 중단한다.
-  const { data: members = [] } = useQuery(projectQueries.members(projectId));
+  // 설정 메뉴 권한과 멤버 목록이 같은 데이터를 쓰도록 페이지와 함께 받는다
+  const { data: members } = useSuspenseQuery(projectQueries.members(projectId));
   const { data: me } = useQuery(userQueries.me());
   const moveProject = useMoveProject(teamId);
   // 세부 권한(수정·삭제)은 서버가 다시 확인한다.
@@ -114,13 +114,7 @@ export function ProjectDetail({ teamId, projectId }: ProjectDetailProps) {
         </Section>
 
         <Section title="멤버">
-          <QueryBoundary
-            loadingFallback={<LoadingPane label="멤버를 불러오는 중…" />}
-            errorFallback={ProjectMembersError}
-            resetKeys={[projectId]}
-          >
-            <ProjectMembers projectId={projectId} />
-          </QueryBoundary>
+          <ProjectMembers members={members} />
         </Section>
 
         <Section title="GitHub 저장소">
@@ -198,8 +192,7 @@ function MemberRow({ member }: { member: ProjectMember }) {
   );
 }
 
-function ProjectMembers({ projectId }: Pick<ProjectDetailProps, 'projectId'>) {
-  const { data: members } = useSuspenseQuery(projectQueries.members(projectId));
+function ProjectMembers({ members }: { members: ProjectMember[] }) {
   return (
     <ul className="flex flex-col gap-1">
       {members.map((member) => (
@@ -215,19 +208,6 @@ function ProjectChannelsError({ resetErrorBoundary }: FallbackProps) {
   return (
     <ErrorState
       title="채널을 불러오지 못했어요"
-      action={
-        <Button size="S" variant="weak" onClick={resetErrorBoundary}>
-          다시 시도
-        </Button>
-      }
-    />
-  );
-}
-
-function ProjectMembersError({ resetErrorBoundary }: FallbackProps) {
-  return (
-    <ErrorState
-      title="멤버를 불러오지 못했어요"
       action={
         <Button size="S" variant="weak" onClick={resetErrorBoundary}>
           다시 시도
