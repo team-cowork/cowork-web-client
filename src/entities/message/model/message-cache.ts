@@ -13,8 +13,6 @@ import {
   type MessageReaction,
 } from '@/entities/message/model/message';
 
-export { toMentionedMessage } from '@/entities/message/lib/message-pages';
-
 /**
  * 메시지를 채널 목록에, 답글이면 원본의 스레드 캐시에도 넣는다.
  * 같은 `_id` 또는 `clientMessageId`가 있으면 교체해 낙관적 메시지를 실제 메시지로 바꾼다.

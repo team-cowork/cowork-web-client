@@ -16,9 +16,9 @@ import {
   hasMessage,
   isMessagePending,
   refetchChannelMessages,
-  toMentionedMessage,
   upsertMessage,
 } from '@/entities/message/model/message-cache';
+import { toMentionedMessage } from '@/entities/message/lib/message-pages';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { createUuid } from '@/shared/lib/create-uuid';
 
