@@ -529,12 +529,13 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
         {isConnected ? (
           <VoiceControls
             micEnabled={session.micEnabled}
-            onToggleMic={() =>
-              void runVoice(
-                session.toggleMic,
-                '마이크 상태를 바꾸지 못했습니다',
-              )
-            }
+            // 마이크 전환은 다른 버튼을 막을 만큼 오래 걸리지 않아 pending을 쓰지 않는다
+            onToggleMic={() => {
+              setActionError(null);
+              void session
+                .toggleMic()
+                .catch(() => setActionError('마이크 상태를 바꾸지 못했습니다'));
+            }}
             audioEnabled={session.audioEnabled}
             onToggleAudio={session.toggleAudio}
             camera={cameraControl}

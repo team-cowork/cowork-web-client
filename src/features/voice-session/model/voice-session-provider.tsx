@@ -70,6 +70,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const roomRef = useRef<Room | null>(null);
   const audioTracksRef = useRef(new Set<RemoteTrack>());
   const audioEnabledRef = useRef(true);
+  const micEnabledRef = useRef(true);
   const queueRef = useRef<Promise<unknown>>(Promise.resolve());
   const channelIdRef = useRef<number | null>(null);
   const generationRef = useRef(0);
@@ -241,8 +242,11 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
         roomRef.current = room;
 
         try {
-          await room.localParticipant.setMicrophoneEnabled(micEnabled);
+          await room.localParticipant.setMicrophoneEnabled(
+            micEnabledRef.current,
+          );
         } catch {
+          micEnabledRef.current = false;
           setMicEnabled(false);
         }
 
@@ -274,7 +278,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    [disconnect, micEnabled, notifyLeave, queryClient, reset, syncRoom],
+    [disconnect, notifyLeave, queryClient, reset, syncRoom],
   );
 
   const join = useCallback(
@@ -289,8 +293,10 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
 
   const toggleMic = useCallback(async () => {
     const room = roomRef.current;
-    const next = !micEnabled;
+    // 다시 렌더되기 전에 연달아 눌러도 직전 클릭을 기준으로 바꾸도록 ref를 쓴다
+    const next = !micEnabledRef.current;
 
+    micEnabledRef.current = next;
     setMicEnabled(next);
 
     if (!room) return;
@@ -299,10 +305,11 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       await room.localParticipant.setMicrophoneEnabled(next);
       setParticipants(toRoomParticipants(room));
     } catch (error) {
+      micEnabledRef.current = !next;
       setMicEnabled(!next);
       throw error;
     }
-  }, [micEnabled]);
+  }, []);
 
   const toggleAudio = useCallback(() => {
     const next = !audioEnabled;
