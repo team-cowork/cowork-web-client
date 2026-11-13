@@ -4,7 +4,7 @@ import { useQueries, useQuery } from '@tanstack/react-query';
 
 import { liveQueries } from '@/entities/live/api/live-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
-import { getUserDisplayName } from '@/entities/user/lib/user-display';
+import { userDisplayName } from '@/entities/user/lib/user-display';
 import { countLiveViewers } from '@/features/live-session/lib/count-live-viewers';
 import { useLiveSession } from '@/features/live-session/model/live-session-provider';
 import { useVoiceChannelParticipants } from '@/features/voice-session/model/use-voice-channel-participants';
@@ -83,7 +83,7 @@ export function useVoiceStageView(channelId: number, focusOwnStream: boolean) {
 
   const liveHost =
     liveHostUserId === null ? undefined : userById.get(liveHostUserId);
-  const liveHostName = getUserDisplayName(liveHost, `#${liveHostUserId ?? ''}`);
+  const liveHostName = userDisplayName(liveHost, `#${liveHostUserId ?? ''}`);
 
   const showFocus = isWatching || (isStreaming && focusOwnStream);
   const showPreviewPending = !isConnected && preview.isPending;

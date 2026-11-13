@@ -1,4 +1,4 @@
-import { getUserDisplayName } from '@/entities/user/lib/user-display';
+import { userDisplayName } from '@/entities/user/lib/user-display';
 import { type User } from '@/entities/user/model/user';
 import { type VoiceChannelParticipant } from '@/features/voice-session/model/use-voice-channel-participants';
 import { cn } from '@/shared/lib/cn';
@@ -29,7 +29,7 @@ export function LiveFocusFooter({
           participant.userId === null
             ? undefined
             : cameraByUserId.get(participant.userId);
-        const name = getUserDisplayName(
+        const name = userDisplayName(
           user,
           `#${participant.userId ?? participant.key}`,
         );

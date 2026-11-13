@@ -4,7 +4,7 @@ import { useQueries, useQuery } from '@tanstack/react-query';
 
 import { liveQueries } from '@/entities/live/api/live-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
-import { getUserDisplayName } from '@/entities/user/lib/user-display';
+import { userDisplayName } from '@/entities/user/lib/user-display';
 import { useVoiceChannelParticipants } from '@/features/voice-session/model/use-voice-channel-participants';
 import { cn } from '@/shared/lib/cn';
 import { Avatar } from '@/shared/ui/avatar';
@@ -55,10 +55,7 @@ export function VoiceChannelMembers({
       {members.map((member) => {
         const user =
           member.userId === null ? undefined : userById.get(member.userId);
-        const name = getUserDisplayName(
-          user,
-          `#${member.userId ?? member.key}`,
-        );
+        const name = userDisplayName(user, `#${member.userId ?? member.key}`);
 
         return (
           <li

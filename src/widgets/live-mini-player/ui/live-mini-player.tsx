@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { liveQueries } from '@/entities/live/api/live-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
-import { getUserDisplayName } from '@/entities/user/lib/user-display';
+import { userDisplayName } from '@/entities/user/lib/user-display';
 import { countLiveViewers } from '@/features/live-session/lib/count-live-viewers';
 import { useLiveSession } from '@/features/live-session/model/live-session-provider';
 import { cn } from '@/shared/lib/cn';
@@ -84,7 +84,7 @@ export function LiveMiniPlayer() {
     ...userQueries.detail(hostUserId ?? 0),
     enabled: hostUserId !== null,
   });
-  const hostName = getUserDisplayName(host.data, `#${hostUserId ?? ''}`);
+  const hostName = userDisplayName(host.data, `#${hostUserId ?? ''}`);
 
   const { dismiss } = live;
 

@@ -76,7 +76,7 @@ function TeamRoleMembersContent({
     <ul className="flex flex-col gap-1">
       {visibleMembers.map((member) => {
         const user = usersByUserId.get(member.userId);
-        const name = userDisplayName(member.userId, user);
+        const name = userDisplayName(user, `사용자 #${member.userId}`);
         const hasRole = holderIds.has(member.userId);
 
         return (
