@@ -162,6 +162,15 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       let room: Room | null = null;
       let sessionStarted = false;
 
+      // 입장과 나가기는 같은 대기열에서 순서대로 실행되므로, 입장 도중 세대가 바뀌는
+      // 경우는 방 연결이 끊겨 Disconnected 핸들러가 정리하고 퇴장까지 알린 때뿐이다
+      const ensureCurrent = () => {
+        if (isCurrent()) return;
+
+        sessionStarted = false;
+        throw new Error('음성 채널 연결이 끊어졌습니다');
+      };
+
       try {
         const session = await postVoiceJoin(nextChannelId);
 
@@ -228,10 +237,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
           });
 
         await room.connect(session.livekit_url, session.token);
-        if (!isCurrent()) {
-          await room.disconnect();
-          return;
-        }
+        ensureCurrent();
         roomRef.current = room;
 
         try {
@@ -244,11 +250,8 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
         // 거부된다. 입장은 그대로 진행하고 오디오 켜기 버튼(resumeAudio)으로 복구한다
         if (!room.canPlaybackAudio)
           await room.startAudio().catch(() => undefined);
+        ensureCurrent();
         setAudioPlaybackBlocked(!room.canPlaybackAudio);
-        if (!isCurrent()) {
-          await room.disconnect();
-          return;
-        }
         applyRemoteVolume(room, audioEnabledRef.current);
 
         setCanUseCamera(canPublishCamera(room));
