@@ -159,7 +159,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
     setAudioPlaybackBlocked(false);
   }, []);
 
-  const [runExclusive] = useState(createExclusiveQueue);
+  const [runExclusive] = useState(() => createExclusiveQueue());
 
   // 서버는 웹훅을 처리한 뒤에야 세션을 끝내므로, 바로 다시 조회하면 아직
   // 방송 중으로 나온다. 방송이 끝난 게 확실할 때는 캐시를 직접 비운다.

@@ -117,7 +117,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     setCameraEnabled(room.localParticipant.isCameraEnabled);
   }, []);
 
-  const [runExclusive] = useState(createExclusiveQueue);
+  const [runExclusive] = useState(() => createExclusiveQueue());
 
   const notifyLeave = useCallback(
     async (leftChannelId: number) => {
