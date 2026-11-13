@@ -38,25 +38,11 @@ export function useStageActions({
   const [actionError, setActionError] = useState<string | null>(null);
   const [cameraPending, setCameraPending] = useState(false);
 
-  async function runVoice(
+  // 진행 중 여부와 오류 문구를 한곳에서 관리한다. 문구는 호출하는 쪽이 오류를 보고
+  // 정하고, null이면 사용자가 취소한 경우처럼 문구를 띄우지 않는다
+  async function run(
     action: () => Promise<void>,
-    errorMessage: string = VOICE_ERRORS.join,
-  ) {
-    setActionError(null);
-    setPending(true);
-
-    try {
-      await action();
-    } catch {
-      setActionError(errorMessage);
-    } finally {
-      setPending(false);
-    }
-  }
-
-  async function runLive(
-    action: () => Promise<void>,
-    messages: LiveErrorMessages,
+    toError: (error: unknown) => string | null,
   ) {
     setActionError(null);
     setPending(true);
@@ -64,11 +50,17 @@ export function useStageActions({
     try {
       await action();
     } catch (error) {
-      setActionError(toLiveError(error, messages));
+      setActionError(toError(error));
     } finally {
       setPending(false);
     }
   }
+
+  const runVoice = (action: () => Promise<void>) =>
+    run(action, () => VOICE_ERRORS.join);
+
+  const runLive = (action: () => Promise<void>, messages: LiveErrorMessages) =>
+    run(action, (error) => toLiveError(error, messages));
 
   async function toggleCamera() {
     setActionError(null);
