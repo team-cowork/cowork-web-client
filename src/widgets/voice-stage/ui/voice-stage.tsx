@@ -551,8 +551,10 @@ export function VoiceStage({ channelId, className }: VoiceStageProps) {
                 : undefined
             }
             // 음성에서 나가면 LiveVoiceGuard가 내 방송도 함께 끝낸다
+            // leave는 연결을 먼저 정리한 뒤 서버에 알리므로, 실패해도 이미 나간 상태다.
+            // 남은 서버 기록은 LiveKit 웹훅이 정리하므로 오류 문구를 띄우지 않는다
             onLeave={() =>
-              void runVoice(session.leave, '음성 채널에서 나가지 못했습니다')
+              void runVoice(() => session.leave().catch(() => undefined))
             }
           />
         ) : (
