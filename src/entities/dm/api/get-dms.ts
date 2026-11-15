@@ -1,5 +1,5 @@
 import { instance } from '@/shared/api/instance';
-import { type ApiResponse } from '@/shared/model/token';
+import { type ApiResponse } from '@/shared/model/api-response';
 import { type DmConversation } from '@/entities/dm/model/dm';
 
 export async function getDms(): Promise<DmConversation[]> {

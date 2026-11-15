@@ -3,6 +3,7 @@
 import { type ReactNode } from 'react';
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { type FallbackProps } from 'react-error-boundary';
 
 import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
 import { ChannelListItem } from '@/entities/channel/ui/channel-list-item';
@@ -18,6 +19,10 @@ import { ProjectSettingsMenu } from '@/features/project-settings/ui/project-sett
 import { formatDate } from '@/shared/lib/format-date';
 import { channelPath } from '@/shared/model/paths';
 import { Badge } from '@/shared/ui/badge';
+import { Button } from '@/shared/ui/button';
+import { ErrorState } from '@/shared/ui/error-state';
+import { LoadingPane } from '@/shared/ui/loading-pane';
+import { QueryBoundary } from '@/shared/ui/query-boundary';
 import { FolderIcon } from '@/shared/ui/icons/folder-icon';
 import { MenuItem } from '@/shared/ui/menu-item';
 import { GithubPrBoard } from '@/widgets/project-detail/ui/github-pr-board';
@@ -34,7 +39,8 @@ export interface ProjectDetailProps {
  */
 export function ProjectDetail({ teamId, projectId }: ProjectDetailProps) {
   const { data: project } = useSuspenseQuery(projectQueries.detail(projectId));
-  const { data: members = [] } = useQuery(projectQueries.members(projectId));
+  // 설정 메뉴 권한과 멤버 목록이 같은 데이터를 쓰도록 페이지와 함께 받는다
+  const { data: members } = useSuspenseQuery(projectQueries.members(projectId));
   const { data: me } = useQuery(userQueries.me());
   const moveProject = useMoveProject(teamId);
   // 세부 권한(수정·삭제)은 서버가 다시 확인한다.
@@ -98,17 +104,17 @@ export function ProjectDetail({ teamId, projectId }: ProjectDetailProps) {
         </header>
 
         <Section title="채널">
-          <ProjectChannels teamId={teamId} projectId={projectId} />
+          <QueryBoundary
+            loadingFallback={<LoadingPane label="채널을 불러오는 중…" />}
+            errorFallback={ProjectChannelsError}
+            resetKeys={[projectId]}
+          >
+            <ProjectChannels teamId={teamId} projectId={projectId} />
+          </QueryBoundary>
         </Section>
 
         <Section title="멤버">
-          <ul className="flex flex-col gap-1">
-            {members.map((member) => (
-              <li key={member.userId}>
-                <MemberRow member={member} />
-              </li>
-            ))}
-          </ul>
+          <ProjectMembers members={members} />
         </Section>
 
         <Section title="GitHub 저장소">
@@ -143,26 +149,10 @@ function ProjectChannels({
   teamId: number;
   projectId: number;
 }) {
-  const {
-    data: channels,
-    isPending,
-    isError,
-  } = useQuery(projectQueries.channels(projectId));
+  const { data: channels } = useSuspenseQuery(
+    projectQueries.channels(projectId),
+  );
 
-  if (isPending) {
-    return (
-      <p className="typography-subtext-medium text-on-surface-variant">
-        채널을 불러오는 중…
-      </p>
-    );
-  }
-  if (isError) {
-    return (
-      <p className="typography-subtext-medium text-error">
-        채널을 불러오지 못했어요.
-      </p>
-    );
-  }
   if (channels.length === 0) {
     return (
       <p className="typography-subtext-medium text-on-surface-variant">
@@ -199,5 +189,30 @@ function MemberRow({ member }: { member: ProjectMember }) {
         {member.write ? '편집 가능' : '읽기 전용'}
       </Badge>
     </div>
+  );
+}
+
+function ProjectMembers({ members }: { members: ProjectMember[] }) {
+  return (
+    <ul className="flex flex-col gap-1">
+      {members.map((member) => (
+        <li key={member.userId}>
+          <MemberRow member={member} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function ProjectChannelsError({ resetErrorBoundary }: FallbackProps) {
+  return (
+    <ErrorState
+      title="채널을 불러오지 못했어요"
+      action={
+        <Button size="S" variant="weak" onClick={resetErrorBoundary}>
+          다시 시도
+        </Button>
+      }
+    />
   );
 }

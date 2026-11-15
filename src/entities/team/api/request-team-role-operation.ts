@@ -1,19 +1,15 @@
 import { type AxiosResponse } from 'axios';
 
 import { instance } from '@/shared/api/instance';
-import { type ApiResponse } from '@/shared/model/token';
+import { type ApiResponse } from '@/shared/model/api-response';
 import { type TeamRoleOperation } from '@/entities/team/model/team';
 
 const POLL_INTERVAL_MS = 500;
 const POLL_MAX_ATTEMPTS = 20;
 
-type OperationBody = ApiResponse<TeamRoleOperation> | TeamRoleOperation;
+type OperationBody = ApiResponse<TeamRoleOperation>;
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-function unwrap(body: OperationBody): TeamRoleOperation {
-  return 'operationId' in body ? body : body.data;
-}
 
 async function getTeamRoleOperation(
   teamId: number,
@@ -23,7 +19,7 @@ async function getTeamRoleOperation(
     `/team/teams/${teamId}/role-operations/${operationId}`,
   );
 
-  return unwrap(data);
+  return data.data;
 }
 
 export async function requestTeamRoleOperation(
@@ -33,7 +29,7 @@ export async function requestTeamRoleOperation(
   }) => Promise<AxiosResponse<OperationBody>>,
 ): Promise<TeamRoleOperation> {
   const { data } = await send({ 'Idempotency-Key': crypto.randomUUID() });
-  let operation = unwrap(data);
+  let operation = data.data;
 
   for (
     let attempt = 0;

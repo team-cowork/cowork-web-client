@@ -56,7 +56,7 @@ export function useTeamEvents(teamId: number) {
       invalidate(channelQueries.byTeam(teamId).queryKey);
       invalidate(channelQueries.detail(channelId).queryKey);
       // 채널이 어느 프로젝트에 속하는지 이벤트로는 알 수 없어 프로젝트 채널 목록을 모두 갱신한다.
-      invalidate([...projectQueries.all(), 'channels']);
+      invalidate(projectQueries.channelsPrefix());
     };
 
     const invalidateProjectLists = () => {

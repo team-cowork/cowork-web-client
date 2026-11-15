@@ -12,12 +12,13 @@ import {
 } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { Room, RoomEvent } from 'livekit-client';
+import { type RemoteTrack, Room, RoomEvent, Track } from 'livekit-client';
 
 import { postVoiceJoin } from '@/entities/voice/api/post-voice-join';
 import { postVoiceLeave } from '@/entities/voice/api/post-voice-leave';
 import { voiceQueries } from '@/entities/voice/api/voice-queries';
 import { type VoiceRoomParticipant } from '@/entities/voice/model/voice';
+import { createExclusiveQueue } from '@/shared/lib/exclusive-queue';
 import {
   applyRemoteVolume,
   canPublishCamera,
@@ -25,6 +26,7 @@ import {
   toRoomCameras,
   toRoomParticipants,
 } from '@/shared/lib/livekit-room';
+import { useRemoteAudioToggle } from '@/shared/lib/use-remote-audio-toggle';
 
 export type VoiceSessionStatus = 'idle' | 'connecting' | 'connected';
 
@@ -40,10 +42,14 @@ interface VoiceSessionContextValue {
   canUseCamera: boolean;
   micEnabled: boolean;
   audioEnabled: boolean;
+  /** 브라우저 자동재생 정책 때문에 원격 음성을 재생하지 못하는 상태 */
+  audioPlaybackBlocked: boolean;
   join: (channelId: number) => Promise<void>;
   leave: () => Promise<void>;
   toggleMic: () => Promise<void>;
   toggleAudio: () => void;
+  /** 사용자 클릭 안에서 호출해야 브라우저가 재생을 허용한다 */
+  resumeAudio: () => Promise<void>;
   toggleCamera: () => Promise<void>;
   stopCamera: () => Promise<void>;
 }
@@ -64,8 +70,10 @@ export function useVoiceSession() {
 export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const roomRef = useRef<Room | null>(null);
-  const audioEnabledRef = useRef(true);
-  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
+  const { audioEnabled, audioEnabledRef, toggleAudio } =
+    useRemoteAudioToggle(roomRef);
+  const audioTracksRef = useRef(new Set<RemoteTrack>());
+  const micEnabledRef = useRef(true);
   const channelIdRef = useRef<number | null>(null);
   const generationRef = useRef(0);
 
@@ -78,10 +86,18 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [canUseCamera, setCanUseCamera] = useState(false);
   const [micEnabled, setMicEnabled] = useState(true);
-  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [audioPlaybackBlocked, setAudioPlaybackBlocked] = useState(false);
+
+  const clearAudio = useCallback(() => {
+    audioTracksRef.current.forEach((track) => {
+      track.detach().forEach((element) => element.remove());
+    });
+    audioTracksRef.current.clear();
+  }, []);
 
   const reset = useCallback(() => {
     generationRef.current += 1;
+    clearAudio();
     roomRef.current = null;
     channelIdRef.current = null;
     setChannelId(null);
@@ -92,7 +108,8 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     setCameras([]);
     setCameraEnabled(false);
     setCanUseCamera(false);
-  }, []);
+    setAudioPlaybackBlocked(false);
+  }, [clearAudio]);
 
   const syncRoom = useCallback((room: Room) => {
     setParticipants(toRoomParticipants(room));
@@ -100,13 +117,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
     setCameraEnabled(room.localParticipant.isCameraEnabled);
   }, []);
 
-  const runExclusive = useCallback((task: () => Promise<void>) => {
-    const run = queueRef.current.then(task, task);
-
-    queueRef.current = run.catch(() => undefined);
-
-    return run;
-  }, []);
+  const [runExclusive] = useState(() => createExclusiveQueue());
 
   const notifyLeave = useCallback(
     async (leftChannelId: number) => {
@@ -147,6 +158,15 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       let room: Room | null = null;
       let sessionStarted = false;
 
+      // 입장과 나가기는 같은 대기열에서 순서대로 실행되므로, 입장 도중 세대가 바뀌는
+      // 경우는 방 연결이 끊겨 Disconnected 핸들러가 정리하고 퇴장까지 알린 때뿐이다
+      const ensureCurrent = () => {
+        if (isCurrent()) return;
+
+        sessionStarted = false;
+        throw new Error('음성 채널 연결이 끊어졌습니다');
+      };
+
       try {
         const session = await postVoiceJoin(nextChannelId);
 
@@ -169,14 +189,37 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
           .on(RoomEvent.TrackUnmuted, sync)
           .on(RoomEvent.LocalTrackPublished, sync)
           .on(RoomEvent.LocalTrackUnpublished, sync)
-          .on(RoomEvent.TrackSubscribed, sync)
-          .on(RoomEvent.TrackUnsubscribed, sync)
+          .on(RoomEvent.TrackSubscribed, (track) => {
+            if (!isCurrent()) return;
+
+            // 마이크 외의 오디오(화면 공유 소리, SIP·봇 참가자)도 들리도록 종류만 확인한다
+            if (
+              track.kind === Track.Kind.Audio &&
+              !audioTracksRef.current.has(track)
+            ) {
+              const element = track.attach();
+              element.hidden = true;
+              document.body.appendChild(element);
+              audioTracksRef.current.add(track);
+              applyRemoteVolume(boundRoom, audioEnabledRef.current);
+            }
+            sync();
+          })
+          .on(RoomEvent.TrackUnsubscribed, (track) => {
+            if (audioTracksRef.current.delete(track))
+              track.detach().forEach((element) => element.remove());
+            sync();
+          })
           // 팀 역할이 바뀌면 서버가 접속 중에도 카메라 송출 권한을 갱신한다
           .on(RoomEvent.ParticipantPermissionsChanged, (_, participant) => {
             if (!participant.isLocal || !isCurrent()) return;
 
             setCanUseCamera(canPublishCamera(boundRoom));
             sync();
+          })
+          .on(RoomEvent.AudioPlaybackStatusChanged, () => {
+            if (isCurrent())
+              setAudioPlaybackBlocked(!boundRoom.canPlaybackAudio);
           })
           .on(RoomEvent.Disconnected, () => {
             if (!isCurrent()) return;
@@ -190,15 +233,24 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
           });
 
         await room.connect(session.livekit_url, session.token);
+        ensureCurrent();
         roomRef.current = room;
 
         try {
-          await room.localParticipant.setMicrophoneEnabled(micEnabled);
+          await room.localParticipant.setMicrophoneEnabled(
+            micEnabledRef.current,
+          );
         } catch {
+          micEnabledRef.current = false;
           setMicEnabled(false);
         }
 
-        if (!room.canPlaybackAudio) await room.startAudio();
+        // 입장 요청과 연결이 길어지면 클릭으로 얻은 재생 허용이 만료돼 startAudio가
+        // 거부된다. 입장은 그대로 진행하고 오디오 켜기 버튼(resumeAudio)으로 복구한다
+        if (!room.canPlaybackAudio)
+          await room.startAudio().catch(() => undefined);
+        ensureCurrent();
+        setAudioPlaybackBlocked(!room.canPlaybackAudio);
         applyRemoteVolume(room, audioEnabledRef.current);
 
         setCanUseCamera(canPublishCamera(room));
@@ -221,7 +273,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    [disconnect, micEnabled, notifyLeave, queryClient, reset, syncRoom],
+    [audioEnabledRef, disconnect, notifyLeave, queryClient, reset, syncRoom],
   );
 
   const join = useCallback(
@@ -236,8 +288,10 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
 
   const toggleMic = useCallback(async () => {
     const room = roomRef.current;
-    const next = !micEnabled;
+    // 다시 렌더되기 전에 연달아 눌러도 직전 클릭을 기준으로 바꾸도록 ref를 쓴다
+    const next = !micEnabledRef.current;
 
+    micEnabledRef.current = next;
     setMicEnabled(next);
 
     if (!room) return;
@@ -246,19 +300,19 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       await room.localParticipant.setMicrophoneEnabled(next);
       setParticipants(toRoomParticipants(room));
     } catch (error) {
+      micEnabledRef.current = !next;
       setMicEnabled(!next);
       throw error;
     }
-  }, [micEnabled]);
+  }, []);
 
-  const toggleAudio = useCallback(() => {
-    const next = !audioEnabled;
+  const resumeAudio = useCallback(async () => {
+    const room = roomRef.current;
+    if (!room) return;
 
-    audioEnabledRef.current = next;
-    setAudioEnabled(next);
-
-    if (roomRef.current) applyRemoteVolume(roomRef.current, next);
-  }, [audioEnabled]);
+    await room.startAudio();
+    setAudioPlaybackBlocked(!room.canPlaybackAudio);
+  }, []);
 
   // 브라우저 권한 창을 기다리는 사이 나가기가 먼저 끝나면 새로 만든 카메라
   // 트랙을 정리하지 못하므로, 입장·나가기와 같은 대기열에서 순서대로 처리한다
@@ -292,9 +346,10 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     return () => {
+      clearAudio();
       roomRef.current?.disconnect();
     };
-  }, []);
+  }, [clearAudio]);
 
   const value = useMemo(
     () => ({
@@ -308,15 +363,18 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       canUseCamera,
       micEnabled,
       audioEnabled,
+      audioPlaybackBlocked,
       join,
       leave,
       toggleMic,
       toggleAudio,
+      resumeAudio,
       toggleCamera,
       stopCamera,
     }),
     [
       audioEnabled,
+      audioPlaybackBlocked,
       cameraEnabled,
       cameras,
       canUseCamera,
@@ -325,6 +383,7 @@ export function VoiceSessionProvider({ children }: { children: ReactNode }) {
       leave,
       micEnabled,
       participants,
+      resumeAudio,
       sessionId,
       connectedAt,
       status,

@@ -9,6 +9,8 @@ import { useQuery } from '@tanstack/react-query';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { liveQueries } from '@/entities/live/api/live-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
+import { userDisplayName } from '@/entities/user/lib/user-display';
+import { countLiveViewers } from '@/features/live-session/lib/count-live-viewers';
 import { useLiveSession } from '@/features/live-session/model/live-session-provider';
 import { cn } from '@/shared/lib/cn';
 import { useElapsedTime } from '@/shared/lib/use-elapsed-time';
@@ -82,8 +84,7 @@ export function LiveMiniPlayer() {
     ...userQueries.detail(hostUserId ?? 0),
     enabled: hostUserId !== null,
   });
-  const hostName =
-    host.data?.nickname ?? host.data?.name ?? `#${hostUserId ?? ''}`;
+  const hostName = userDisplayName(host.data, `#${hostUserId ?? ''}`);
 
   const { dismiss } = live;
 
@@ -139,9 +140,7 @@ export function LiveMiniPlayer() {
   if (active === null || routeChannelId === active.channelId) return null;
 
   const isHost = active.status === 'broadcasting';
-  const viewerCount = live.participants.filter(
-    (participant) => participant.userId !== active.hostUserId,
-  ).length;
+  const viewerCount = countLiveViewers(live.participants, active.hostUserId);
   const teamId = channel.data?.teamId ?? null;
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {

@@ -1,5 +1,5 @@
 import { instance } from '@/shared/api/instance';
-import { type ApiResponse } from '@/shared/model/token';
+import { type ApiResponse } from '@/shared/model/api-response';
 import { type Page, type Project } from '@/entities/project/model/project';
 
 // 팀 프로젝트는 많지 않아 한 번에 받아 사이드바 순서대로 보여준다.

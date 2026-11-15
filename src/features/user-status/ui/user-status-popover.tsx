@@ -69,7 +69,7 @@ export function UserStatusPopover({
             {user.name}
           </p>
           {user.nickname && (
-            <p className="truncate text-[0.8125rem] text-on-surface-variant">
+            <p className="truncate typography-subtext-medium leading-normal text-on-surface-variant">
               @{user.nickname}
             </p>
           )}
@@ -81,7 +81,7 @@ export function UserStatusPopover({
             placeholder="무슨 생각 중이세요?"
             aria-label="상태 메시지"
             disabled={!currentStatus}
-            className="h-9 w-full rounded-lg bg-surface-container px-3 text-[0.8125rem] text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary/50 focus:outline-none disabled:opacity-50"
+            className="h-9 w-full rounded-lg bg-surface-container px-3 typography-subtext-medium leading-normal text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary/50 focus:outline-none disabled:opacity-50"
           />
         </form>
       </div>
@@ -92,7 +92,7 @@ export function UserStatusPopover({
             key={status}
             type="button"
             onClick={() => handleSelect(status)}
-            className="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[0.9375rem] text-on-surface hover:bg-surface-container"
+            className="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-left typography-label-small leading-normal font-normal text-on-surface hover:bg-surface-container"
           >
             <span
               className={cn(
@@ -110,7 +110,10 @@ export function UserStatusPopover({
           </button>
         ))}
       </div>
-      <p className="h-5 px-3 pb-2 text-[0.8125rem] text-error" role="alert">
+      <p
+        className="h-5 px-3 pb-2 typography-subtext-medium leading-normal text-error"
+        role="alert"
+      >
         {updateStatus.isError ? '상태를 바꾸지 못했어요.' : ''}
       </p>
     </div>

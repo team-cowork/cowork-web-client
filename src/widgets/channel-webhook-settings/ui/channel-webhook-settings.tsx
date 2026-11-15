@@ -3,9 +3,9 @@
 import { useState } from 'react';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
+import { isHttpStatus } from '@/shared/api/http-error';
 import { webhookQueries } from '@/entities/webhook/api/webhook-queries';
 import { toWebhookUrl } from '@/entities/webhook/lib/webhook-url';
 import { CreateWebhookButton } from '@/features/webhook-create/ui/create-webhook-button';
@@ -24,7 +24,7 @@ import { TextField } from '@/shared/ui/text-field';
 import { useToast } from '@/shared/ui/toast-provider';
 
 function WebhookSettingsError({ error, resetErrorBoundary }: FallbackProps) {
-  const forbidden = axios.isAxiosError(error) && error.response?.status === 403;
+  const forbidden = isHttpStatus(error, 403);
 
   return (
     <ErrorState

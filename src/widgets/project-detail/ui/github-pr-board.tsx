@@ -3,9 +3,9 @@
 import { useState } from 'react';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
+import { isHttpStatus } from '@/shared/api/http-error';
 import { githubQueries } from '@/entities/github/api/github-queries';
 import { type GithubPullSummary } from '@/entities/github/model/github';
 import { formatDate } from '@/shared/lib/format-date';
@@ -34,7 +34,7 @@ function GithubPrReposError({ resetErrorBoundary }: FallbackProps) {
 }
 
 function PullBoardError({ error, resetErrorBoundary }: FallbackProps) {
-  const upstreamError = isAxiosError(error) && error.response?.status === 502;
+  const upstreamError = isHttpStatus(error, 502);
 
   return (
     <ErrorState

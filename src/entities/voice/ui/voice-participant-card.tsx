@@ -1,5 +1,6 @@
 import { type Track } from 'livekit-client';
 
+import { userDisplayName } from '@/entities/user/lib/user-display';
 import { type User } from '@/entities/user/model/user';
 import { cn } from '@/shared/lib/cn';
 import { Avatar } from '@/shared/ui/avatar';
@@ -29,8 +30,7 @@ export function VoiceParticipantCard({
   mirrored = false,
   className,
 }: VoiceParticipantCardProps) {
-  const displayName =
-    user?.nickname ?? user?.name ?? fallbackName ?? '알 수 없음';
+  const displayName = userDisplayName(user, fallbackName ?? '알 수 없음');
   const MicStateIcon = muted ? MicOffIcon : MicIcon;
   const liveBadge = live && (
     <span className="shrink-0 rounded-md bg-error px-1.5 py-0.5 text-[0.6875rem] font-bold text-on-error">

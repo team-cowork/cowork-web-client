@@ -15,10 +15,13 @@ export function toUserId(identity: string): number | null {
   return Number.isNaN(userId) ? null : userId;
 }
 
-export function toRoomParticipants(room: Room): RoomParticipantSnapshot[] {
-  const all = [room.localParticipant, ...room.remoteParticipants.values()];
+// 내 참가자를 맨 앞에 두고 원격 참가자를 잇는다
+export function listParticipants(room: Room) {
+  return [room.localParticipant, ...room.remoteParticipants.values()];
+}
 
-  return all.map((participant) => ({
+export function toRoomParticipants(room: Room): RoomParticipantSnapshot[] {
+  return listParticipants(room).map((participant) => ({
     identity: participant.identity,
     userId: toUserId(participant.identity),
     speaking: participant.isSpeaking,
@@ -35,9 +38,7 @@ export interface RoomCamera {
 }
 
 export function toRoomCameras(room: Room): RoomCamera[] {
-  const all = [room.localParticipant, ...room.remoteParticipants.values()];
-
-  return all.flatMap((participant) => {
+  return listParticipants(room).flatMap((participant) => {
     const publication = participant.getTrackPublication(Track.Source.Camera);
     // 카메라를 끄면 발행은 남기고 음소거만 하므로 꺼진 트랙은 뺀다
     if (!publication?.track || publication.isMuted) return [];
