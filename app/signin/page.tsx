@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { WELCOME_PATH } from '@/shared/model/paths';
+import { HOME_PATH } from '@/shared/model/paths';
 import { CoworkLogo } from '@/shared/ui/icons/cowork-logo';
 
 const DATAGSM_LOGO_RECTS = [
@@ -61,7 +61,7 @@ export default function SigninPage() {
       </div>
 
       <Link
-        href={WELCOME_PATH}
+        href={HOME_PATH}
         className="typography-subtext-medium text-on-surface-variant transition-colors hover:text-on-surface"
       >
         cowork 소개 보기

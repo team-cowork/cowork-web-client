@@ -1,5 +1,6 @@
 export const HOME_PATH = '/';
-export const WELCOME_PATH = '/welcome';
+// 로그인하지 않은 사용자의 홈(/)을 그리는 내부 경로. 이 주소로 직접 들어오면 홈으로 돌려보낸다.
+export const PROMOTION_PATH = '/promotion';
 export const SIGNIN_PATH = '/signin';
 
 export function teamPath(teamId: number): string {

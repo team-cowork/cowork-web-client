@@ -11,7 +11,7 @@ import {
   PROMOTION_REPOSITORIES,
 } from '@/widgets/promotion/model/promotion-content';
 import { cn } from '@/shared/lib/cn';
-import { WELCOME_PATH } from '@/shared/model/paths';
+import { HOME_PATH } from '@/shared/model/paths';
 import { Avatar } from '@/shared/ui/avatar';
 import { Badge } from '@/shared/ui/badge';
 import { CoworkLogo } from '@/shared/ui/icons/cowork-logo';
@@ -23,7 +23,7 @@ const linkButton =
   'inline-flex h-11 items-center justify-center gap-2 rounded-xl px-[18px] typography-label-medium transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50';
 
 interface PromotionPageProps {
-  /** "웹에서 열기"가 이동할 경로. 로그인 여부에 따라 앱 또는 로그인 화면이다. */
+  /** "웹에서 열기"가 이동할 경로 */
   openWebHref: string;
 }
 
@@ -33,7 +33,7 @@ export function PromotionPage({ openWebHref }: PromotionPageProps) {
       <header className="sticky top-0 z-10 border-b border-outline-variant bg-surface/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link
-            href={WELCOME_PATH}
+            href={HOME_PATH}
             aria-label="cowork 홈"
             className="flex items-center gap-2.5 text-primary"
           >
