@@ -1,21 +1,14 @@
 'use client';
 
-import {
-  type CSSProperties,
-  type ComponentType,
-  useRef,
-  useState,
-} from 'react';
+import { type CSSProperties, type ComponentType } from 'react';
 
-import {
-  AnimatePresence,
-  MotionConfig,
-  motion,
-  useMotionValueEvent,
-  useScroll,
-} from 'motion/react';
+import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 
 import { PROMOTION_FEATURES } from '@/widgets/promotion/model/promotion-content';
+import {
+  padSceneNumber,
+  useStickyShowcase,
+} from '@/widgets/promotion/model/use-sticky-showcase';
 import { ActivityMockup } from '@/widgets/promotion/ui/mockups/activity-mockup';
 import { BoardMockup } from '@/widgets/promotion/ui/mockups/board-mockup';
 import { GithubMockup } from '@/widgets/promotion/ui/mockups/github-mockup';
@@ -24,9 +17,6 @@ import { SearchMockup } from '@/widgets/promotion/ui/mockups/search-mockup';
 import { WorkspaceMockup } from '@/widgets/promotion/ui/mockups/workspace-mockup';
 
 import './mockups/mockup.css';
-
-/** 프로모션 상단 헤더(h-16) 높이. 쇼케이스 화면이 이 아래에 고정된다. */
-const HEADER_HEIGHT = 64;
 
 const MOCKUPS: Record<string, ComponentType> = {
   Workspace: WorkspaceMockup,
@@ -37,41 +27,16 @@ const MOCKUPS: Record<string, ComponentType> = {
   Search: SearchMockup,
 };
 
-const pad = (value: number) => String(value).padStart(2, '0');
-
 /**
  * 스크롤하는 동안 화면을 고정해 두고, 스크롤 진행률에 따라 기능 장면을 하나씩 바꿔 보여 준다.
  * 원본: cowork-promotion의 sticky-showcase.js, feature-showcase.js
  */
 export function FeatureShowcase() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
   const count = PROMOTION_FEATURES.length;
+  const { sectionRef, activeIndex, scrollYProgress, scrollToScene } =
+    useStickyShowcase(count);
   const feature = PROMOTION_FEATURES[activeIndex];
   const Mockup = MOCKUPS[feature.label];
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start 64px', 'end end'],
-  });
-  useMotionValueEvent(scrollYProgress, 'change', (progress) =>
-    setActiveIndex(Math.min(count - 1, Math.floor(progress * count))),
-  );
-
-  const scrollToScene = (index: number) => {
-    const section = sectionRef.current;
-    if (!section) return;
-    const viewportHeight = window.innerHeight - HEADER_HEIGHT;
-    const scrollable = Math.max(0, section.offsetHeight - viewportHeight);
-    const sectionTop = section.getBoundingClientRect().top + window.scrollY;
-    const reduceMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches;
-    window.scrollTo({
-      top: sectionTop - HEADER_HEIGHT + (index / count) * scrollable + 1,
-      behavior: reduceMotion ? 'auto' : 'smooth',
-    });
-  };
 
   return (
     <MotionConfig reducedMotion="user">
@@ -96,7 +61,7 @@ export function FeatureShowcase() {
                 className="pl-[3vw] text-[clamp(220px,40vw,560px)] leading-none font-black"
                 style={{ color: feature.color }}
               >
-                {pad(activeIndex + 1)}
+                {padSceneNumber(activeIndex + 1)}
               </motion.span>
             </AnimatePresence>
           </div>
@@ -106,7 +71,7 @@ export function FeatureShowcase() {
               Features
             </span>
             <span className="text-xs text-gray-400 tabular-nums">
-              {pad(activeIndex + 1)} / {pad(count)}
+              {padSceneNumber(activeIndex + 1)} / {padSceneNumber(count)}
             </span>
           </div>
 
