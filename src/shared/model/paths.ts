@@ -1,4 +1,6 @@
 export const HOME_PATH = '/';
+export const WELCOME_PATH = '/welcome';
+export const SIGNIN_PATH = '/signin';
 
 export function teamPath(teamId: number): string {
   return `/teams/${teamId}`;
