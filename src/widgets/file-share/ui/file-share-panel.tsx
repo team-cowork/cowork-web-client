@@ -38,20 +38,29 @@ export interface FileSharePanelProps {
 export function FileSharePanel({ channelId, className }: FileSharePanelProps) {
   useChannelMessageEvents(channelId);
 
-  const { send } = useSendMessage(channelId);
+  const { sendAsync } = useSendMessage(channelId);
   const uploads = useAttachmentUploads(channelId);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 고른 파일이 모두 올라가면 한 메시지로 묶어 보낸다. 실패한 파일은 목록에 남겨 둔다.
-  const { isUploading, confirmedFiles, uploads: drafts } = uploads;
+  // 고른 파일이 모두 올라가면 한 메시지로 묶어 보낸다. 서버가 받을 때까지 "보내는 중"으로
+  // 두고, 받으면 파일 목록을 갱신한 뒤 지운다. 실패하면 이유와 함께 남겨 다시 보낼 수 있게 한다.
+  const {
+    isUploading,
+    isSending,
+    ready,
+    confirmedFiles,
+    uploads: drafts,
+  } = uploads;
   useEffect(() => {
-    if (isUploading || confirmedFiles.length === 0) return;
+    if (isUploading || ready.length === 0) return;
 
-    send('', confirmedFiles);
-    for (const draft of drafts) {
-      if (draft.status === 'done') uploads.remove(draft.id);
-    }
-  }, [isUploading, confirmedFiles, drafts, send, uploads]);
+    const ids = ready.map((draft) => draft.id);
+    uploads.markSending(ids);
+    sendAsync('', confirmedFiles).then(
+      () => uploads.removeMany(ids),
+      () => uploads.markSendFailed(ids),
+    );
+  }, [isUploading, ready, confirmedFiles, sendAsync, uploads]);
 
   return (
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
@@ -61,10 +70,14 @@ export function FileSharePanel({ channelId, className }: FileSharePanelProps) {
         </p>
         <Button
           size="S"
-          disabled={isUploading}
+          disabled={isUploading || isSending}
           onClick={() => fileInputRef.current?.click()}
         >
-          {isUploading ? '올리는 중…' : '파일 올리기'}
+          {isUploading
+            ? '올리는 중…'
+            : isSending
+              ? '보내는 중…'
+              : '파일 올리기'}
         </Button>
         <input
           ref={fileInputRef}
