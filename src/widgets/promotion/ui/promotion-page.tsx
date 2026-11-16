@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {
   DESKTOP_APP_DOWNLOAD_URL,
   GITHUB_ORGANIZATION_URL,
-  PROMOTION_FEATURES,
   PROMOTION_MEMBERS,
   PROMOTION_POSITIONS,
   PROMOTION_REPOSITORIES,
@@ -16,6 +15,7 @@ import { Avatar } from '@/shared/ui/avatar';
 import { Badge } from '@/shared/ui/badge';
 import { CoworkLogo } from '@/shared/ui/icons/cowork-logo';
 import { GithubIcon } from '@/shared/ui/icons/github-icon';
+import { FeatureShowcase } from '@/widgets/promotion/ui/feature-showcase';
 
 const accentStyle = (color: string) => ({ '--accent': color }) as CSSProperties;
 
@@ -53,7 +53,7 @@ export function PromotionPage({ openWebHref }: PromotionPageProps) {
 
       <main className="flex-1">
         <PromotionHero openWebHref={openWebHref} />
-        <PromotionFeatures />
+        <FeatureShowcase />
         <PromotionPositions />
         <PromotionRepositories />
       </main>
@@ -127,43 +127,6 @@ function SectionHeading({
         {description}
       </p>
     </div>
-  );
-}
-
-function PromotionFeatures() {
-  return (
-    <section className="bg-background px-6 py-24">
-      <div className="mx-auto max-w-6xl">
-        <SectionHeading
-          title="기능"
-          description="팀이 함께 일하는 데 필요한 것을 한곳에 모았습니다"
-        />
-        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {PROMOTION_FEATURES.map((feature) => (
-            <li
-              key={feature.label}
-              style={accentStyle(feature.color)}
-              className="flex flex-col gap-3 rounded-3xl bg-surface p-7"
-            >
-              <span className="typography-label-x-small tracking-widest text-(--accent) uppercase">
-                {feature.label}
-              </span>
-              <h3 className="typography-title-small">{feature.title}</h3>
-              <p className="flex-1 typography-body-x-small break-keep text-on-surface-variant">
-                {feature.description}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {feature.tags.map((tag) => (
-                  <Badge key={tag} className="text-(--accent)">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
   );
 }
 
