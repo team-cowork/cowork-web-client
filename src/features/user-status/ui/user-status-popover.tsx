@@ -7,7 +7,8 @@ import {
   USER_STATUS_DOT_CLASS,
   USER_STATUS_LABEL,
   USER_STATUSES,
-  toUserStatus,
+  resolveUserStatus,
+  toCustomStatus,
   type User,
   type UserStatus,
 } from '@/entities/user/model/user';
@@ -26,19 +27,25 @@ export function UserStatusPopover({
   className,
   onAvatarClick,
 }: UserStatusPopoverProps) {
-  const currentStatus = toUserStatus(user.status);
+  const currentStatus = resolveUserStatus(user);
   const [message, setMessage] = useState(user.status_message ?? '');
   const updateStatus = useUpdateStatus();
 
   const handleSelect = (status: UserStatus) => {
     if (status === currentStatus) return;
-    updateStatus.mutate({ status, message: message || null });
+    updateStatus.mutate({
+      custom_status: toCustomStatus(status),
+      message: message || null,
+    });
   };
 
   const handleSubmitMessage = (event: SyntheticEvent) => {
     event.preventDefault();
     if (!currentStatus) return;
-    updateStatus.mutate({ status: currentStatus, message: message || null });
+    updateStatus.mutate({
+      custom_status: toCustomStatus(currentStatus),
+      message: message || null,
+    });
   };
 
   return (
