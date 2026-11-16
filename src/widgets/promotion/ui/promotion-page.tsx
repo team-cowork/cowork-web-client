@@ -1,23 +1,19 @@
-import { type CSSProperties } from 'react';
-
 import Link from 'next/link';
 
 import {
   DESKTOP_APP_DOWNLOAD_URL,
   GITHUB_ORGANIZATION_URL,
-  PROMOTION_MEMBERS,
-  PROMOTION_POSITIONS,
   PROMOTION_REPOSITORIES,
 } from '@/widgets/promotion/model/promotion-content';
 import { cn } from '@/shared/lib/cn';
 import { HOME_PATH } from '@/shared/model/paths';
-import { Avatar } from '@/shared/ui/avatar';
 import { Badge } from '@/shared/ui/badge';
 import { CoworkLogo } from '@/shared/ui/icons/cowork-logo';
 import { GithubIcon } from '@/shared/ui/icons/github-icon';
 import { FeatureShowcase } from '@/widgets/promotion/ui/feature-showcase';
-
-const accentStyle = (color: string) => ({ '--accent': color }) as CSSProperties;
+import { PositionShowcase } from '@/widgets/promotion/ui/position-showcase';
+import { TeamMarquee } from '@/widgets/promotion/ui/team-marquee';
+import { TechStack } from '@/widgets/promotion/ui/tech-stack';
 
 const linkButton =
   'inline-flex h-11 items-center justify-center gap-2 rounded-xl px-[18px] typography-label-medium transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50';
@@ -42,20 +38,16 @@ export function PromotionPage({ openWebHref }: PromotionPageProps) {
               cowork
             </span>
           </Link>
-          <Link
-            href={openWebHref}
-            className={cn(linkButton, 'h-9 bg-primary text-on-primary')}
-          >
-            웹에서 열기
-          </Link>
         </div>
       </header>
 
       <main className="flex-1">
         <PromotionHero openWebHref={openWebHref} />
-        <FeatureShowcase />
-        <PromotionPositions />
         <PromotionRepositories />
+        <FeatureShowcase />
+        <TechStack />
+        <PositionShowcase />
+        <TeamMarquee />
       </main>
 
       <PromotionFooter />
@@ -86,8 +78,6 @@ function PromotionHero({ openWebHref }: PromotionPageProps) {
           </Link>
           <a
             href={DESKTOP_APP_DOWNLOAD_URL}
-            target="_blank"
-            rel="noopener noreferrer"
             className={cn(
               linkButton,
               'bg-inverse-surface text-inverse-on-surface',
@@ -127,67 +117,6 @@ function SectionHeading({
         {description}
       </p>
     </div>
-  );
-}
-
-function PromotionPositions() {
-  return (
-    <section className="px-6 py-24">
-      <div className="mx-auto max-w-6xl">
-        <SectionHeading title="팀원" description="cowork을 만드는 사람들" />
-        <div className="flex flex-col gap-12">
-          {PROMOTION_POSITIONS.map((position) => (
-            <article
-              key={position.name}
-              style={accentStyle(position.color)}
-              className="grid gap-6 border-t border-outline-variant pt-10 lg:grid-cols-[2fr_3fr]"
-            >
-              <div className="flex flex-col gap-3">
-                <span className="size-2.5 rounded-full bg-(--accent)" />
-                <h3 className="typography-title-medium">{position.name}</h3>
-                <p className="typography-body-x-small break-keep text-on-surface-variant">
-                  {position.description}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {position.technologies.map((technology) => (
-                    <Badge key={technology}>{technology}</Badge>
-                  ))}
-                </div>
-              </div>
-              <ul className="flex flex-wrap content-start gap-3">
-                {PROMOTION_MEMBERS.filter((member) =>
-                  member.roles.includes(position.name),
-                ).map((member) => (
-                  <li key={member.github}>
-                    <a
-                      href={`https://github.com/${member.github}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 rounded-2xl bg-surface-container py-2.5 pr-4 pl-2.5 transition-colors hover:bg-surface-container-high"
-                    >
-                      <Avatar
-                        src={`https://avatars.githubusercontent.com/${member.github}?s=64`}
-                        name={member.name}
-                        size={32}
-                        shape="circle"
-                      />
-                      <span className="flex flex-col">
-                        <span className="typography-label-x-small">
-                          {member.name}
-                        </span>
-                        <span className="typography-subtext-small text-on-surface-variant">
-                          {member.generation}기
-                        </span>
-                      </span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
 
