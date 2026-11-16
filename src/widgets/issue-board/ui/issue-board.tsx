@@ -12,7 +12,7 @@ import {
   Droppable,
   type DropResult,
 } from '@hello-pangea/dnd';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQueries, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { githubQueries } from '@/entities/github/api/github-queries';
@@ -23,6 +23,8 @@ import {
   issueStatusOf,
   type IssueStatus,
 } from '@/entities/issue/model/issue';
+import { linkedIssueNumbers } from '@/entities/issue/model/linked-issues';
+import { useClosedIssues } from '@/entities/issue/model/use-closed-issues';
 import { projectQueries } from '@/entities/project/api/project-queries';
 import { useMoveIssue } from '@/features/github-issue-move/model/use-move-issue';
 import { cn } from '@/shared/lib/cn';
@@ -175,19 +177,28 @@ function Board({ projectId, repoId }: { projectId: number; repoId: number }) {
   const { data: issues } = useSuspenseQuery(
     githubQueries.issues(projectId, repoId),
   );
+  const closed = useClosedIssues(repoId, issues);
+  const linked = useLinkedIssueNumbers(projectId, repoId);
   const moveIssue = useMoveIssue(projectId, repoId);
   // 옮긴 카드의 열. 라벨 변경은 서버가 비동기로 처리해서, 다시 불러와도 바로 반영되지 않는다.
   const [moved, setMoved] = useState<Record<number, IssueStatus>>({});
-  const statusOf = (issue: GithubIssueSummary) =>
-    moved[issue.number] ?? issueStatusOf(issue.labels);
+  // TODO(임시): 열린 이슈는 `진행중` 라벨이 있거나 열린 PR 이 가리키면 진행중이다.
+  const statusOf = (issue: GithubIssueSummary): IssueStatus =>
+    moved[issue.number] ??
+    (issueStatusOf(issue.labels) === 'IN_PROGRESS' || linked.has(issue.number)
+      ? 'IN_PROGRESS'
+      : 'PLANNED');
+  const columns: Record<IssueStatus, GithubIssueSummary[]> = {
+    PLANNED: issues.filter((issue) => statusOf(issue) === 'PLANNED'),
+    IN_PROGRESS: issues.filter((issue) => statusOf(issue) === 'IN_PROGRESS'),
+    DONE: closed,
+  };
 
   const handleDragEnd = ({ source, destination }: DropResult) => {
     if (!destination || destination.droppableId === source.droppableId) return;
 
     const status = destination.droppableId as IssueStatus;
-    const issue = issues.filter(
-      (candidate) => statusOf(candidate) === source.droppableId,
-    )[source.index];
+    const issue = columns[source.droppableId as IssueStatus][source.index];
     if (!issue) return;
 
     setMoved((current) => ({ ...current, [issue.number]: status }));
@@ -208,14 +219,30 @@ function Board({ projectId, repoId }: { projectId: number; repoId: number }) {
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-3">
         {ISSUE_STATUSES.map((status) => (
-          <Column
-            key={status}
-            status={status}
-            issues={issues.filter((issue) => statusOf(issue) === status)}
-          />
+          <Column key={status} status={status} issues={columns[status]} />
         ))}
       </div>
     </DragDropContext>
+  );
+}
+
+/**
+ * 열린 PR(Draft 포함)이 가리키는 이슈 번호. PR 본문과 브랜치 이름을 읽어야 해서 PR 마다
+ * 상세를 부른다. 못 읽어도 칸반은 보여야 해서 실패하면 연결을 모르는 것으로 둔다.
+ */
+function useLinkedIssueNumbers(projectId: number, repoId: number): Set<number> {
+  const { data: board } = useQuery(githubQueries.pullBoard(projectId, repoId));
+  const pulls = [...(board?.draft ?? []), ...(board?.inReview ?? [])];
+  const details = useQueries({
+    queries: pulls.map((pull) =>
+      githubQueries.pull(projectId, repoId, pull.number),
+    ),
+  });
+
+  return new Set(
+    details.flatMap((detail) =>
+      detail.data ? [...linkedIssueNumbers(detail.data)] : [],
+    ),
   );
 }
 
@@ -248,6 +275,7 @@ function Column({
                 key={issue.number}
                 draggableId={String(issue.number)}
                 index={index}
+                isDragDisabled={status === 'DONE'}
               >
                 {(draggable, dragSnapshot) => (
                   <li
@@ -270,7 +298,7 @@ function Column({
       {issues.length === 0 && (
         <p className="typography-subtext-medium text-on-surface-variant">
           {status === 'DONE'
-            ? '닫힌 이슈는 GitHub에서 확인해 주세요.'
+            ? '이 화면에서 본 이슈가 GitHub에서 닫히면 여기로 와요.'
             : '이 상태의 이슈가 없어요.'}
         </p>
       )}
