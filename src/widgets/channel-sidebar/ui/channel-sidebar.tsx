@@ -29,12 +29,13 @@ import { ChannelGroup } from '@/widgets/channel-sidebar/ui/channel-group';
 import { TeamMenu } from '@/widgets/channel-sidebar/ui/team-menu';
 import { cn } from '@/shared/lib/cn';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
-import { issuesPath } from '@/shared/model/paths';
+import { issuesPath, pullsPath } from '@/shared/model/paths';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { AlertIcon } from '@/shared/ui/icons/alert-icon';
 import { ChatIcon } from '@/shared/ui/icons/chat-icon';
+import { GitPullRequestIcon } from '@/shared/ui/icons/git-pull-request-icon';
 import { PlusIcon } from '@/shared/ui/icons/plus-icon';
 import { SearchIcon } from '@/shared/ui/icons/search-icon';
 import { UserPlusIcon } from '@/shared/ui/icons/user-plus-icon';
@@ -110,13 +111,19 @@ export function ChannelSidebar({ teamId, className }: ChannelSidebarProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 py-3">
-        {/* TODO(임시): 발표용 칸반 진입점. 칸반을 지울 때 같이 지운다. */}
-        <div className="mb-3">
+        {/* TODO(임시): 발표용 칸반·PR 보드 진입점. 칸반을 지울 때 같이 지운다. */}
+        <div className="mb-3 flex flex-col gap-0.5">
           <ChannelListItem
             name="이슈"
             href={issuesPath(teamId)}
             active={pathname === issuesPath(teamId)}
             prefix={<AlertIcon size={18} />}
+          />
+          <ChannelListItem
+            name="PR 보드"
+            href={pullsPath(teamId)}
+            active={pathname === pullsPath(teamId)}
+            prefix={<GitPullRequestIcon size={18} />}
           />
         </div>
 

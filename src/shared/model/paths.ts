@@ -68,3 +68,8 @@ export function teamSettingsGithubPath(teamId: number): string {
 export function issuesPath(teamId: number): string {
   return `/teams/${teamId}/issues`;
 }
+
+// TODO(임시): 발표용으로 사이드바에서 바로 여는 PR 보드 경로. 칸반을 지울 때 같이 지운다.
+export function pullsPath(teamId: number): string {
+  return `/teams/${teamId}/pulls`;
+}
