@@ -6,6 +6,7 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 
+import { messageQueries } from '@/entities/message/api/message-queries';
 import { postMessage } from '@/entities/message/api/post-message';
 import { toAttachmentContent } from '@/entities/message/lib/attachment-content';
 import {
@@ -33,7 +34,13 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
   const queryClient = useQueryClient();
   const { data: me } = useSuspenseQuery(userQueries.me());
 
-  const { mutate } = useMutation({
+  // 파일 공유 화면은 메시지 목록 대신 파일 목록을 보므로, 소켓 이벤트만 기다리지 않고 직접 갱신한다
+  const refreshFiles = () =>
+    queryClient.invalidateQueries({
+      queryKey: messageQueries.channelFiles(channelId).queryKey,
+    });
+
+  const { mutate, mutateAsync } = useMutation({
     mutationFn: (message: Message) =>
       postMessage(channelId, {
         content: message.content,
@@ -52,7 +59,11 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
       upsertMessage(queryClient, { ...message, sendStatus: 'failed' });
     },
     onSuccess: (_data, message) => {
+      const hasAttachments = message.attachments.length > 0;
+
       setTimeout(async () => {
+        // 서버는 접수 뒤 저장하므로, 저장이 끝났을 즈음 파일 목록을 한 번 더 받는다
+        if (hasAttachments) void refreshFiles();
         if (!isMessagePending(queryClient, message)) return;
 
         await refetchChannelMessages(queryClient, channelId);
@@ -61,14 +72,19 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
           upsertMessage(queryClient, { ...message, sendStatus: 'failed' });
         }
       }, DELIVERY_TIMEOUT_MS);
+
+      if (hasAttachments) return refreshFiles();
     },
   });
 
-  const send = (content: string, attachments: ConfirmedFile[] = []) => {
+  const toMessage = (
+    content: string,
+    attachments: ConfirmedFile[],
+  ): Message => {
     const clientMessageId = createUuid();
     const now = new Date().toISOString();
 
-    mutate({
+    return {
       _id: clientMessageId,
       teamId: null,
       projectId: null,
@@ -88,10 +104,21 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
       mentionedMessage: parentMessage
         ? toMentionedMessage(parentMessage)
         : null,
-    });
+    };
+  };
+
+  const send = (content: string, attachments: ConfirmedFile[] = []) =>
+    mutate(toMessage(content, attachments));
+
+  /** 서버가 접수할 때까지 기다린다. 결과를 화면에 직접 알려야 할 때 쓴다 */
+  const sendAsync = async (
+    content: string,
+    attachments: ConfirmedFile[] = [],
+  ) => {
+    await mutateAsync(toMessage(content, attachments));
   };
 
   const retry = (message: Message) => mutate(message);
 
-  return { send, retry };
+  return { send, sendAsync, retry };
 }
