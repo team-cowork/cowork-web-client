@@ -81,6 +81,7 @@ export function FileSharePanel({ channelId, className }: FileSharePanelProps) {
       <AttachmentDrafts
         uploads={drafts}
         onRemove={uploads.remove}
+        onRetry={uploads.retry}
         className="shrink-0 px-6 pb-3"
       />
 

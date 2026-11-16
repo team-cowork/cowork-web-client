@@ -5,12 +5,14 @@ import { cn } from '@/shared/lib/cn';
 import { AlertIcon } from '@/shared/ui/icons/alert-icon';
 import { EyeIcon } from '@/shared/ui/icons/eye-icon';
 import { FileIcon } from '@/shared/ui/icons/file-icon';
+import { RefreshIcon } from '@/shared/ui/icons/refresh-icon';
 import { TrashIcon } from '@/shared/ui/icons/trash-icon';
 import { LocalImage } from '@/shared/ui/local-image';
 
 export interface AttachmentDraftsProps {
   uploads: AttachmentUpload[];
   onRemove: (id: string) => void;
+  onRetry: (id: string) => void;
   className?: string;
 }
 
@@ -40,6 +42,7 @@ function openPreview(file: File) {
 export function AttachmentDrafts({
   uploads,
   onRemove,
+  onRetry,
   className,
 }: AttachmentDraftsProps) {
   if (uploads.length === 0) return null;
@@ -51,6 +54,7 @@ export function AttachmentDrafts({
           <AttachmentDraft
             upload={upload}
             onRemove={() => onRemove(upload.id)}
+            onRetry={() => onRetry(upload.id)}
           />
         </li>
       ))}
@@ -61,9 +65,11 @@ export function AttachmentDrafts({
 function AttachmentDraft({
   upload,
   onRemove,
+  onRetry,
 }: {
   upload: AttachmentUpload;
   onRemove: () => void;
+  onRetry: () => void;
 }) {
   const { file, status } = upload;
   const isImage = file.type.startsWith('image/');
@@ -72,7 +78,7 @@ function AttachmentDraft({
 
   return (
     <div
-      title={status === 'failed' ? '업로드에 실패해 보내지 않아요' : file.name}
+      title={file.name}
       className={cn(
         'group relative flex w-36 flex-col gap-2 rounded-[14px] border bg-surface-container-low p-2',
         status === 'failed' ? 'border-error' : 'border-outline-variant',
@@ -103,15 +109,28 @@ function AttachmentDraft({
           </div>
         )}
 
+        {status === 'sending' && (
+          <div className="absolute inset-0 flex items-center justify-center bg-surface/70">
+            <p
+              role="status"
+              className="typography-label-x-small text-on-surface-variant"
+            >
+              보내는 중…
+            </p>
+          </div>
+        )}
+
         {status === 'failed' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-error/15">
-            <AlertIcon
-              size={32}
-              role="img"
-              aria-hidden={false}
-              aria-label="업로드 실패"
-              className="text-error"
-            />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-error/15">
+            <AlertIcon size={28} className="text-error" />
+            <button
+              type="button"
+              onClick={onRetry}
+              className="flex h-7 cursor-pointer items-center gap-1 rounded-md bg-surface-container-low px-2 typography-label-x-small text-on-surface shadow-sm hover:bg-surface-container"
+            >
+              <RefreshIcon size={14} />
+              다시 시도
+            </button>
           </div>
         )}
       </div>
@@ -119,6 +138,11 @@ function AttachmentDraft({
       <p className="truncate typography-label-x-small text-on-surface">
         {file.name}
       </p>
+      {status === 'failed' && upload.error && (
+        <p role="alert" className="typography-label-x-small text-error">
+          {upload.error}
+        </p>
+      )}
 
       <div className="pointer-events-none absolute -top-2 -right-2 flex items-center gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-0.5 opacity-0 shadow-sm transition-opacity group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100">
         {canPreview && (

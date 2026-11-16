@@ -158,7 +158,8 @@ function ChannelChatBody({
 
         command.reset();
         send(content, attachments.confirmedFiles);
-        attachments.clear();
+        // 실패한 첨부는 조용히 버리지 않고 이유와 함께 남겨 다시 올리거나 지울 수 있게 한다
+        attachments.clearSent();
       }}
       onAttachFiles={attachments.add}
       composerStatus={
@@ -191,6 +192,7 @@ function ChannelChatBody({
         <AttachmentDrafts
           uploads={attachments.uploads}
           onRemove={attachments.remove}
+          onRetry={attachments.retry}
         />
       }
       canSendEmpty={attachments.confirmedFiles.length > 0}
