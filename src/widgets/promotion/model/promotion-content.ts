@@ -3,8 +3,8 @@
 
 export const GITHUB_ORGANIZATION_URL = 'https://github.com/team-cowork';
 
-// 데스크톱 앱은 GitHub Releases로 배포한다. 현재는 macOS(.dmg)만 제공한다.
-export const DESKTOP_APP_DOWNLOAD_URL = `${GITHUB_ORGANIZATION_URL}/cowork-desktop-app-client/releases/latest`;
+// 최신 릴리스의 macOS 설치 파일(.dmg)로 리다이렉트하는 라우트(app/api/desktop-app/download)
+export const DESKTOP_APP_DOWNLOAD_URL = '/api/desktop-app/download';
 
 export interface PromotionFeature {
   color: string;
