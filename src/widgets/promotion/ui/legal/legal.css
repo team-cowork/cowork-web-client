@@ -4,7 +4,7 @@
   max-width: 50rem;
   margin-inline: auto;
   padding: 4rem 1.5rem 6rem;
-  color: var(--color-on-surface-variant);
+  color: var(--cowork-semantic-on-surface-variant);
   line-height: 1.8;
   overflow-wrap: anywhere;
   word-break: keep-all;
@@ -14,7 +14,7 @@
 .legal h3,
 .legal strong,
 .legal dt {
-  color: var(--color-on-surface);
+  color: var(--cowork-semantic-on-surface);
 }
 .legal h1 {
   margin-bottom: 1.25rem;
@@ -40,7 +40,7 @@
   text-underline-offset: 0.2em;
 }
 .legal a:hover {
-  color: var(--color-on-surface);
+  color: var(--cowork-semantic-on-surface);
 }
 .legal-details {
   display: flex;
@@ -56,7 +56,7 @@
 .legal-toc {
   margin-block: 2.5rem 3rem;
   padding-block: 1.5rem;
-  border-block: 1px solid var(--color-outline-variant);
+  border-block: 1px solid var(--cowork-semantic-outline-variant);
 }
 .legal-toc ol {
   display: grid;
