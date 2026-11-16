@@ -1,4 +1,4 @@
-/* 법적 고지 문서. 원본: cowork-promotion/src/css/legal.css */
+/* 법적 고지 문서. 원본: cowork-promotion/src/css/legal.css (cowork-server #980의 Gateway 문서 구조 반영) */
 
 .legal {
   max-width: 50rem;
@@ -12,8 +12,7 @@
 .legal h1,
 .legal h2,
 .legal h3,
-.legal strong,
-.legal dt {
+.legal strong {
   color: var(--cowork-semantic-on-surface);
 }
 .legal h1 {
@@ -47,9 +46,12 @@
   flex-wrap: wrap;
   gap: 1.25rem 2rem;
   margin-block: 2rem;
+  padding: 0;
+  list-style: none;
   font-size: 0.875rem;
 }
-.legal-details dt {
+.legal-details strong {
+  display: block;
   margin-bottom: 0.25rem;
   font-weight: 600;
 }
@@ -77,20 +79,27 @@
 .legal-section + .legal-section {
   margin-top: 2.5rem;
 }
-.legal-section p + p,
-.legal-section ul,
-.legal-section ul + p {
+.legal p + p,
+.legal header > ol,
+.legal header > ol + p,
+.legal-section :is(ul, ol),
+.legal-section :is(ul, ol) + p {
   margin-top: 0.75rem;
 }
-.legal-section ul {
+.legal-section :is(ul, ol),
+.legal header > ol {
   padding-left: 1.5rem;
+}
+.legal-section ul {
   list-style: disc;
 }
-.legal-section li + li {
-  margin-top: 0.5rem;
+.legal-section ol,
+.legal header > ol {
+  list-style: decimal;
 }
-.legal .mt-4 {
-  margin-top: 1rem;
+.legal-section li + li,
+.legal header > ol > li + li {
+  margin-top: 0.5rem;
 }
 
 @media (max-width: 639px) {
