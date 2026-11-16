@@ -69,6 +69,8 @@ export interface PromotionRepository {
   name: string;
   label: string;
   description: string;
+  /** 언어 비율 그래프 이미지의 원래 높이(px). 불러오기 전 자리를 잡아 화면이 밀리지 않게 한다. */
+  graphHeight: number;
 }
 
 export const PROMOTION_REPOSITORIES: PromotionRepository[] = [
@@ -76,21 +78,25 @@ export const PROMOTION_REPOSITORIES: PromotionRepository[] = [
     name: 'cowork-server',
     label: 'Backend',
     description: 'MSA 기반 통합 백엔드 API 서버',
+    graphHeight: 340,
   },
   {
     name: 'cowork-web-client',
     label: 'Web',
     description: 'Next.js 기반 웹 브라우저 환경의 협업 클라이언트',
+    graphHeight: 215,
   },
   {
     name: 'cowork-desktop-app-client',
     label: 'Desktop',
     description: '데스크탑 환경의 협업 클라이언트',
+    graphHeight: 190,
   },
   {
     name: 'cowork-mobile-app-client',
     label: 'Mobile',
     description: '모바일 환경의 협업 클라이언트',
+    graphHeight: 215,
   },
 ];
 

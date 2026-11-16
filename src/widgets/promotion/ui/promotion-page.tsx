@@ -1,21 +1,22 @@
 import Link from 'next/link';
 
 import {
-  DESKTOP_APP_DOWNLOAD_URL,
   GITHUB_ORGANIZATION_URL,
   PROMOTION_REPOSITORIES,
 } from '@/widgets/promotion/model/promotion-content';
 import { cn } from '@/shared/lib/cn';
-import { HOME_PATH } from '@/shared/model/paths';
+import { ACHIEVEMENTS_PATH } from '@/shared/model/paths';
 import { Badge } from '@/shared/ui/badge';
 import { CoworkLogo } from '@/shared/ui/icons/cowork-logo';
 import { GithubIcon } from '@/shared/ui/icons/github-icon';
+import { DesktopDownloadButton } from '@/widgets/promotion/ui/desktop-download-button';
 import { FeatureShowcase } from '@/widgets/promotion/ui/feature-showcase';
 import { PositionShowcase } from '@/widgets/promotion/ui/position-showcase';
+import { PromotionLayout } from '@/widgets/promotion/ui/promotion-layout';
 import { TeamMarquee } from '@/widgets/promotion/ui/team-marquee';
 import { TechStack } from '@/widgets/promotion/ui/tech-stack';
 
-const linkButton =
+export const promotionLinkButton =
   'inline-flex h-11 items-center justify-center gap-2 rounded-xl px-[18px] typography-label-medium transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50';
 
 interface PromotionPageProps {
@@ -25,33 +26,14 @@ interface PromotionPageProps {
 
 export function PromotionPage({ openWebHref }: PromotionPageProps) {
   return (
-    <div className="flex min-h-screen flex-col bg-surface text-on-surface">
-      <header className="sticky top-0 z-10 border-b border-outline-variant bg-surface/80 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link
-            href={HOME_PATH}
-            aria-label="cowork 홈"
-            className="flex items-center gap-2.5 text-primary"
-          >
-            <CoworkLogo className="h-6 w-auto" />
-            <span className="typography-label-medium text-on-surface">
-              cowork
-            </span>
-          </Link>
-        </div>
-      </header>
-
-      <main className="flex-1">
-        <PromotionHero openWebHref={openWebHref} />
-        <PromotionRepositories />
-        <FeatureShowcase />
-        <TechStack />
-        <PositionShowcase />
-        <TeamMarquee />
-      </main>
-
-      <PromotionFooter />
-    </div>
+    <PromotionLayout>
+      <PromotionHero openWebHref={openWebHref} />
+      <PromotionRepositories />
+      <FeatureShowcase />
+      <TechStack />
+      <PositionShowcase />
+      <TeamMarquee />
+    </PromotionLayout>
   );
 }
 
@@ -72,51 +54,40 @@ function PromotionHero({ openWebHref }: PromotionPageProps) {
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Link
             href={openWebHref}
-            className={cn(linkButton, 'bg-primary text-on-primary')}
+            className={cn(promotionLinkButton, 'bg-primary text-on-primary')}
           >
             웹에서 열기
           </Link>
-          <a
-            href={DESKTOP_APP_DOWNLOAD_URL}
+          <DesktopDownloadButton
             className={cn(
-              linkButton,
+              promotionLinkButton,
               'bg-inverse-surface text-inverse-on-surface',
             )}
-          >
-            데스크톱 앱 설치 (macOS)
-          </a>
+          />
           <a
             href={GITHUB_ORGANIZATION_URL}
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
-              linkButton,
+              promotionLinkButton,
               'bg-surface-variant text-on-surface-variant',
             )}
           >
             <GithubIcon size={16} />
             GitHub 조직 바로가기
           </a>
+          <Link
+            href={ACHIEVEMENTS_PATH}
+            className={cn(
+              promotionLinkButton,
+              'bg-surface-variant text-on-surface-variant',
+            )}
+          >
+            개발 성과 보기
+          </Link>
         </div>
       </div>
     </section>
-  );
-}
-
-function SectionHeading({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="mb-12 flex flex-col gap-2">
-      <h2 className="typography-display-medium">{title}</h2>
-      <p className="typography-body-medium text-on-surface-variant">
-        {description}
-      </p>
-    </div>
   );
 }
 
@@ -124,10 +95,12 @@ function PromotionRepositories() {
   return (
     <section className="bg-background px-6 py-24">
       <div className="mx-auto max-w-6xl">
-        <SectionHeading
-          title="레포지토리"
-          description="team-cowork 조직을 구성하는 프로젝트들"
-        />
+        <div className="mb-12 flex flex-col gap-2">
+          <h2 className="typography-display-medium">레포지토리</h2>
+          <p className="typography-body-medium text-on-surface-variant">
+            team-cowork 조직을 구성하는 프로젝트들
+          </p>
+        </div>
         <ul className="grid gap-5 sm:grid-cols-2">
           {PROMOTION_REPOSITORIES.map((repository) => (
             <li key={repository.name}>
@@ -149,35 +122,23 @@ function PromotionRepositories() {
                 <p className="typography-body-x-small text-on-surface-variant">
                   {repository.description}
                 </p>
+                <div className="mt-4 overflow-hidden rounded-xl border border-outline-variant">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- 외부 서비스가 매번 새로 그리는 SVG 그래프라 이미지 최적화를 거치지 않는다. */}
+                  <img
+                    src={`https://github-repository-language-graph-wi.vercel.app/api?username=team-cowork&repo=${repository.name}&theme=auto&langs_count=100&precision=2`}
+                    alt={`${repository.name} 언어 비율`}
+                    width={495}
+                    height={repository.graphHeight}
+                    loading="lazy"
+                    decoding="async"
+                    className="block h-auto w-full"
+                  />
+                </div>
               </a>
             </li>
           ))}
         </ul>
       </div>
     </section>
-  );
-}
-
-function PromotionFooter() {
-  return (
-    <footer className="border-t border-outline-variant px-6 py-10">
-      <div className="mx-auto flex max-w-6xl flex-col flex-wrap items-center justify-between gap-4 sm:flex-row">
-        <div className="flex items-center gap-2.5">
-          <CoworkLogo className="h-5 w-auto text-primary" />
-          <span className="typography-label-small">cowork</span>
-        </div>
-        <span className="typography-subtext-medium text-on-surface-variant">
-          © 2026 team-cowork · MIT License
-        </span>
-        <a
-          href={GITHUB_ORGANIZATION_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="typography-subtext-medium text-on-surface-variant transition-colors hover:text-on-surface"
-        >
-          github.com/team-cowork
-        </a>
-      </div>
-    </footer>
   );
 }
