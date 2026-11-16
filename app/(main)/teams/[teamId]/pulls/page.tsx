@@ -1,7 +1,7 @@
 'use client';
 
 // TODO(임시): 발표용으로 PR 보드를 사이드바에서 바로 열도록 꺼내 둔 페이지.
-// 프로젝트 상세의 PR 보드를 그대로 재사용한다. 이 폴더와 사이드바의 「PR 보드」 행,
+// 이슈 칸반과 같은 모양의 PR 칸반(`_ui/pull-board.tsx`)을 보여 준다. 이 폴더와 사이드바의 「PR 보드」 행,
 // shared/model/paths.ts의 pullsPath를 지우면 원래대로 프로젝트 상세에서만 본다.
 import { useState } from 'react';
 
@@ -12,7 +12,7 @@ import { type FallbackProps } from 'react-error-boundary';
 
 import { projectQueries } from '@/entities/project/api/project-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
-import { GithubPrBoard } from '@/widgets/project-detail/ui/github-pr-board';
+import { PullBoard } from './_ui/pull-board';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -98,5 +98,5 @@ function ProjectPulls({ projectId }: { projectId: number }) {
     (member) => member.userId === me?.id && member.write,
   );
 
-  return <GithubPrBoard projectId={projectId} canWrite={canWrite} />;
+  return <PullBoard projectId={projectId} canWrite={canWrite} />;
 }

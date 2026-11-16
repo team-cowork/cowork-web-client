@@ -24,15 +24,17 @@ import {
   type IssueStatus,
 } from '@/entities/issue/model/issue';
 import { linkedIssueNumbers } from '@/entities/issue/model/linked-issues';
-import { useClosedIssues } from '@/entities/issue/model/use-closed-issues';
 import { projectQueries } from '@/entities/project/api/project-queries';
 import { useMoveIssue } from '@/features/github-issue-move/model/use-move-issue';
 import { cn } from '@/shared/lib/cn';
+import { useVanishedItems } from '@/shared/lib/use-vanished-items';
 import { formatDate } from '@/shared/lib/format-date';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
+import { KanbanCard } from '@/shared/ui/kanban-card';
+import { KanbanColumn } from '@/shared/ui/kanban-column';
 import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 import { SegmentedControl } from '@/shared/ui/segmented-control';
@@ -177,7 +179,7 @@ function Board({ projectId, repoId }: { projectId: number; repoId: number }) {
   const { data: issues } = useSuspenseQuery(
     githubQueries.issues(projectId, repoId),
   );
-  const closed = useClosedIssues(repoId, issues);
+  const closed = useVanishedItems(`cowork.issue-board.seen.${repoId}`, issues);
   const linked = useLinkedIssueNumbers(projectId, repoId);
   const moveIssue = useMoveIssue(projectId, repoId);
   // 옮긴 카드의 열. 라벨 변경은 서버가 비동기로 처리해서, 다시 불러와도 바로 반영되지 않는다.
@@ -254,12 +256,15 @@ function Column({
   issues: GithubIssueSummary[];
 }) {
   return (
-    <section className="flex min-w-0 flex-col gap-3 rounded-xl bg-surface-container p-3">
-      <h2 className="flex items-center gap-2 typography-label-medium text-on-surface">
-        <span aria-hidden className="size-1.5 rounded-full bg-on-surface" />
-        {ISSUE_STATUS_LABEL[status]}
-        <Badge>{issues.length}</Badge>
-      </h2>
+    <KanbanColumn
+      title={ISSUE_STATUS_LABEL[status]}
+      count={issues.length}
+      emptyText={
+        status === 'DONE'
+          ? '이 화면에서 본 이슈가 GitHub에서 닫히면 여기로 와요.'
+          : '이 상태의 이슈가 없어요.'
+      }
+    >
       <Droppable droppableId={status} isDropDisabled={status === 'DONE'}>
         {(droppable, snapshot) => (
           <ul
@@ -295,14 +300,7 @@ function Column({
           </ul>
         )}
       </Droppable>
-      {issues.length === 0 && (
-        <p className="typography-subtext-medium text-on-surface-variant">
-          {status === 'DONE'
-            ? '이 화면에서 본 이슈가 GitHub에서 닫히면 여기로 와요.'
-            : '이 상태의 이슈가 없어요.'}
-        </p>
-      )}
-    </section>
+    </KanbanColumn>
   );
 }
 
@@ -313,8 +311,12 @@ function IssueCard({
   issue: GithubIssueSummary;
   dragging: boolean;
 }) {
-  const content = (
-    <>
+  // 누르면 GitHub 이슈로 간다. 이슈 닫기는 서버 API가 없어 GitHub에서 한다.
+  return (
+    <KanbanCard
+      href={isGithubUrl(issue.htmlUrl) ? issue.htmlUrl : undefined}
+      dragging={dragging}
+    >
       {issue.labels.length > 0 && (
         <span className="flex flex-wrap gap-1">
           {issue.labels.map((label) => (
@@ -330,25 +332,6 @@ function IssueCard({
       <span className="typography-subtext-medium break-all text-on-surface-variant">
         #{issue.number} · {issue.author} · {formatDate(issue.updatedAt)}
       </span>
-    </>
-  );
-  const className = cn(
-    'flex flex-col gap-2 rounded-lg border border-outline-variant bg-surface p-3',
-    dragging && 'shadow-lg',
-  );
-
-  // 누르면 GitHub 이슈로 간다. 이슈 닫기는 서버 API가 없어 GitHub에서 한다.
-  return isGithubUrl(issue.htmlUrl) ? (
-    <a
-      href={issue.htmlUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      draggable={false}
-      className={cn(className, 'hover:bg-surface-variant')}
-    >
-      {content}
-    </a>
-  ) : (
-    <div className={className}>{content}</div>
+    </KanbanCard>
   );
 }
