@@ -3,6 +3,12 @@ export const HOME_PATH = '/';
 export const PROMOTION_PATH = '/promotion';
 export const SIGNIN_PATH = '/signin';
 
+// 로그인 없이 볼 수 있는 소개용 문서
+export const PRIVACY_PATH = '/privacy';
+export const TERMS_PATH = '/terms';
+export const LICENSE_PATH = '/license';
+export const ACHIEVEMENTS_PATH = '/achievements';
+
 export function teamPath(teamId: number): string {
   return `/teams/${teamId}`;
 }

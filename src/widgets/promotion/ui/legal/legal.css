@@ -1,0 +1,103 @@
+/* 법적 고지 문서. 원본: cowork-promotion/src/css/legal.css */
+
+.legal {
+  max-width: 50rem;
+  margin-inline: auto;
+  padding: 4rem 1.5rem 6rem;
+  color: var(--color-on-surface-variant);
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+.legal h1,
+.legal h2,
+.legal h3,
+.legal strong,
+.legal dt {
+  color: var(--color-on-surface);
+}
+.legal h1 {
+  margin-bottom: 1.25rem;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1.25;
+}
+.legal h2 {
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.5;
+}
+.legal h3 {
+  margin-block: 1.5rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.legal a {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.legal a:hover {
+  color: var(--color-on-surface);
+}
+.legal-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem 2rem;
+  margin-block: 2rem;
+  font-size: 0.875rem;
+}
+.legal-details dt {
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+.legal-toc {
+  margin-block: 2.5rem 3rem;
+  padding-block: 1.5rem;
+  border-block: 1px solid var(--color-outline-variant);
+}
+.legal-toc ol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 1.5rem;
+  padding-left: 1.25rem;
+  list-style: decimal;
+  font-size: 0.875rem;
+}
+.legal-toc a {
+  display: inline-block;
+  padding-block: 0.25rem;
+}
+.legal-section {
+  /* 고정 헤더(4rem)에 제목이 가리지 않게 한다. */
+  scroll-margin-top: 5.5rem;
+}
+.legal-section + .legal-section {
+  margin-top: 2.5rem;
+}
+.legal-section p + p,
+.legal-section ul,
+.legal-section ul + p {
+  margin-top: 0.75rem;
+}
+.legal-section ul {
+  padding-left: 1.5rem;
+  list-style: disc;
+}
+.legal-section li + li {
+  margin-top: 0.5rem;
+}
+.legal .mt-4 {
+  margin-top: 1rem;
+}
+
+@media (max-width: 639px) {
+  .legal {
+    padding-top: 2.5rem;
+  }
+  .legal-toc ol {
+    grid-template-columns: 1fr;
+  }
+}
