@@ -13,9 +13,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 처음 들어온 사람은 소개 화면부터 보고, 특정 화면을 열려던 사람은 바로 로그인한다.
-  const target = pathname === HOME_PATH ? WELCOME_PATH : SIGNIN_PATH;
-  const response = NextResponse.redirect(new URL(target, request.url));
+  // 처음 들어온 사람은 주소를 그대로 둔 채 소개 화면을 보고, 특정 화면을 열려던 사람은 바로 로그인한다.
+  const response =
+    pathname === HOME_PATH
+      ? NextResponse.rewrite(new URL(WELCOME_PATH, request.url))
+      : NextResponse.redirect(new URL(SIGNIN_PATH, request.url));
   clearTokenCookies(response);
   return response;
 }
