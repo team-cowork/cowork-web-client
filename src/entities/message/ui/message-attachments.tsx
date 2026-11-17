@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 
 import Image from 'next/image';
 
@@ -10,20 +10,19 @@ import { AttachmentCard } from '@/entities/attachment/ui/attachment-card';
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { type MessageAttachment } from '@/entities/message/model/message';
 import { cn } from '@/shared/lib/cn';
+import { getPreviewImageType } from '@/shared/lib/file-kind';
 import { formatFileSize } from '@/shared/lib/format-file-size';
 import { LocalImage } from '@/shared/ui/local-image';
+
+type AttachmentSource = { channelId: number; messageId: string };
 
 export interface MessageAttachmentsProps {
   attachments: MessageAttachment[];
   /** 저장된 메시지면 넘긴다. 이미지 미리보기를 받을 때 쓴다. */
-  source?: { channelId: number; messageId: string };
+  source?: AttachmentSource;
   /** 첨부 순번으로 파일을 연다. 없으면 카드를 누를 수 없다. */
   onOpen?: (attachmentIndex: number) => void;
   className?: string;
-}
-
-function isImage(attachment: MessageAttachment) {
-  return attachment.mimeType.startsWith('image/');
 }
 
 export function MessageAttachments({
@@ -48,29 +47,12 @@ export function MessageAttachments({
             }}
             className="w-full cursor-pointer text-left disabled:cursor-default"
           >
-            {source && isImage(attachment) ? (
-              <ImagePreview
-                channelId={source.channelId}
-                messageId={source.messageId}
-                attachmentIndex={index}
-                attachment={attachment}
-                className={cn(onOpen && 'hover:border-outline')}
-              />
-            ) : isImage(attachment) && attachment.localFile ? (
-              <ImageFrame>
-                <LocalImage
-                  file={attachment.localFile}
-                  alt={attachment.name}
-                  className={IMAGE_CLASS_NAME}
-                />
-              </ImageFrame>
-            ) : (
-              <AttachmentCard
-                name={attachment.name}
-                meta={formatFileSize(attachment.size)}
-                className={cn(onOpen && 'hover:border-outline')}
-              />
-            )}
+            <AttachmentPreview
+              attachment={attachment}
+              attachmentIndex={index}
+              source={source}
+              className={cn(onOpen && 'hover:border-outline')}
+            />
           </button>
         </li>
       ))}
@@ -78,33 +60,85 @@ export function MessageAttachments({
   );
 }
 
-/** 이미지 첨부는 카드 대신 썸네일로 보여주고, URL을 받지 못하면 카드로 돌아간다. */
-function ImagePreview({
-  channelId,
-  messageId,
-  attachmentIndex,
+/**
+ * 이미지 확장자인 첨부는 썸네일로, 나머지는 카드로 보여준다.
+ * 확장자와 달리 이미지로 그릴 수 없는 파일이면 카드로 돌아간다.
+ */
+function AttachmentPreview({
   attachment,
+  attachmentIndex,
+  source,
   className,
 }: {
-  channelId: number;
-  messageId: string;
-  attachmentIndex: number;
   attachment: MessageAttachment;
+  attachmentIndex: number;
+  source?: AttachmentSource;
   className?: string;
 }) {
-  const { data, isPending, isError } = useQuery(
-    messageQueries.attachmentUrl(channelId, messageId, attachmentIndex),
+  const [broken, setBroken] = useState(false);
+
+  const card = (
+    <AttachmentCard
+      name={attachment.name}
+      meta={formatFileSize(attachment.size)}
+      className={className}
+    />
   );
 
-  if (isError) {
+  if (broken || !getPreviewImageType(attachment.name)) return card;
+
+  if (source) {
     return (
-      <AttachmentCard
-        name={attachment.name}
-        meta={formatFileSize(attachment.size)}
+      <ImagePreview
+        source={source}
+        attachmentIndex={attachmentIndex}
+        attachment={attachment}
+        fallback={card}
+        onError={() => setBroken(true)}
         className={className}
       />
     );
   }
+
+  if (!attachment.localFile) return card;
+
+  return (
+    <ImageFrame className={className}>
+      <LocalImage
+        file={attachment.localFile}
+        alt={attachment.name}
+        className={IMAGE_CLASS_NAME}
+        onError={() => setBroken(true)}
+      />
+    </ImageFrame>
+  );
+}
+
+/** 저장된 이미지 첨부의 썸네일. URL을 받지 못하면 `fallback`을 보여준다. */
+function ImagePreview({
+  source,
+  attachmentIndex,
+  attachment,
+  fallback,
+  onError,
+  className,
+}: {
+  source: AttachmentSource;
+  attachmentIndex: number;
+  attachment: MessageAttachment;
+  fallback: ReactNode;
+  onError: () => void;
+  className?: string;
+}) {
+  const { data, isPending, isError } = useQuery(
+    messageQueries.attachmentUrl(
+      source.channelId,
+      source.messageId,
+      attachmentIndex,
+    ),
+  );
+
+  if (isError) return fallback;
 
   return (
     <ImageFrame className={className}>
@@ -118,6 +152,7 @@ function ImagePreview({
           sizes="28rem"
           unoptimized
           className={IMAGE_CLASS_NAME}
+          onError={onError}
         />
       ) : attachment.localFile ? (
         // 방금 보낸 이미지는 URL을 받는 동안 원본을 그대로 보여줘 깜빡이지 않게 한다.
@@ -125,6 +160,7 @@ function ImagePreview({
           file={attachment.localFile}
           alt={attachment.name}
           className={IMAGE_CLASS_NAME}
+          onError={onError}
         />
       ) : (
         <span className="block h-48 w-64 animate-pulse" />

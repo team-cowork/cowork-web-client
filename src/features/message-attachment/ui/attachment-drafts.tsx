@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
+
 import { type AttachmentUpload } from '@/features/message-attachment/model/use-attachment-uploads';
 import { cn } from '@/shared/lib/cn';
+import { getFileKind, getPreviewImageType } from '@/shared/lib/file-kind';
 import { AlertIcon } from '@/shared/ui/icons/alert-icon';
 import { EyeIcon } from '@/shared/ui/icons/eye-icon';
-import { FileIcon } from '@/shared/ui/icons/file-icon';
+import { FileTypeIcon } from '@/shared/ui/icons/file-type-icon';
 import { RefreshIcon } from '@/shared/ui/icons/refresh-icon';
 import { TrashIcon } from '@/shared/ui/icons/trash-icon';
 import { LocalImage } from '@/shared/ui/local-image';
@@ -16,21 +19,15 @@ export interface AttachmentDraftsProps {
   className?: string;
 }
 
-// SVG는 새 탭에서 앱과 같은 출처로 스크립트가 실행될 수 있어 비트맵 이미지만 미리 본다.
-const PREVIEWABLE_TYPES = new Set([
-  'image/png',
-  'image/jpeg',
-  'image/gif',
-  'image/webp',
-  'image/avif',
-  'image/bmp',
-]);
-
 // 새 탭이 파일을 읽을 시간을 두고 URL을 해제한다.
 const PREVIEW_URL_LIFETIME_MS = 60_000;
 
-function openPreview(file: File) {
-  const url = URL.createObjectURL(file);
+/**
+ * 원본의 `File.type` 대신 확장자에 맞는 이미지 타입으로 고정해 연다.
+ * 새 탭은 앱과 같은 출처라, HTML 같은 형식으로 해석되면 스크립트가 실행될 수 있다.
+ */
+function openPreview(file: File, imageType: string) {
+  const url = URL.createObjectURL(new Blob([file], { type: imageType }));
   window.open(url, '_blank', 'noopener');
   setTimeout(() => URL.revokeObjectURL(url), PREVIEW_URL_LIFETIME_MS);
 }
@@ -72,8 +69,9 @@ function AttachmentDraft({
   onRetry: () => void;
 }) {
   const { file, status } = upload;
-  const isImage = file.type.startsWith('image/');
-  const canPreview = PREVIEWABLE_TYPES.has(file.type);
+  // 확장자만 이미지이고 그릴 수 없는 파일이면 미리보기를 접고 아이콘으로 보여준다.
+  const [broken, setBroken] = useState(false);
+  const imageType = broken ? undefined : getPreviewImageType(file.name);
   const progress = Math.max(0, Math.min(100, Math.round(upload.progress)));
 
   return (
@@ -85,10 +83,15 @@ function AttachmentDraft({
       )}
     >
       <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-[10px] bg-surface-container text-on-surface-variant">
-        {isImage ? (
-          <LocalImage file={file} alt="" className="size-full object-cover" />
+        {imageType ? (
+          <LocalImage
+            file={file}
+            alt=""
+            className="size-full object-cover"
+            onError={() => setBroken(true)}
+          />
         ) : (
-          <FileIcon size={40} />
+          <FileTypeIcon kind={getFileKind(file.name)} size={40} />
         )}
 
         {status === 'uploading' && (
@@ -145,10 +148,10 @@ function AttachmentDraft({
       )}
 
       <div className="pointer-events-none absolute -top-2 -right-2 flex items-center gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-0.5 opacity-0 shadow-sm transition-opacity group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100">
-        {canPreview && (
+        {imageType && (
           <button
             type="button"
-            onClick={() => openPreview(file)}
+            onClick={() => openPreview(file, imageType)}
             aria-label={`${file.name} 미리보기`}
             className="flex size-7 cursor-pointer items-center justify-center rounded-md text-on-surface-variant hover:bg-surface-variant hover:text-on-surface"
           >
