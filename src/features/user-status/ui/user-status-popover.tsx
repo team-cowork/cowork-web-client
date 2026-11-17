@@ -13,6 +13,7 @@ import {
   type User,
   type UserStatus,
 } from '@/entities/user/model/user';
+import { ProfileBanner } from '@/entities/user/ui/profile-banner';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { cn } from '@/shared/lib/cn';
 import { CheckIcon } from '@/shared/ui/icons/check-icon';
@@ -57,7 +58,7 @@ export function UserStatusPopover({
         className,
       )}
     >
-      <div className="h-14 bg-gradient-to-r from-cowork-red-500 to-cowork-blue-500" />
+      <ProfileBanner color={user.banner_color} className="h-14" />
       <div className="flex flex-col gap-3 px-3 pt-0 pb-3">
         <button
           type="button"
