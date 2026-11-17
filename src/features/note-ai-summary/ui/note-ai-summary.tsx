@@ -30,7 +30,7 @@ function toPromptText(sections: MeetingNoteSectionView[]): string {
     .join('\n\n');
 }
 
-// TODO(실험): 시연용 AI 요약. 이 폴더와 /api/ai/summary 를 지우면 사라진다.
+/** 회의록 AI 요약과, 요약에서 뽑은 할 일을 GitHub 이슈로 만드는 버튼. */
 export function NoteAiSummary({
   channelId,
   title,
