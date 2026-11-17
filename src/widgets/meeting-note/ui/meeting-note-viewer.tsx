@@ -223,7 +223,7 @@ function SectionBlock({ section }: { section: MeetingNoteSectionView }) {
       ) : section.type === 'MARKDOWN' ? (
         <Markdown
           variant="document"
-          className="typography-body-medium leading-[1.9] text-on-surface"
+          className="typography-body-medium text-on-surface"
         >
           {value}
         </Markdown>

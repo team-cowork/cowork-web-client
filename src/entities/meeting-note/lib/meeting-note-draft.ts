@@ -11,8 +11,16 @@ export interface MeetingNoteDraft {
   savedAt: string;
 }
 
-function draftKey(channelId: number, noteId: number | null): string {
-  return `cowork:meeting-note-draft:${channelId}:${noteId ?? 'new'}`;
+/** 어떤 사용자가 어느 회의록을 쓰던 중인지. noteId가 null이면 새 회의록이다. */
+export interface MeetingNoteDraftTarget {
+  userId: number;
+  channelId: number;
+  noteId: number | null;
+}
+
+// 같은 브라우저에서 계정을 바꿔도 다른 사람의 임시저장본이 열리지 않게 사용자별로 나눈다.
+function draftKey({ userId, channelId, noteId }: MeetingNoteDraftTarget) {
+  return `cowork:meeting-note-draft:${userId}:${channelId}:${noteId ?? 'new'}`;
 }
 
 function isDraft(value: unknown): value is MeetingNoteDraft {
@@ -28,11 +36,10 @@ function isDraft(value: unknown): value is MeetingNoteDraft {
 }
 
 export function readMeetingNoteDraft(
-  channelId: number,
-  noteId: number | null,
+  target: MeetingNoteDraftTarget,
 ): MeetingNoteDraft | null {
   try {
-    const raw = localStorage.getItem(draftKey(channelId, noteId));
+    const raw = localStorage.getItem(draftKey(target));
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
     return isDraft(parsed) ? parsed : null;
@@ -43,13 +50,12 @@ export function readMeetingNoteDraft(
 
 /** 저장에 성공하면 true. 저장소를 쓸 수 없는 환경이면 false. */
 export function writeMeetingNoteDraft(
-  channelId: number,
-  noteId: number | null,
+  target: MeetingNoteDraftTarget,
   draft: Omit<MeetingNoteDraft, 'savedAt'>,
 ): boolean {
   try {
     localStorage.setItem(
-      draftKey(channelId, noteId),
+      draftKey(target),
       JSON.stringify({ ...draft, savedAt: new Date().toISOString() }),
     );
     return true;
@@ -58,13 +64,18 @@ export function writeMeetingNoteDraft(
   }
 }
 
-export function clearMeetingNoteDraft(
-  channelId: number,
-  noteId: number | null,
-): void {
+export function clearMeetingNoteDraft(target: MeetingNoteDraftTarget): void {
   try {
-    localStorage.removeItem(draftKey(channelId, noteId));
+    localStorage.removeItem(draftKey(target));
   } catch {
     // 저장소를 쓸 수 없으면 지울 것도 없다.
   }
+}
+
+/** 임시저장한 뒤 회의록이 다른 곳에서 고쳐졌으면 그 임시저장본은 낡은 것이다. */
+export function isDraftOlderThan(
+  draft: MeetingNoteDraft,
+  updatedAt: string,
+): boolean {
+  return new Date(draft.savedAt).getTime() < new Date(updatedAt).getTime();
 }

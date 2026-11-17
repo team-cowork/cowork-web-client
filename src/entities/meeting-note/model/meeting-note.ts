@@ -180,24 +180,6 @@ export function countAttendees(
   return splitAttendees(content[attendeeSection.title] ?? '').length;
 }
 
-export const EDITOR_BULLET = '• ';
-
-/**
- * 본문은 마크다운 목록(`- `)으로 저장하고, 편집기에서는 글머리 기호(`• `)로 보여 준다.
- * 두 표기의 길이가 같아 변환해도 커서 위치가 그대로 유지된다.
- */
-export function toEditorBullets(markdown: string): string {
-  return markdown.replace(/^- /gm, EDITOR_BULLET);
-}
-
-export function toMarkdownBullets(text: string): string {
-  return text.replace(/^• /gm, '- ');
-}
-
-export function isEditorBulletLine(line: string): boolean {
-  return line.startsWith(EDITOR_BULLET);
-}
-
 /**
  * 서버는 시각을 시간대 없이 UTC로 내려 준다(예: 2026-11-17T01:27:42).
  * 그대로 Date에 넣으면 브라우저 시간대로 읽혀 한국에서는 9시간 이르게 보이므로 UTC로 표시해 둔다.

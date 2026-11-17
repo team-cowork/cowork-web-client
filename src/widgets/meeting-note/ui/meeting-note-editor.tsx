@@ -1,49 +1,33 @@
 'use client';
 
-import {
-  type KeyboardEvent,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { notFound, useRouter } from 'next/navigation';
 
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 
 import { AttachmentCard } from '@/entities/attachment/ui/attachment-card';
 import { meetingNoteQueries } from '@/entities/meeting-note/api/meeting-note-queries';
+import { type EditorField } from '@/entities/meeting-note/lib/editor-fields';
 import {
-  EDITOR_BULLET,
   MEETING_NOTE_CONTENT_MAX_LENGTH,
   MEETING_NOTE_TITLE_MAX_LENGTH,
   type MeetingNote,
   type MeetingNoteAttachment,
-  type MeetingNoteContent,
   type MeetingNoteTemplate,
-  countAttendees,
-  isEditorBulletLine,
-  parseMeetingNoteContent,
-  pickActiveTemplate,
-  type SectionType,
-  serializeMeetingNoteContent,
-  toEditorBullets,
-  toMarkdownBullets,
-  toSectionType,
 } from '@/entities/meeting-note/model/meeting-note';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { userDisplayName } from '@/entities/user/lib/user-display';
+import { type User } from '@/entities/user/model/user';
+import { useAttachmentUploadStore } from '@/features/message-attachment/model/attachment-upload-store';
 import { useAttachmentUploads } from '@/features/message-attachment/model/use-attachment-uploads';
 import { AttachmentDrafts } from '@/features/message-attachment/ui/attachment-drafts';
-import {
-  clearMeetingNoteDraft,
-  readMeetingNoteDraft,
-  writeMeetingNoteDraft,
-} from '@/features/meeting-note-write/model/meeting-note-draft';
 import { useCreateMeetingNote } from '@/features/meeting-note-write/model/use-create-meeting-note';
+import { useMeetingNoteForm } from '@/features/meeting-note-write/model/use-meeting-note-form';
 import { useUpdateMeetingNote } from '@/features/meeting-note-write/model/use-update-meeting-note';
+import { BulletTextArea } from '@/features/meeting-note-write/ui/bullet-text-area';
 import { MeetingNotePageHeader } from '@/widgets/meeting-note/ui/meeting-note-page-header';
+import { TemplatePicker } from '@/widgets/meeting-note/ui/template-picker';
 import { getHttpErrorMessage } from '@/shared/api/http-error';
 import { cn } from '@/shared/lib/cn';
 import { formatDotDate } from '@/shared/lib/format-date';
@@ -55,80 +39,8 @@ import {
 import { Avatar } from '@/shared/ui/avatar';
 import { Button } from '@/shared/ui/button';
 import { Dialog } from '@/shared/ui/dialog';
-import { CheckIcon } from '@/shared/ui/icons/check-icon';
-import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
-import { FileIcon } from '@/shared/ui/icons/file-icon';
 import { PaperclipIcon } from '@/shared/ui/icons/paperclip-icon';
-import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
-import { Menu, MenuSeparator } from '@/shared/ui/menu';
-import { MenuItem } from '@/shared/ui/menu-item';
 import { useToast } from '@/shared/ui/toast-provider';
-
-const DEFAULT_PLACEHOLDER = '내용을 입력하세요...';
-
-interface EditorField {
-  title: string;
-  type: SectionType;
-  placeholder: string;
-  isRequired: boolean;
-}
-
-/**
- * 템플릿 섹션 순서대로 입력 칸을 만든다.
- * 수정 중이면 템플릿에서 지워진 섹션의 내용도 잃지 않게 끝에 붙인다.
- */
-function buildFields(
-  template: MeetingNoteTemplate | null,
-  orphanSource: MeetingNoteContent,
-): EditorField[] {
-  const sections = template?.sections ?? [];
-  const known = new Set(sections.map((section) => section.title));
-
-  return [
-    ...sections.map((section) => ({
-      title: section.title,
-      type: toSectionType(section.type),
-      placeholder: section.placeholder || DEFAULT_PLACEHOLDER,
-      isRequired: section.isRequired,
-    })),
-    ...Object.keys(orphanSource)
-      .filter((title) => !known.has(title))
-      .map((title) => ({
-        title,
-        type: 'MARKDOWN' as const,
-        placeholder: DEFAULT_PLACEHOLDER,
-        isRequired: false,
-      })),
-  ];
-}
-
-/** 저장된 본문을 편집기 표기로 바꾼다. 목록은 글머리 기호로 보여 준다. */
-function toEditorValues(content: MeetingNoteContent): MeetingNoteContent {
-  return Object.fromEntries(
-    Object.entries(content).map(([key, value]) => [
-      key,
-      toEditorBullets(value),
-    ]),
-  );
-}
-
-function serializeFields(
-  fields: EditorField[],
-  values: MeetingNoteContent,
-): string {
-  return serializeMeetingNoteContent(
-    Object.fromEntries(
-      fields.map((field) => {
-        // 목록을 끝내며 남은 빈 줄 같은 끝 공백은 저장하지 않는다.
-        const value = (values[field.title] ?? '').trimEnd();
-        return [
-          field.title,
-          field.type === 'MARKDOWN' ? toMarkdownBullets(value) : value,
-        ];
-      }),
-    ),
-  );
-}
 
 export interface MeetingNoteEditorProps {
   teamId: number;
@@ -146,13 +58,14 @@ export function MeetingNoteEditor({
     meetingNoteQueries.templates(channelId),
   );
   const { data: notes } = useSuspenseQuery(meetingNoteQueries.list(channelId));
-  const { data: me } = useQuery(userQueries.me());
+  // 작성자 확인과 임시저장 구분에 쓰므로 내 정보를 받은 뒤에 그린다.
+  const { data: me } = useSuspenseQuery(userQueries.me());
 
   const note =
     noteId === null ? undefined : notes.find(({ id }) => id === noteId);
   if (noteId !== null && !note) notFound();
   // 남의 회의록은 서버가 수정을 막으므로 편집 화면을 열지 않는다.
-  if (note && me && note.createdBy !== me.id) notFound();
+  if (note && note.createdBy !== me.id) notFound();
 
   return (
     <MeetingNoteDocument
@@ -161,6 +74,7 @@ export function MeetingNoteEditor({
       channelId={channelId}
       note={note}
       templates={templates}
+      me={me}
     />
   );
 }
@@ -170,43 +84,17 @@ function MeetingNoteDocument({
   channelId,
   note,
   templates,
+  me,
 }: {
   teamId: number;
   channelId: number;
   note: MeetingNote | undefined;
   templates: MeetingNoteTemplate[];
+  me: User;
 }) {
   const router = useRouter();
   const { toast } = useToast();
-  const { data: me } = useQuery(userQueries.me());
-  const noteId = note?.id ?? null;
 
-  // 처음 연 순간의 상태. 임시저장본이 있으면 그것부터 이어 쓴다.
-  const [initial] = useState(() => {
-    const noteContent = note ? parseMeetingNoteContent(note.content) : {};
-    const stored = readMeetingNoteDraft(channelId, noteId);
-    // 새 회의록 임시저장본은 그 템플릿이 지워졌으면 쓰지 않는다.
-    const draft =
-      stored && (note || templates.some(({ id }) => id === stored.templateId))
-        ? stored
-        : null;
-
-    return {
-      noteContent,
-      draftSavedAt: draft?.savedAt ?? null,
-      templateId:
-        note?.templateId ??
-        draft?.templateId ??
-        pickActiveTemplate(templates)?.id ??
-        null,
-      title: draft?.title ?? note?.title ?? '',
-      values: toEditorValues(draft?.content ?? noteContent),
-    };
-  });
-
-  const [templateId, setTemplateId] = useState(initial.templateId);
-  const [title, setTitle] = useState(initial.title);
-  const [values, setValues] = useState(initial.values);
   const [keptAttachments, setKeptAttachments] = useState<
     MeetingNoteAttachment[]
   >(note?.attachments ?? []);
@@ -219,61 +107,52 @@ function MeetingNoteDocument({
   const updateNote = useUpdateMeetingNote(channelId);
   const isPending = createNote.isPending || updateNote.isPending;
 
+  const form = useMeetingNoteForm({
+    userId: me.id,
+    channelId,
+    note,
+    templates,
+    hasExternalChanges:
+      keptAttachments.length !== (note?.attachments.length ?? 0) ||
+      uploads.uploads.length > 0,
+  });
+
+  // 업로드는 채널별 스토어에 남는다. 편집기를 떠나면(게시·저장 안 함·다른 화면 이동)
+  // 이 회의록에 붙이던 파일을 정리해, 다음 회의록에 다시 붙어 나오지 않게 한다.
+  useEffect(
+    () => () => {
+      const store = useAttachmentUploadStore.getState();
+      const ids = (store.uploadsByChannel[channelId] ?? []).map(({ id }) => id);
+      if (ids.length > 0) store.remove(channelId, ids);
+    },
+    [channelId],
+  );
+
   // 개발 모드에서 effect가 두 번 실행돼도 안내는 한 번만 띄운다.
   const draftNoticeShown = useRef(false);
   useEffect(() => {
-    if (!initial.draftSavedAt || draftNoticeShown.current) return;
+    if (!form.restoredDraft || draftNoticeShown.current) return;
     draftNoticeShown.current = true;
     toast('임시저장한 내용을 불러왔어요');
-  }, [initial.draftSavedAt, toast]);
+  }, [form.restoredDraft, toast]);
 
-  const template = templates.find(({ id }) => id === templateId) ?? null;
-  const fields = buildFields(template, initial.noteContent);
-  const content = serializeFields(fields, values);
-  const attendeeCount = countAttendees(
-    parseMeetingNoteContent(content),
-    template?.sections ?? [],
-  );
-
-  const trimmedTitle = title.trim();
-  const titleError = trimmedTitle ? undefined : '제목을 입력해 주세요';
-  const missingFields = new Set(
-    fields
-      .filter((field) => field.isRequired && !values[field.title]?.trim())
-      .map((field) => field.title),
-  );
   const hasFailedUpload = uploads.uploads.some(
     ({ status }) => status === 'failed',
   );
-
-  const isDirty =
-    templateId !== initial.templateId ||
-    title !== initial.title ||
-    fields.some(
-      ({ title: key }) => (values[key] ?? '') !== (initial.values[key] ?? ''),
-    ) ||
-    keptAttachments.length !== (note?.attachments.length ?? 0) ||
-    uploads.uploads.length > 0;
-
   const authorName = userDisplayName(me, '나');
   const writtenAt = note?.createdAt ?? new Date().toISOString();
 
   const leave = (href: string) => {
-    if (isDirty) setLeaveTarget(href);
+    if (form.isDirty) setLeaveTarget(href);
     else router.push(href);
   };
 
   const saveDraft = () => {
-    if (templateId === null) return false;
-    const saved = writeMeetingNoteDraft(channelId, noteId, {
-      templateId,
-      title,
-      content: parseMeetingNoteContent(content),
-    });
+    const saved = form.saveDraft();
     toast(
       saved
-        ? uploads.uploads.length > 0 ||
-          keptAttachments.length !== (note?.attachments.length ?? 0)
+        ? keptAttachments.length !== (note?.attachments.length ?? 0) ||
+          uploads.uploads.length > 0
           ? '임시저장했어요. 첨부 파일 변경은 게시해야 반영돼요'
           : '임시저장했어요'
         : '이 브라우저에서는 임시저장을 쓸 수 없어요',
@@ -283,18 +162,18 @@ function MeetingNoteDocument({
 
   const publish = () => {
     setSubmitted(true);
-    if (titleError || missingFields.size > 0) {
+    if (form.titleError || form.missingFields.size > 0) {
       toast('필수 항목을 채워 주세요');
       return;
     }
-    if (content.length > MEETING_NOTE_CONTENT_MAX_LENGTH) {
+    if (form.content.length > MEETING_NOTE_CONTENT_MAX_LENGTH) {
       toast(
         `본문이 너무 길어요. ${MEETING_NOTE_CONTENT_MAX_LENGTH.toLocaleString()}자 이하로 줄여 주세요`,
       );
       return;
     }
     if (hasFailedUpload) {
-      toast('올리지 못한 파일을 지운 뒤 다시 시도해 주세요');
+      toast('올리지 못한 파일을 다시 올리거나 지운 뒤 다시 시도해 주세요');
       return;
     }
 
@@ -306,23 +185,22 @@ function MeetingNoteDocument({
       })),
     ];
     const onSuccess = (saved: MeetingNote) => {
-      clearMeetingNoteDraft(channelId, noteId);
+      form.discardDraft();
       router.replace(meetingNoteViewPath(teamId, channelId, saved.id));
     };
     const onError = (error: unknown) =>
       toast(getHttpErrorMessage(error, '회의록을 저장하지 못했어요'));
+    const request = {
+      title: form.trimmedTitle,
+      content: form.content,
+      attachments,
+    };
 
     if (note) {
-      updateNote.mutate(
-        {
-          noteId: note.id,
-          request: { title: trimmedTitle, content, attachments },
-        },
-        { onSuccess, onError },
-      );
-    } else if (templateId !== null) {
+      updateNote.mutate({ noteId: note.id, request }, { onSuccess, onError });
+    } else if (form.templateId !== null) {
       createNote.mutate(
-        { templateId, title: trimmedTitle, content, attachments },
+        { templateId: form.templateId, ...request },
         { onSuccess, onError },
       );
     }
@@ -342,9 +220,9 @@ function MeetingNoteDocument({
           <>
             <TemplatePicker
               templates={templates}
-              selected={template}
+              selected={form.template}
               locked={note !== undefined}
-              onSelect={setTemplateId}
+              onSelect={form.selectTemplate}
               onManage={() =>
                 leave(meetingNoteTemplatesPath(teamId, channelId))
               }
@@ -353,14 +231,16 @@ function MeetingNoteDocument({
               size="S"
               variant="weak"
               color="neutral"
-              disabled={templateId === null}
+              disabled={form.templateId === null}
               onClick={saveDraft}
             >
               임시저장
             </Button>
             <Button
               size="S"
-              disabled={isPending || uploads.isUploading || templateId === null}
+              disabled={
+                isPending || uploads.isUploading || form.templateId === null
+              }
               onClick={publish}
             >
               {isPending
@@ -376,7 +256,7 @@ function MeetingNoteDocument({
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {templateId === null ? (
+        {form.templateId === null ? (
           <p className="mx-auto max-w-[760px] px-8 pt-10 typography-body-medium text-on-surface-variant">
             회의록을 쓰려면 템플릿이 하나 이상 있어야 해요. 오른쪽 위 템플릿
             메뉴에서 템플릿을 만들어 주세요.
@@ -385,22 +265,22 @@ function MeetingNoteDocument({
           <div className="mx-auto flex w-full max-w-[760px] flex-col px-8 pt-10 pb-24">
             <input
               aria-label="회의록 제목"
-              value={title}
+              value={form.title}
               maxLength={MEETING_NOTE_TITLE_MAX_LENGTH}
               placeholder="제목 없음"
-              onChange={(event) => setTitle(event.target.value)}
-              aria-invalid={submitted && titleError ? true : undefined}
+              onChange={(event) => form.setTitle(event.target.value)}
+              aria-invalid={submitted && form.titleError ? true : undefined}
               className="w-full bg-transparent typography-display-small text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none"
             />
-            {submitted && titleError && (
+            {submitted && form.titleError && (
               <p className="mt-1 typography-subtext-small text-error">
-                {titleError}
+                {form.titleError}
               </p>
             )}
 
             <div className="mt-4 flex flex-wrap items-center gap-x-1.5 typography-subtext-medium text-on-surface-variant">
               <Avatar
-                src={me?.profile_image_url ?? undefined}
+                src={me.profile_image_url ?? undefined}
                 name={authorName}
                 size={22}
                 shape="circle"
@@ -410,24 +290,22 @@ function MeetingNoteDocument({
               </span>
               <span aria-hidden>·</span>
               <span>{formatDotDate(writtenAt)}</span>
-              {attendeeCount !== null && (
+              {form.attendeeCount !== null && (
                 <>
                   <span aria-hidden>·</span>
-                  <span>참석 {attendeeCount}명</span>
+                  <span>참석 {form.attendeeCount}명</span>
                 </>
               )}
             </div>
 
             <div className="mt-10 flex flex-col gap-7">
-              {fields.map((field) => (
+              {form.fields.map((field) => (
                 <DocumentSection
                   key={field.title}
                   field={field}
-                  value={values[field.title] ?? ''}
-                  error={submitted && missingFields.has(field.title)}
-                  onChange={(value) =>
-                    setValues((prev) => ({ ...prev, [field.title]: value }))
-                  }
+                  value={form.values[field.title] ?? ''}
+                  error={submitted && form.missingFields.has(field.title)}
+                  onChange={(value) => form.setValue(field.title, value)}
                 />
               ))}
 
@@ -457,6 +335,7 @@ function MeetingNoteDocument({
                 <AttachmentDrafts
                   uploads={uploads.uploads}
                   onRemove={uploads.remove}
+                  onRetry={uploads.retry}
                 />
                 <button
                   type="button"
@@ -493,6 +372,8 @@ function MeetingNoteDocument({
           variant="weak"
           color="danger"
           onClick={() => {
+            // 자동 임시저장본도 지워야 다음에 열 때 버린 내용이 되살아나지 않는다.
+            form.discardDraft();
             if (leaveTarget) router.push(leaveTarget);
             setLeaveTarget(null);
           }}
@@ -509,92 +390,6 @@ function MeetingNoteDocument({
         </Button>
       </Dialog>
     </>
-  );
-}
-
-function TemplatePicker({
-  templates,
-  selected,
-  locked,
-  onSelect,
-  onManage,
-}: {
-  templates: MeetingNoteTemplate[];
-  selected: MeetingNoteTemplate | null;
-  /** 이미 쓴 회의록은 템플릿을 바꿀 수 없다. */
-  locked: boolean;
-  onSelect: (templateId: number) => void;
-  onManage: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [open]);
-
-  const label = selected ? `${selected.name} 템플릿` : '템플릿 없음';
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        title={locked ? '작성한 회의록은 템플릿을 바꿀 수 없어요' : undefined}
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex h-9 max-w-[240px] cursor-pointer items-center gap-1.5 rounded-[10px] bg-surface-container px-3 typography-label-x-small text-on-surface hover:bg-surface-container-high"
-      >
-        <FileIcon size={14} className="shrink-0 text-on-surface-variant" />
-        <span className="truncate">{label}</span>
-        <ChevronDownIcon
-          size={14}
-          className="shrink-0 text-on-surface-variant"
-        />
-      </button>
-
-      {open && (
-        <>
-          <div
-            aria-hidden
-            className="fixed inset-0 z-40"
-            onClick={() => setOpen(false)}
-          />
-          <div
-            className="absolute top-full right-0 z-50 mt-2"
-            onClick={() => setOpen(false)}
-          >
-            <Menu>
-              {templates.map((template) => (
-                <MenuItem
-                  key={template.id}
-                  disabled={locked && template.id !== selected?.id}
-                  icon={
-                    template.id === selected?.id ? (
-                      <CheckIcon size={16} />
-                    ) : (
-                      <span />
-                    )
-                  }
-                  onClick={() => onSelect(template.id)}
-                  className="disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {template.name}
-                </MenuItem>
-              ))}
-              {templates.length > 0 && <MenuSeparator />}
-              <MenuItem icon={<SettingsIcon size={16} />} onClick={onManage}>
-                템플릿 관리
-              </MenuItem>
-            </Menu>
-          </div>
-        </>
-      )}
-    </div>
   );
 }
 
@@ -653,88 +448,5 @@ function DocumentSection({
         </p>
       )}
     </section>
-  );
-}
-
-/**
- * 내용 길이에 맞춰 늘어나는 입력 칸.
- * 줄 맨 앞의 `- `는 글머리 기호로 바꾸고, 목록에서 Enter를 누르면 다음 항목을 이어 준다.
- */
-function BulletTextArea({
-  value,
-  onChange,
-  className,
-  ...props
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  className?: string;
-  placeholder?: string;
-  'aria-label': string;
-  'aria-required'?: boolean;
-  'aria-invalid'?: boolean;
-}) {
-  const ref = useRef<HTMLTextAreaElement>(null);
-  const pendingCursor = useRef<number | null>(null);
-
-  useLayoutEffect(() => {
-    const textarea = ref.current;
-    if (!textarea) return;
-    textarea.style.height = 'auto';
-    textarea.style.height = `${textarea.scrollHeight}px`;
-
-    if (pendingCursor.current !== null) {
-      textarea.setSelectionRange(pendingCursor.current, pendingCursor.current);
-      pendingCursor.current = null;
-    }
-  }, [value]);
-
-  const replace = (next: string, cursor: number) => {
-    pendingCursor.current = cursor;
-    onChange(next);
-  };
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    // 한글 조합 중 Enter는 글자를 확정하는 키라 건드리지 않는다.
-    if (
-      event.key !== 'Enter' ||
-      event.shiftKey ||
-      event.nativeEvent.isComposing
-    )
-      return;
-
-    const { selectionStart, selectionEnd } = event.currentTarget;
-    if (selectionStart !== selectionEnd) return;
-
-    const lineStart = value.lastIndexOf('\n', selectionStart - 1) + 1;
-    const line = value.slice(lineStart, selectionStart);
-    if (!isEditorBulletLine(line)) return;
-
-    event.preventDefault();
-    if (line === EDITOR_BULLET) {
-      // 빈 항목에서 Enter를 누르면 목록을 끝낸다.
-      replace(
-        value.slice(0, lineStart) + value.slice(selectionStart),
-        lineStart,
-      );
-      return;
-    }
-    const insert = `\n${EDITOR_BULLET}`;
-    replace(
-      value.slice(0, selectionStart) + insert + value.slice(selectionStart),
-      selectionStart + insert.length,
-    );
-  };
-
-  return (
-    <textarea
-      ref={ref}
-      rows={1}
-      value={value}
-      onChange={(event) => onChange(toEditorBullets(event.target.value))}
-      onKeyDown={handleKeyDown}
-      className={cn('resize-none overflow-hidden leading-[1.9]', className)}
-      {...props}
-    />
   );
 }
