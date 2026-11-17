@@ -1,7 +1,7 @@
 import {
   USER_STATUS_DOT_CLASS,
   USER_STATUS_LABEL,
-  toUserStatus,
+  resolveUserStatus,
   type User,
 } from '@/entities/user/model/user';
 import { cn } from '@/shared/lib/cn';
@@ -22,7 +22,7 @@ export function UserAvatar({
   loading,
   className,
 }: UserAvatarProps) {
-  const status = user ? toUserStatus(user.status) : null;
+  const status = user ? resolveUserStatus(user) : null;
   const dotSize = Math.max(8, Math.round(size * 0.3));
 
   return (
