@@ -167,7 +167,7 @@ export function ProfileImageCropper({
     <Modal
       open
       onClose={onCancel}
-      title="사진 위치 조정"
+      title="프로필 편집하기"
       footer={
         <>
           <Button variant="weak" color="neutral" onClick={onCancel}>
@@ -239,9 +239,6 @@ export function ProfileImageCropper({
             className="flex-1 accent-primary"
           />
         </label>
-        <p className="typography-subtext-small text-on-surface-variant">
-          원 안에 보이는 부분이 프로필 사진이 돼요
-        </p>
       </div>
     </Modal>
   );
