@@ -9,6 +9,7 @@ import {
   USER_STATUSES,
   resolveUserStatus,
   toCustomStatus,
+  toUserStatus,
   type User,
   type UserStatus,
 } from '@/entities/user/model/user';
@@ -27,7 +28,8 @@ export function UserStatusPopover({
   className,
   onAvatarClick,
 }: UserStatusPopoverProps) {
-  const currentStatus = resolveUserStatus(user);
+  const currentStatus =
+    toUserStatus(user.custom_status) ?? resolveUserStatus(user);
   const [message, setMessage] = useState(user.status_message ?? '');
   const updateStatus = useUpdateStatus();
 
