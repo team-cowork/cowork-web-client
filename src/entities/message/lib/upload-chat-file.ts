@@ -16,7 +16,9 @@ export async function uploadChatFile(
   onProgress?: (percent: number) => void,
   signal?: AbortSignal,
 ): Promise<ConfirmedFile> {
-  const contentType = file.type || 'application/octet-stream';
+  // 서버는 매개변수 없는 type/subtype만 받고, OS가 모르는 형식은 File.type이 비어 있다
+  const contentType =
+    file.type.split(';')[0]?.trim() || 'application/octet-stream';
   const { objectKey, uploadUrl, headers } = await postFileUploadUrl(
     channelId,
     { filename: file.name, contentType, size: file.size },
