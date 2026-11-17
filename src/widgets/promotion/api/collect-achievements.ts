@@ -99,6 +99,20 @@ function weekStart(time: number) {
   return monday.toISOString().slice(0, 10);
 }
 
+const MAX_RETRY_DELAY_MS = 60_000;
+
+function retryDelay(response: Response): number | null {
+  if (response.status >= 500) return 0;
+  if (response.status !== 403 && response.status !== 429) return null;
+  const retryAfter = Number(response.headers.get('retry-after'));
+  if (retryAfter > 0) return retryAfter * 1000;
+  if (response.headers.get('x-ratelimit-remaining') === '0') {
+    const reset = Number(response.headers.get('x-ratelimit-reset')) * 1000;
+    return Number.isFinite(reset) ? Math.max(0, reset - Date.now()) : null;
+  }
+  return response.status === 429 ? MAX_RETRY_DELAY_MS : null;
+}
+
 export async function collectAchievements(
   token: string,
   signal: AbortSignal,
@@ -117,14 +131,14 @@ export async function collectAchievements(
         'User-Agent': 'cowork-web-client',
       },
       body: body ? JSON.stringify(body) : undefined,
-      cache: 'no-store',
       signal,
     });
     if (!response.ok) {
-      // 서버 오류만 잠깐 기다렸다가 두 번까지 다시 시도한다.
-      if (response.status >= 500 && attempt < 2) {
+      // 서버 오류와 호출 제한(403/429)은 잠깐 기다렸다가 두 번까지 다시 시도한다.
+      const delay = retryDelay(response);
+      if (delay !== null && delay <= MAX_RETRY_DELAY_MS && attempt < 2) {
         await new Promise((resolve) =>
-          setTimeout(resolve, 1000 * 2 ** attempt),
+          setTimeout(resolve, delay || 1000 * 2 ** attempt),
         );
         return request(path, body, attempt + 1);
       }
@@ -185,41 +199,44 @@ export async function collectAchievements(
     return time >= period.start && time < period.end;
   };
 
-  const collected = await Promise.all(
-    repositories.map(async ({ name }) => {
-      const variables = { owner: OWNER, name };
-      const { defaultBranchRef: branch } = await repository<{
-        defaultBranchRef: {
-          target: { oid: string; history: { totalCount: number } };
-        } | null;
-      }>(METADATA_QUERY, variables);
-      const [commits, pullRequests] = await Promise.all([
-        branch
-          ? pages<{ object: { history: Page<Commit> } }, Commit>(
-              HISTORY_QUERY,
-              {
-                ...variables,
-                oid: branch.target.oid,
-                start: new Date(period.start).toISOString(),
-                end: new Date(period.end - 1).toISOString(),
-              },
-              (result) => result.object.history,
-            )
-          : [],
-        pages<{ pullRequests: Page<PullRequest> }, PullRequest>(
-          PULL_REQUEST_QUERY,
-          variables,
-          (result) => result.pullRequests,
-        ),
-      ]);
-      return {
-        name,
-        totalCommits: branch?.target.history.totalCount ?? 0,
-        commits,
-        pullRequests,
-      };
-    }),
-  );
+  async function collectRepository(name: string) {
+    const variables = { owner: OWNER, name };
+    const { defaultBranchRef: branch } = await repository<{
+      defaultBranchRef: {
+        target: { oid: string; history: { totalCount: number } };
+      } | null;
+    }>(METADATA_QUERY, variables);
+    const [commits, pullRequests] = await Promise.all([
+      branch
+        ? pages<{ object: { history: Page<Commit> } }, Commit>(
+            HISTORY_QUERY,
+            {
+              ...variables,
+              oid: branch.target.oid,
+              start: new Date(period.start).toISOString(),
+              end: new Date(period.end - 1).toISOString(),
+            },
+            (result) => result.object.history,
+          )
+        : [],
+      pages<{ pullRequests: Page<PullRequest> }, PullRequest>(
+        PULL_REQUEST_QUERY,
+        variables,
+        (result) => result.pullRequests,
+      ),
+    ]);
+    return {
+      name,
+      totalCommits: branch?.target.history.totalCount ?? 0,
+      commits,
+      pullRequests,
+    };
+  }
+
+  const collected = [];
+  for (const { name } of repositories) {
+    collected.push(await collectRepository(name));
+  }
 
   let additions = 0;
   let deletions = 0;
@@ -263,11 +280,7 @@ export async function collectAchievements(
     }
   }
 
-  // 같은 수면 더 최근 주를 고른다.
-  let peakPullRequests = 0;
-  for (const [, count] of [...weeks].sort(([a], [b]) => a.localeCompare(b))) {
-    if (count >= peakPullRequests) peakPullRequests = count;
-  }
+  const peakPullRequests = Math.max(0, ...weeks.values());
 
   return {
     changedLines: additions + deletions,
