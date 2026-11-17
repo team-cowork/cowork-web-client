@@ -165,6 +165,7 @@ function Board({
           repoId={repoId}
           prNumber={selected.number}
           draft={selected.draft}
+          htmlUrl={selected.htmlUrl}
           canWrite={canWrite}
           onClose={() => setSelected(null)}
         />

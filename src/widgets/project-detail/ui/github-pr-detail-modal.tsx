@@ -20,6 +20,8 @@ interface GithubPrDetailModalProps {
   /** 상세 응답에는 Draft 여부가 없어 보드 카드 값을 받는다. */
   draft: boolean;
   canWrite: boolean;
+  /** 있으면 상세가 열리지 않을 때도 GitHub 에서 볼 수 있게 링크를 보여 준다. */
+  htmlUrl?: string;
   onClose: () => void;
 }
 
@@ -54,6 +56,7 @@ export function GithubPrDetailModal({
   prNumber,
   draft,
   canWrite,
+  htmlUrl,
   onClose,
 }: GithubPrDetailModalProps) {
   // 푸터는 경계 밖에 있어 같은 캐시를 일반 쿼리로 읽고, 상세가 준비된 뒤에만 보여준다.
@@ -78,6 +81,16 @@ export function GithubPrDetailModal({
         ) : undefined
       }
     >
+      {htmlUrl?.startsWith('https://github.com/') && (
+        <a
+          href={htmlUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="typography-label-small text-primary hover:underline"
+        >
+          GitHub에서 열기
+        </a>
+      )}
       <QueryBoundary
         loadingFallback={<LoadingPane label="PR 상세를 불러오는 중…" />}
         errorFallback={PullDetailError}
