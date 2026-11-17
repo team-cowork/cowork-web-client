@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { userQueries } from '@/entities/user/api/user-queries';
 import { type User } from '@/entities/user/model/user';
+import { ProfileBanner } from '@/entities/user/ui/profile-banner';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { Badge } from '@/shared/ui/badge';
 import { ImageViewer } from '@/shared/ui/image-viewer';
@@ -123,7 +124,7 @@ export function UserProfilePopover({
           />
         ) : (
           <>
-            <div className="h-24 bg-gradient-to-r from-cowork-red-500 to-cowork-blue-500" />
+            <ProfileBanner className="h-24" />
             <div className="px-4 pt-3 pb-5">
               {isError ? (
                 <p className="typography-subtext-medium text-on-surface-variant">
@@ -171,7 +172,7 @@ function ProfileContent({
 
   return (
     <>
-      <div className="h-24 bg-gradient-to-r from-cowork-red-500 to-cowork-blue-500" />
+      <ProfileBanner color={user.banner_color} className="h-24" />
       <div className="flex flex-col gap-3 px-4 pb-4">
         <div className="-mt-12 w-fit rounded-full bg-surface-container-low p-1.5">
           {onAvatarClick ? (

@@ -1,3 +1,4 @@
+import { ProfileBanner } from '@/entities/user/ui/profile-banner';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { cn } from '@/shared/lib/cn';
 import { Badge } from '@/shared/ui/badge';
@@ -31,7 +32,7 @@ export function ProfileCard({ user, onEdit, className }: ProfileCardProps) {
   return (
     <div className={cn('flex flex-col gap-5', className)}>
       <section className="flex flex-col overflow-hidden rounded-2xl bg-surface">
-        <div className="h-[120px] bg-gradient-to-r from-cowork-red-500 to-cowork-blue-500" />
+        <ProfileBanner color={user.banner_color} className="h-[120px]" />
         <div className="flex items-end justify-between gap-4 px-6 pt-4 pb-5">
           <div className="flex min-w-0 items-end gap-4">
             <span className="shrink-0 rounded-full bg-surface p-1">
