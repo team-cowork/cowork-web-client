@@ -3,7 +3,7 @@ import axios from 'axios';
 import { devCredentialQuery } from '@/shared/api/dev-credential';
 import { instance } from '@/shared/api/instance';
 
-const WS_COOKIE_PATH = '/api/auth/ws-cookie';
+const WS_COOKIE_PATH = '/auth/ws-cookie';
 
 /**
  * 채팅 소켓 핸드셰이크에 실릴 인증 쿠키를 API 도메인에 받는다.
