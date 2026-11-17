@@ -1,7 +1,8 @@
 'use client';
 
 // TODO(임시): 발표용 PR 칸반. 이슈 칸반과 같은 모양으로 `Draft` / `리뷰 중` / `완료됨` 세 열에
-// 연결된 저장소의 PR 을 보여 준다. 카드를 누르면 PR 상세(승인·머지)가 열린다. 서버가 머지·닫힌
+// 연결된 저장소의 PR 을 보여 준다. 카드를 누르면 GitHub 의 PR 이 새 탭으로 열린다(서버의 PR 상세
+// API 에 기대지 않는다. 승인·머지·닫기는 GitHub 에서 한다). 서버가 머지·닫힌
 // PR 을 주지 않아 `완료됨` 은 이 브라우저가 본 PR 이 목록에서 사라진 것이다(use-vanished-items).
 // 칸반을 지울 때 이 폴더도 지운다.
 import { useState } from 'react';
@@ -11,7 +12,6 @@ import { type FallbackProps } from 'react-error-boundary';
 
 import { githubQueries } from '@/entities/github/api/github-queries';
 import { type GithubPullSummary } from '@/entities/github/model/github';
-import { GithubPrDetailModal } from '@/widgets/project-detail/ui/github-pr-detail-modal';
 import { formatDate } from '@/shared/lib/format-date';
 import { useVanishedItems } from '@/shared/lib/use-vanished-items';
 import { Badge } from '@/shared/ui/badge';
@@ -26,7 +26,6 @@ import { SegmentedControl } from '@/shared/ui/segmented-control';
 
 interface PullBoardProps {
   projectId: number;
-  canWrite: boolean;
 }
 
 function BoardError({ resetErrorBoundary }: FallbackProps) {
@@ -45,19 +44,19 @@ const repoName = (url: string) =>
     .replace(/\/$/, '')
     .replace(/\.git$/, '');
 
-export function PullBoard({ projectId, canWrite }: PullBoardProps) {
+export function PullBoard({ projectId }: PullBoardProps) {
   return (
     <QueryBoundary
       loadingFallback={<LoadingPane label="저장소를 불러오는 중…" />}
       errorFallback={BoardError}
       resetKeys={[projectId]}
     >
-      <RepoPulls projectId={projectId} canWrite={canWrite} />
+      <RepoPulls projectId={projectId} />
     </QueryBoundary>
   );
 }
 
-function RepoPulls({ projectId, canWrite }: PullBoardProps) {
+function RepoPulls({ projectId }: PullBoardProps) {
   const { data: repos } = useSuspenseQuery(
     githubQueries.projectRepos(projectId),
   );
@@ -94,26 +93,16 @@ function RepoPulls({ projectId, canWrite }: PullBoardProps) {
         errorFallback={BoardError}
         resetKeys={[projectId, repo.id]}
       >
-        <Board
-          key={repo.id}
-          projectId={projectId}
-          repoId={repo.id}
-          canWrite={canWrite}
-        />
+        <Board key={repo.id} projectId={projectId} repoId={repo.id} />
       </QueryBoundary>
     </>
   );
 }
 
-function Board({
-  projectId,
-  repoId,
-  canWrite,
-}: PullBoardProps & { repoId: number }) {
+function Board({ projectId, repoId }: PullBoardProps & { repoId: number }) {
   const { data: board } = useSuspenseQuery(
     githubQueries.pullBoard(projectId, repoId),
   );
-  const [selected, setSelected] = useState<GithubPullSummary | null>(null);
   const done = useVanishedItems(`cowork.pull-board.seen.${repoId}`, [
     ...board.draft,
     ...board.inReview,
@@ -146,47 +135,24 @@ function Board({
             <ul className="flex flex-col gap-2">
               {pulls.map((pull) => (
                 <li key={pull.number}>
-                  <PullCard
-                    pull={pull}
-                    // 끝난 PR 은 상세가 열리지 않을 수 있어 GitHub 로 보낸다.
-                    onOpen={
-                      title === '완료됨' ? undefined : () => setSelected(pull)
-                    }
-                  />
+                  <PullCard pull={pull} />
                 </li>
               ))}
             </ul>
           </KanbanColumn>
         ))}
       </div>
-      {selected && (
-        <GithubPrDetailModal
-          projectId={projectId}
-          repoId={repoId}
-          prNumber={selected.number}
-          draft={selected.draft}
-          htmlUrl={selected.htmlUrl}
-          canWrite={canWrite}
-          onClose={() => setSelected(null)}
-        />
-      )}
     </>
   );
 }
 
-function PullCard({
-  pull,
-  onOpen,
-}: {
-  pull: GithubPullSummary;
-  onOpen?: () => void;
-}) {
+function PullCard({ pull }: { pull: GithubPullSummary }) {
   const href = /^https:\/\/github\.com\//.test(pull.htmlUrl)
     ? pull.htmlUrl
     : undefined;
 
   return (
-    <KanbanCard onClick={onOpen} href={onOpen ? undefined : href}>
+    <KanbanCard href={href}>
       {pull.labels.length > 0 && (
         <span className="flex flex-wrap gap-1">
           {pull.labels.map((label) => (
