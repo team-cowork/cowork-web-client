@@ -40,7 +40,7 @@ export function SegmentedControl<T extends string>({
             aria-pressed={selected}
             onClick={() => onChange(option.value)}
             className={cn(
-              'flex h-full flex-1 cursor-pointer items-center justify-center rounded-[10px] px-3 typography-label-small transition-colors focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none',
+              'flex h-full flex-1 cursor-pointer items-center justify-center rounded-[10px] px-3 typography-label-small whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none',
               selected
                 ? 'bg-surface text-on-surface shadow-sm'
                 : 'font-medium text-on-surface-variant hover:text-on-surface',
