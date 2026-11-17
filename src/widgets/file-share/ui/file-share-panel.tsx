@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent, useRef } from 'react';
 
 import { useSuspenseInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
@@ -42,25 +42,22 @@ export function FileSharePanel({ channelId, className }: FileSharePanelProps) {
   const uploads = useAttachmentUploads(channelId);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 고른 파일이 모두 올라가면 한 메시지로 묶어 보낸다. 서버가 받을 때까지 "보내는 중"으로
-  // 두고, 받으면 파일 목록을 갱신한 뒤 지운다. 실패하면 이유와 함께 남겨 다시 보낼 수 있게 한다.
-  const {
-    isUploading,
-    isSending,
-    ready,
-    confirmedFiles,
-    uploads: drafts,
-  } = uploads;
-  useEffect(() => {
-    if (isUploading || ready.length === 0) return;
+  // 고른 파일이 모두 올라가면 한 메시지로 묶어 보낸다. 서버가 실제로 저장해 파일 목록에 뜰 때까지
+  // "보내는 중"으로 두었다가 지운다. 실패하면 이유와 함께 남겨 다시 보낼 수 있게 한다.
+  const { isUploading, isSending, ready, uploads: drafts } = uploads;
+  const sendReady = useEffectEvent(() => {
+    const batch = uploads.takeReadyToSend();
+    if (!batch) return;
 
-    const ids = ready.map((draft) => draft.id);
-    uploads.markSending(ids);
-    sendAsync('', confirmedFiles).then(
-      () => uploads.removeMany(ids),
-      () => uploads.markSendFailed(ids),
+    sendAsync('', batch.files).then(
+      () => uploads.removeMany(batch.ids),
+      () => uploads.markSendFailed(batch.ids),
     );
-  }, [isUploading, ready, confirmedFiles, sendAsync, uploads]);
+  });
+  const readyCount = ready.length;
+  useEffect(() => {
+    if (!isUploading && readyCount > 0) sendReady();
+  }, [isUploading, readyCount]);
 
   return (
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>

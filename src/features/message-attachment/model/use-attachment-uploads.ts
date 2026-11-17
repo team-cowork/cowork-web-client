@@ -43,8 +43,6 @@ export function useAttachmentUploads(channelId: number) {
         channelId,
         ready.map((upload) => upload.id),
       ),
-    markSending: (ids: string[]) =>
-      store.update(channelId, ids, { status: 'sending' }),
     markSendFailed: (ids: string[]) =>
       store.update(channelId, ids, {
         status: 'failed',
@@ -52,5 +50,34 @@ export function useAttachmentUploads(channelId: number) {
         error: '파일을 보내지 못했어요',
       }),
     removeMany: (ids: string[]) => store.remove(channelId, ids),
+    /**
+     * 스토어의 최신 상태에서 다 올라간 첨부를 꺼내 "보내는 중"으로 바꾼다.
+     * 렌더 시점 값을 쓰지 않으므로 여러 번 불려도 같은 첨부를 두 번 꺼내지 않는다.
+     * 아직 올라가는 첨부가 있으면 함께 보내려고 기다린다(빈 결과).
+     */
+    takeReadyToSend: () => {
+      const latest =
+        useAttachmentUploadStore.getState().uploadsByChannel[channelId] ??
+        NO_UPLOADS;
+      if (latest.some((upload) => upload.status === 'uploading')) return null;
+
+      const sendable = latest.filter(
+        (upload) => upload.status === 'done' && upload.confirmed,
+      );
+      if (sendable.length === 0) return null;
+
+      const ids = sendable.map((upload) => upload.id);
+      store.update(channelId, ids, { status: 'sending' });
+
+      return {
+        ids,
+        // 원본 파일을 함께 넘겨 서버 미리보기를 받기 전까지 화면에서 바로 그릴 수 있게 한다.
+        files: sendable.flatMap((upload) =>
+          upload.confirmed
+            ? [{ ...upload.confirmed, localFile: upload.file }]
+            : [],
+        ),
+      };
+    },
   };
 }
