@@ -63,3 +63,46 @@ export function channelSettingsWebhooksPath(
 export function teamSettingsGithubPath(teamId: number): string {
   return `/teams/${teamId}/settings/github`;
 }
+
+export function meetingNoteNewPath(teamId: number, channelId: number): string {
+  return `${channelPath(teamId, channelId)}/meeting-notes/new`;
+}
+
+export function meetingNoteEditPath(
+  teamId: number,
+  channelId: number,
+  noteId: number,
+): string {
+  return `${channelPath(teamId, channelId)}/meeting-notes/${noteId}/edit`;
+}
+
+/** 회의록 채널에서 특정 회의록을 연 화면 */
+export function meetingNoteViewPath(
+  teamId: number,
+  channelId: number,
+  noteId: number,
+): string {
+  return `${channelPath(teamId, channelId)}?note=${noteId}`;
+}
+
+export function meetingNoteTemplatesPath(
+  teamId: number,
+  channelId: number,
+): string {
+  return `${channelPath(teamId, channelId)}/meeting-note-templates`;
+}
+
+export function meetingNoteTemplateNewPath(
+  teamId: number,
+  channelId: number,
+): string {
+  return `${meetingNoteTemplatesPath(teamId, channelId)}/new`;
+}
+
+export function meetingNoteTemplateEditPath(
+  teamId: number,
+  channelId: number,
+  templateId: number,
+): string {
+  return `${meetingNoteTemplatesPath(teamId, channelId)}/${templateId}`;
+}

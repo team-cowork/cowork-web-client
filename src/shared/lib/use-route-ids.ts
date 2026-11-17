@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 
-function toId(value: string | string[] | undefined): number | null {
+export function toRouteId(value: string | string[] | undefined): number | null {
   if (typeof value !== 'string') return null;
 
   const id = Number(value);
@@ -16,5 +16,8 @@ export function useRouteIds(): {
 } {
   const params = useParams<{ teamId?: string; channelId?: string }>();
 
-  return { teamId: toId(params.teamId), channelId: toId(params.channelId) };
+  return {
+    teamId: toRouteId(params.teamId),
+    channelId: toRouteId(params.channelId),
+  };
 }
