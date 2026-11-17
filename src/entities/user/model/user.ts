@@ -24,8 +24,10 @@ export const USER_STATUS_DOT_CLASS: Record<UserStatus, string> = {
 /** 서버가 내려주는 접속 여부 */
 export type UserPresence = 'online' | 'offline';
 
-export function toUserStatus(status: string): UserStatus | null {
-  const normalized = status.toLowerCase();
+export function toUserStatus(
+  status: string | null | undefined,
+): UserStatus | null {
+  const normalized = status?.toLowerCase();
 
   return USER_STATUSES.find((candidate) => candidate === normalized) ?? null;
 }
@@ -39,13 +41,10 @@ export function toCustomStatus(status: UserStatus): string {
 export function resolveUserStatus(
   user: Pick<User, 'status' | 'custom_status'>,
 ): UserStatus | null {
-  if (user.status === 'offline') return 'offline';
+  const presence = toUserStatus(user.status);
+  if (presence === 'offline') return 'offline';
 
-  const customStatus = user.custom_status
-    ? toUserStatus(user.custom_status)
-    : null;
-
-  return customStatus ?? toUserStatus(user.status);
+  return toUserStatus(user.custom_status) ?? presence;
 }
 
 export interface User {
