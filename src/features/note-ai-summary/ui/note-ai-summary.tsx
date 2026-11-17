@@ -2,18 +2,18 @@
 
 import { useState } from 'react';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { githubQueries } from '@/entities/github/api/github-queries';
-import { postGithubIssue } from '@/entities/github/api/post-github-issue';
 import { type ProjectGithubRepo } from '@/entities/github/model/github';
 import { type MeetingNoteSectionView } from '@/entities/meeting-note/model/meeting-note';
-import { postNoteSummary } from '@/features/note-ai-summary/api/post-note-summary';
+import { useCreateGithubIssue } from '@/features/note-ai-summary/model/use-create-github-issue';
 import {
   type ActionItem,
   type NoteSummary,
 } from '@/features/note-ai-summary/model/note-summary';
+import { useSummarizeNote } from '@/features/note-ai-summary/model/use-summarize-note';
 import { getHttpErrorMessage, isHttpStatus } from '@/shared/api/http-error';
 import { Button } from '@/shared/ui/button';
 import { useToast } from '@/shared/ui/toast-provider';
@@ -74,39 +74,47 @@ export function NoteAiSummary({
 
   const text = toPromptText(sections);
 
-  const summarize = useMutation({
-    mutationFn: () => postNoteSummary({ title, content: text }),
-    onSuccess: (next) => {
-      setSummary(next);
-      // 만든 할 일은 index 로 기록하므로, 새 요약에는 이어 쓰지 않는다.
-      setCreated(new Set());
-    },
-    onError: (error) =>
-      toast(
-        isHttpStatus(error, 404)
-          ? '이 환경에서는 AI 요약을 쓸 수 없어요.'
-          : getHttpErrorMessage(
-              error,
-              'AI 요약을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-            ),
-      ),
-  });
+  const summarize = useSummarizeNote();
+  const createIssue = useCreateGithubIssue(projectId ?? 0, repo?.id ?? 0);
 
-  const createIssue = useMutation({
-    mutationFn: ({ item }: { item: ActionItem; index: number }) =>
-      postGithubIssue(projectId ?? 0, repo?.id ?? 0, {
+  const requestSummary = () =>
+    summarize.mutate(
+      { title, content: text },
+      {
+        onSuccess: (next) => {
+          setSummary(next);
+          // 만든 할 일은 index 로 기록하므로, 새 요약에는 이어 쓰지 않는다.
+          setCreated(new Set());
+        },
+        onError: (error) =>
+          toast(
+            isHttpStatus(error, 404)
+              ? '이 환경에서는 AI 요약을 쓸 수 없어요.'
+              : getHttpErrorMessage(
+                  error,
+                  'AI 요약을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
+                ),
+          ),
+      },
+    );
+
+  const requestIssue = (item: ActionItem, index: number) =>
+    createIssue.mutate(
+      {
         title: item.title,
         body: [item.body, `회의록: ${title}`]
           .filter((part) => part !== '')
           .join('\n\n'),
-      }),
-    onSuccess: (_, { index }) => {
-      setCreated((prev) => new Set(prev).add(index));
-      toast('이슈를 만들고 있어요. GitHub에 보이기까지 잠시 걸려요.');
-    },
-    onError: (error) =>
-      toast(getHttpErrorMessage(error, '이슈를 만들지 못했어요.')),
-  });
+      },
+      {
+        onSuccess: () => {
+          setCreated((prev) => new Set(prev).add(index));
+          toast('이슈를 만들고 있어요. GitHub에 보이기까지 잠시 걸려요.');
+        },
+        onError: (error) =>
+          toast(getHttpErrorMessage(error, '이슈를 만들지 못했어요.')),
+      },
+    );
 
   if (text === '') return null;
 
@@ -117,7 +125,7 @@ export function NoteAiSummary({
           size="S"
           variant="weak"
           disabled={summarize.isPending}
-          onClick={() => summarize.mutate()}
+          onClick={requestSummary}
         >
           {summarize.isPending ? '요약하는 중…' : 'AI 요약'}
         </Button>
@@ -140,7 +148,7 @@ export function NoteAiSummary({
           color="neutral"
           // 이슈를 만드는 중에 새 요약이 오면 만든 할 일 표시가 어긋난다.
           disabled={summarize.isPending || createIssue.isPending}
-          onClick={() => summarize.mutate()}
+          onClick={requestSummary}
         >
           {summarize.isPending ? '다시 요약하는 중…' : '다시 요약'}
         </Button>
@@ -205,7 +213,7 @@ export function NoteAiSummary({
                     size="S"
                     variant="weak"
                     disabled={created.has(index) || createIssue.isPending}
-                    onClick={() => createIssue.mutate({ item, index })}
+                    onClick={() => requestIssue(item, index)}
                   >
                     {created.has(index) ? '만들었어요' : '이슈로 만들기'}
                   </Button>
