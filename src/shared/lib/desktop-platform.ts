@@ -1,5 +1,8 @@
 export type DesktopPlatform = 'macos' | 'windows';
 
+export const DESKTOP_APP_RELEASES_URL =
+  'https://github.com/team-cowork/cowork-desktop-app-client/releases/latest';
+
 export const DESKTOP_PLATFORM_LABELS: Record<DesktopPlatform, string> = {
   macos: 'macOS',
   windows: 'Windows',

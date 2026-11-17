@@ -3,7 +3,7 @@
 
 export const GITHUB_ORGANIZATION_URL = 'https://github.com/team-cowork';
 
-// 최신 릴리스의 macOS 설치 파일(.dmg)로 리다이렉트하는 라우트(app/api/desktop-app/download)
+// 최신 릴리스에서 운영체제에 맞는 설치 파일(macOS .dmg, Windows .exe)로 리다이렉트하는 라우트(app/api/desktop-app/download)
 export const DESKTOP_APP_DOWNLOAD_URL = '/api/desktop-app/download';
 
 export interface PromotionFeature {

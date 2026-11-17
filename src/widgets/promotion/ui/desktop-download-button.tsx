@@ -3,14 +3,12 @@
 import { useSyncExternalStore } from 'react';
 
 import {
+  DESKTOP_APP_RELEASES_URL,
   DESKTOP_PLATFORM_LABELS,
   type DesktopPlatform,
   detectDesktopPlatform,
 } from '@/shared/lib/desktop-platform';
 import { DESKTOP_APP_DOWNLOAD_URL } from '@/widgets/promotion/model/promotion-content';
-
-const RELEASES_URL =
-  'https://github.com/team-cowork/cowork-desktop-app-client/releases/latest';
 
 const subscribe = () => () => {};
 
@@ -36,7 +34,7 @@ export function DesktopDownloadButton({ className }: { className?: string }) {
   if (platform === undefined || platform === 'other') {
     return (
       <a
-        href={RELEASES_URL}
+        href={DESKTOP_APP_RELEASES_URL}
         target="_blank"
         rel="noopener noreferrer"
         className={className}
