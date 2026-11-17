@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type MouseEvent, type ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
 import { Avatar, type AvatarTone } from '@/shared/ui/avatar';
@@ -23,7 +23,17 @@ export interface MessageItemProps {
   actionsVisible?: boolean;
   /** 전송 중처럼 아직 확정되지 않은 메시지를 흐리게 표시 */
   dimmed?: boolean;
+  /** 있으면 작성자 아바타·이름을 눌러 프로필을 연다. 누른 요소 옆에 띄울 수 있게 넘긴다. */
+  onAuthorClick?: (anchor: HTMLElement) => void;
   className?: string;
+}
+
+// 메시지 줄을 누르면 스레드가 열리므로 작성자 클릭은 위로 올리지 않는다.
+function authorClickHandler(onAuthorClick: (anchor: HTMLElement) => void) {
+  return (event: MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+    onAuthorClick(event.currentTarget);
+  };
 }
 
 export function MessageItem({
@@ -39,22 +49,52 @@ export function MessageItem({
   actions,
   actionsVisible = false,
   dimmed = false,
+  onAuthorClick,
   className,
 }: MessageItemProps) {
+  const avatar = (
+    <Avatar
+      src={avatarSrc}
+      name={author}
+      size={44}
+      shape="circle"
+      tone={tone}
+      className="shrink-0"
+    />
+  );
+
   return (
     <div className={cn('group relative flex items-start px-4 py-1', className)}>
-      <Avatar
-        src={avatarSrc}
-        name={author}
-        size={44}
-        shape="circle"
-        tone={tone}
-        className="shrink-0"
-      />
+      {onAuthorClick ? (
+        <button
+          type="button"
+          aria-label={`${author} 프로필 보기`}
+          onClick={authorClickHandler(onAuthorClick)}
+          className="shrink-0 cursor-pointer rounded-full focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none"
+        >
+          {avatar}
+        </button>
+      ) : (
+        avatar
+      )}
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 px-5">
         {quote}
         <p className="typography-label-x-small text-on-surface-variant">
-          {author && <>{author} · </>}
+          {author &&
+            (onAuthorClick ? (
+              <>
+                <button
+                  type="button"
+                  onClick={authorClickHandler(onAuthorClick)}
+                  className="cursor-pointer hover:text-on-surface hover:underline"
+                >
+                  {author}
+                </button>
+                {' · '}
+              </>
+            ) : (
+              <>{author} · </>
+            ))}
           {timestamp}
           {meta && <> {meta}</>}
         </p>

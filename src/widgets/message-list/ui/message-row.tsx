@@ -17,6 +17,7 @@ import { MessageEditForm } from '@/features/message-edit/ui/message-edit-form';
 import { useTogglePin } from '@/features/message-pin/model/use-toggle-pin';
 import { useToggleReaction } from '@/features/message-reaction/model/use-toggle-reaction';
 import { ReactionPicker } from '@/features/message-reaction/ui/reaction-picker';
+import { UserProfilePopover } from '@/features/user-profile-view/ui/user-profile-popover';
 import { getPreviewImageType } from '@/shared/lib/file-kind';
 import { IconButton } from '@/shared/ui/icon-button';
 import { EditIcon } from '@/shared/ui/icons/edit-icon';
@@ -61,6 +62,8 @@ export function MessageRow({
   const [pickerOpen, setPickerOpen] = useState(false);
   // 뷰어에서 처음 보여 줄 이미지 첨부의 순번. 열려 있지 않으면 null이다.
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  // 프로필을 띄울 기준 요소(누른 작성자 아바타·이름). 닫혀 있으면 null이다.
+  const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null);
 
   const interactive =
     message.type !== 'SYSTEM' && message.sendStatus === undefined;
@@ -97,6 +100,7 @@ export function MessageRow({
         onRetry={onRetry}
         onToggleReaction={interactive ? toggleReaction : undefined}
         onOpenAttachment={interactive ? openAttachmentAt : undefined}
+        onOpenAuthor={message.type === 'SYSTEM' ? undefined : setProfileAnchor}
         actionsVisible={pickerOpen}
         actions={
           interactive &&
@@ -161,6 +165,16 @@ export function MessageRow({
             images={images}
             initialIndex={viewerIndex}
             onClose={() => setViewerIndex(null)}
+          />
+        </StopClick>
+      )}
+
+      {profileAnchor && (
+        <StopClick>
+          <UserProfilePopover
+            userId={message.authorId}
+            anchor={profileAnchor}
+            onClose={() => setProfileAnchor(null)}
           />
         </StopClick>
       )}
