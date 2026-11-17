@@ -18,6 +18,7 @@ import { userQueries } from '@/entities/user/api/user-queries';
 import { userDisplayName } from '@/entities/user/lib/user-display';
 import { useOpenMeetingNoteAttachment } from '@/features/attachment-download/model/use-open-meeting-note-attachment';
 import { useDeleteMeetingNote } from '@/features/meeting-note-delete/model/use-delete-meeting-note';
+import { NoteAiSummary } from '@/features/note-ai-summary/ui/note-ai-summary';
 import { getHttpErrorMessage } from '@/shared/api/http-error';
 import { formatDotDate } from '@/shared/lib/format-date';
 import { Avatar } from '@/shared/ui/avatar';
@@ -133,6 +134,12 @@ export function MeetingNoteViewer({
             )}
           </div>
         </header>
+
+        <NoteAiSummary
+          channelId={channelId}
+          title={note.title}
+          sections={sections}
+        />
 
         {sections.map((section) => (
           <SectionBlock key={section.title} section={section} />
