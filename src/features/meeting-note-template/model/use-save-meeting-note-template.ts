@@ -3,14 +3,17 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { deleteTemplateSection } from '@/entities/meeting-note/api/delete-template-section';
-import { getMeetingNoteTemplates } from '@/entities/meeting-note/api/get-meeting-note-templates';
+import { getMeetingNoteTemplate } from '@/entities/meeting-note/api/get-meeting-note-template';
 import { meetingNoteQueries } from '@/entities/meeting-note/api/meeting-note-queries';
 import { patchMeetingNoteTemplate } from '@/entities/meeting-note/api/patch-meeting-note-template';
 import { patchMeetingNoteTemplateActivate } from '@/entities/meeting-note/api/patch-meeting-note-template-activate';
 import { patchTemplateSection } from '@/entities/meeting-note/api/patch-template-section';
 import { postMeetingNoteTemplate } from '@/entities/meeting-note/api/post-meeting-note-template';
 import { postTemplateSection } from '@/entities/meeting-note/api/post-template-section';
-import { type MeetingNoteTemplate } from '@/entities/meeting-note/model/meeting-note';
+import {
+  type MeetingNoteTemplate,
+  type TemplateSection,
+} from '@/entities/meeting-note/model/meeting-note';
 
 /** 편집 화면의 섹션 한 줄. id가 없으면 새로 추가한 섹션이다. */
 export interface TemplateSectionDraft {
@@ -39,14 +42,25 @@ export class TemplateSaveError extends Error {
   }
 }
 
-async function findTemplate(
-  channelId: number,
-  templateId: number,
-): Promise<MeetingNoteTemplate> {
-  const templates = await getMeetingNoteTemplates(channelId);
-  const template = templates.find(({ id }) => id === templateId);
-  if (!template) throw new Error('템플릿을 찾을 수 없어요');
-  return template;
+interface SectionRename {
+  section: TemplateSection;
+  to: string;
+}
+
+// 서버는 같은 템플릿 안에서 섹션 제목이 겹치면 409로 거절한다.
+// 다른 섹션이 아직 쓰고 있는 제목으로 바꿔야 하면(맞바꾸기 A↔B, 이어 바꾸기 A→B·B→C)
+// 모두 겹치지 않는 임시 제목으로 먼저 옮긴 뒤 최종 제목으로 바꾼다.
+function needsTemporaryTitles(
+  renames: SectionRename[],
+  keptSections: TemplateSection[],
+): boolean {
+  return renames.some(({ section, to }) =>
+    keptSections.some((other) => other.id !== section.id && other.title === to),
+  );
+}
+
+function temporaryTitle(section: TemplateSection): string {
+  return `(이름 바꾸는 중) ${section.id}`;
 }
 
 /**
@@ -78,7 +92,7 @@ async function saveTemplate(
       current = await apply(postMeetingNoteTemplate(channelId, name));
       onCreated?.(current.id);
     } else {
-      current = await findTemplate(channelId, templateId);
+      current = await getMeetingNoteTemplate(channelId, templateId);
     }
     const id = current.id;
 
@@ -113,22 +127,35 @@ async function saveTemplate(
         await apply(deleteTemplateSection(channelId, id, section.id));
       }
     }
-    for (const draft of sections) {
-      const section = current.sections.find(
+
+    const keptSections = current.sections.filter(({ id: sectionId }) =>
+      keptIds.has(sectionId),
+    );
+    const renames = sections.flatMap((draft) => {
+      const section = keptSections.find(
         ({ id: sectionId }) => sectionId === draft.id,
       );
-      if (
-        section &&
+      return section &&
         draftIds.has(section.id) &&
         section.title !== draft.title
-      ) {
+        ? [{ section, to: draft.title }]
+        : [];
+    });
+    if (needsTemporaryTitles(renames, keptSections)) {
+      for (const { section } of renames) {
         await apply(
           patchTemplateSection(channelId, id, section.id, {
-            title: draft.title,
+            title: temporaryTitle(section),
           }),
         );
       }
     }
+    for (const { section, to } of renames) {
+      await apply(
+        patchTemplateSection(channelId, id, section.id, { title: to }),
+      );
+    }
+
     for (const draft of sections) {
       const exists =
         (draft.id !== undefined && draftIds.has(draft.id)) ||
@@ -161,9 +188,8 @@ export function useSaveMeetingNoteTemplate(channelId: number) {
     mutationFn: (input: SaveMeetingNoteTemplateInput) =>
       saveTemplate(channelId, input),
     // 일부만 반영되고 실패해도 화면이 서버 상태를 따라가도록 결과와 상관없이 다시 불러온다.
+    // 섹션 이름을 바꾸면 서버가 회의록 본문의 키도 옮기므로 회의록 목록도 함께 새로 받는다.
     onSettled: () =>
-      queryClient.invalidateQueries({
-        queryKey: meetingNoteQueries.templates(channelId).queryKey,
-      }),
+      queryClient.invalidateQueries({ queryKey: meetingNoteQueries.all() }),
   });
 }
