@@ -6,6 +6,7 @@ import {
   type LegalBlock,
   type LegalDocument,
   type LegalInline,
+  plainText,
 } from '@/widgets/promotion/model/legal-document';
 
 function renderInlines(nodes: LegalInline[]): ReactNode {
@@ -28,13 +29,6 @@ function renderInlines(nodes: LegalInline[]): ReactNode {
     }
   });
 }
-
-const plainText = (nodes: LegalInline[]): string =>
-  nodes
-    .map((node) =>
-      node.kind === 'text' ? node.text : plainText(node.children),
-    )
-    .join('');
 
 function Block({
   block,

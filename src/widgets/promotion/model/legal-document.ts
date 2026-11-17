@@ -12,6 +12,13 @@ export type LegalBlock =
   | { kind: 'list'; ordered: boolean; items: LegalInline[][] }
   | { kind: 'section'; heading: LegalInline[]; blocks: LegalBlock[] };
 
+export const plainText = (nodes: LegalInline[]): string =>
+  nodes
+    .map((node) =>
+      node.kind === 'text' ? node.text : plainText(node.children),
+    )
+    .join('');
+
 export interface LegalDocument {
   title: string;
   /** 첫 장 앞에 오는 안내 문단과 운영 정보 목록 */

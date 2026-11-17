@@ -5,6 +5,7 @@ import {
   type LegalDocument,
   type LegalDocumentType,
   type LegalInline,
+  plainText,
 } from '@/widgets/promotion/model/legal-document';
 
 // 개인정보처리방침·이용약관·라이선스의 원본은 Gateway가 관리한다(cowork-server #980, #981).
@@ -69,13 +70,6 @@ function inlines(node: XmlNode): LegalInline[] {
     }
   });
 }
-
-const plainText = (nodes: LegalInline[]): string =>
-  nodes
-    .map((node) =>
-      node.kind === 'text' ? node.text : plainText(node.children),
-    )
-    .join('');
 
 function block(node: XmlNode): LegalBlock {
   switch (tagOf(node)) {
