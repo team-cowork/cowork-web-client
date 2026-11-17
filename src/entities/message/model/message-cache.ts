@@ -9,6 +9,7 @@ import {
   upsertNewestFirst,
 } from '@/entities/message/lib/message-pages';
 import {
+  type ConfirmedFile,
   type Message,
   type MessageReaction,
 } from '@/entities/message/model/message';
@@ -241,4 +242,30 @@ export function refetchChannelMessages(
       queryKey: messageQueries.repliesPrefix(channelId),
     }),
   ]);
+}
+
+/**
+ * 보낸 첨부가 모두 파일 목록 캐시에 올라왔는지.
+ * 목록 응답에 `objectKey`가 없으면 올린 사람·이름·크기로 맞춘다.
+ */
+export function hasChannelFiles(
+  queryClient: QueryClient,
+  channelId: number,
+  attachments: ConfirmedFile[],
+  uploaderId: number,
+): boolean {
+  const files =
+    queryClient
+      .getQueryData(messageQueries.channelFiles(channelId).queryKey)
+      ?.pages.flatMap((page) => page.files) ?? [];
+
+  return attachments.every((attachment) =>
+    files.some((file) =>
+      file.objectKey !== undefined
+        ? file.objectKey === attachment.objectKey
+        : file.uploaderId === uploaderId &&
+          file.fileName === attachment.name &&
+          file.fileSize === attachment.size,
+    ),
+  );
 }
