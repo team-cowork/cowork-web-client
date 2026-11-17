@@ -103,7 +103,7 @@ function AttachmentPreview({
   if (!attachment.localFile) return card;
 
   return (
-    <ImageFrame>
+    <ImageFrame className={className}>
       <LocalImage
         file={attachment.localFile}
         alt={attachment.name}
