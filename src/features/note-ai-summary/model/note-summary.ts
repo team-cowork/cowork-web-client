@@ -7,6 +7,8 @@ export interface NoteSummary {
   summary: string;
   decisions: string[];
   actionItems: ActionItem[];
+  /** 회의록이 길어 뒷부분을 잘라서 요약했는지. 서버가 채운다. */
+  truncated?: boolean;
 }
 
 export interface NoteSummaryRequest {
