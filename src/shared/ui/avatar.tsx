@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import Image from 'next/image';
 
+import { isApiOrigin } from '@/shared/lib/api-origin';
 import { cn } from '@/shared/lib/cn';
 
 export type AvatarTone =
@@ -63,6 +64,9 @@ export function Avatar({
           width={size}
           height={size}
           loading={loading}
+          // 게이트웨이 스토리지 이미지(프로필의 서명 주소, 팀 아이콘)는 브라우저가 직접 받는다.
+          // 서명이 매번 바뀌어 최적화 캐시가 쌓이기만 하고, 서명이 만료되면 서버의 재검증도 실패한다.
+          unoptimized={isApiOrigin(src)}
           onError={() => setFailedSrc(src)}
           className="size-full object-cover"
         />
