@@ -3,16 +3,19 @@
 import { useRef, useState } from 'react';
 
 import {
+  type ImageCrop,
   KEEP_PROFILE_IMAGE,
   type ProfileImageDraft,
 } from '@/features/profile-image/model/profile-image-draft';
+import { ProfileImageCropper } from '@/features/profile-image/ui/profile-image-cropper';
 import { type User } from '@/entities/user/model/user';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { Button } from '@/shared/ui/button';
 import { LocalImage } from '@/shared/ui/local-image';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png'];
-const MAX_SIZE = 5 * 1024 * 1024;
+// 올리기 전에 작게 잘라 내므로 원본은 휴대폰 사진 크기까지 받는다.
+const MAX_SIZE = 20 * 1024 * 1024;
 const AVATAR_SIZE = 80;
 
 export interface ProfileImageFieldProps {
@@ -31,6 +34,11 @@ export function ProfileImageField({
 }: ProfileImageFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState('');
+  // 위치를 맞추는 중인 원본과 이전에 정한 영역
+  const [cropping, setCropping] = useState<{
+    source: File;
+    crop?: ImageCrop;
+  } | null>(null);
 
   const hasImage =
     draft.type === 'upload' ||
@@ -46,12 +54,12 @@ export function ProfileImageField({
       return;
     }
     if (file.size > MAX_SIZE) {
-      setError('5MB 이하 이미지만 올릴 수 있어요.');
+      setError('20MB 이하 이미지만 올릴 수 있어요.');
       return;
     }
 
     setError('');
-    onChange({ type: 'upload', file });
+    setCropping({ source: file });
   };
 
   // 새로 고른 사진을 지우면 원래 사진으로 돌아가는 게 아니라 사진이 없는 상태가 된다.
@@ -97,6 +105,19 @@ export function ProfileImageField({
             >
               이미지 변경
             </Button>
+            {draft.type === 'upload' && (
+              <Button
+                size="S"
+                variant="weak"
+                color="neutral"
+                disabled={disabled}
+                onClick={() =>
+                  setCropping({ source: draft.source, crop: draft.crop })
+                }
+              >
+                위치 조정
+              </Button>
+            )}
             <Button
               size="S"
               variant="weak"
@@ -109,7 +130,7 @@ export function ProfileImageField({
           </div>
           <p className="typography-subtext-small text-on-surface-variant">
             {draft.type === 'keep'
-              ? 'JPG·PNG, 최대 5MB'
+              ? 'JPG·PNG, 최대 20MB'
               : '저장을 눌러야 프로필 사진이 바뀌어요'}
           </p>
         </div>
@@ -122,6 +143,17 @@ export function ProfileImageField({
         className="hidden"
       />
       {error && <p className="typography-subtext-medium text-error">{error}</p>}
+      {cropping && (
+        <ProfileImageCropper
+          file={cropping.source}
+          initialCrop={cropping.crop}
+          onApply={(file, crop) => {
+            onChange({ type: 'upload', file, source: cropping.source, crop });
+            setCropping(null);
+          }}
+          onCancel={() => setCropping(null)}
+        />
+      )}
     </div>
   );
 }
