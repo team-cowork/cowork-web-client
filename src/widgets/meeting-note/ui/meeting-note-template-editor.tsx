@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { notFound, useRouter } from 'next/navigation';
 
@@ -133,6 +133,15 @@ function TemplateForm({
         row.title !== initialRows[index]?.title,
     );
 
+  // 새로고침·창 닫기로 편집 내용을 잃기 전에 브라우저 확인 창을 띄운다.
+  useEffect(() => {
+    if (!isDirty) return;
+
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [isDirty]);
+
   const addRow = () => {
     const key = createUuid();
     setRows((prev) => [...prev, { key, title: '' }]);
@@ -157,7 +166,8 @@ function TemplateForm({
         onCreated: setSavedTemplateId,
       },
       {
-        onSuccess: () => router.push(listPath),
+        // 뒤로 가기로 방금 저장한 폼이 다시 열리지 않게 편집 화면을 기록에서 바꿔 끼운다.
+        onSuccess: () => router.replace(listPath),
         onError: (error) => {
           const failure =
             error instanceof TemplateSaveError ? error.failure : error;
