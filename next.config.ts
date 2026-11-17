@@ -4,7 +4,13 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
     remotePatterns: [
-      { protocol: 'http', hostname: 'ssh.gsmsv.site', port: '22108' },
+      // 게이트웨이 아래 다른 경로를 이미지 최적화 서버가 대신 가져오지 않도록 스토리지 경로로 한정한다.
+      {
+        protocol: 'http',
+        hostname: 'ssh.gsmsv.site',
+        port: '22108',
+        pathname: '/api/storage/**',
+      },
       { protocol: 'http', hostname: 'localhost', port: '9000' },
       // 프로모션 화면의 팀원 GitHub 프로필 사진
       { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
