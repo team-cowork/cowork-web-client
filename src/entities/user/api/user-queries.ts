@@ -11,7 +11,8 @@ export const userQueries = {
     queryOptions({
       queryKey: [...userQueries.all(), 'me'],
       queryFn: getMe,
-      staleTime: Infinity,
+      // 프로필 이미지 주소는 15분 뒤 만료되는 서명 주소라, 그보다 먼저 다시 받아 새 주소로 바꾼다.
+      staleTime: 10 * 60 * 1000,
     }),
   search: (params: SearchUsersParams = {}) =>
     queryOptions({
