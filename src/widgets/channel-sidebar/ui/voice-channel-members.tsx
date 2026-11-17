@@ -4,8 +4,8 @@ import { useQueries, useQuery } from '@tanstack/react-query';
 
 import { liveQueries } from '@/entities/live/api/live-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
-import { voiceQueries } from '@/entities/voice/api/voice-queries';
-import { useVoiceSession } from '@/features/voice-session/model/voice-session-provider';
+import { userDisplayName } from '@/entities/user/lib/user-display';
+import { useVoiceChannelParticipants } from '@/features/voice-session/model/use-voice-channel-participants';
 import { cn } from '@/shared/lib/cn';
 import { Avatar } from '@/shared/ui/avatar';
 import { MicOffIcon } from '@/shared/ui/icons/mic-off-icon';
@@ -19,40 +19,14 @@ export interface VoiceChannelMembersProps {
 // 창으로 돌아올 때는 바로 다시 받아 오래 머물러도 크게 어긋나지 않는다
 const SIDEBAR_REFETCH_INTERVAL_MS = 60 * 1000;
 
-interface Member {
-  key: string;
-  userId: number | null;
-  speaking: boolean;
-  muted: boolean;
-}
-
 export function VoiceChannelMembers({
   channelId,
   className,
 }: VoiceChannelMembersProps) {
-  const session = useVoiceSession();
-  const isConnected =
-    session.channelId === channelId && session.status === 'connected';
-
-  const { data } = useQuery({
-    ...voiceQueries.participants(channelId),
-    enabled: !isConnected,
+  const { participants } = useVoiceChannelParticipants(channelId, {
     refetchInterval: SIDEBAR_REFETCH_INTERVAL_MS,
   });
-
-  const members: Member[] = isConnected
-    ? session.participants.map((participant) => ({
-        key: participant.identity,
-        userId: participant.userId,
-        speaking: participant.speaking,
-        muted: participant.muted,
-      }))
-    : (data?.participants ?? []).map((participant) => ({
-        key: String(participant.user_id),
-        userId: participant.user_id,
-        speaking: false,
-        muted: false,
-      }));
+  const members = participants ?? [];
 
   // 빈 채널까지 방송 상태를 주기적으로 조회하지 않도록 참여자가 있을 때만 묻는다
   const { data: liveStatus } = useQuery({
@@ -81,8 +55,7 @@ export function VoiceChannelMembers({
       {members.map((member) => {
         const user =
           member.userId === null ? undefined : userById.get(member.userId);
-        const name =
-          user?.nickname ?? user?.name ?? `#${member.userId ?? member.key}`;
+        const name = userDisplayName(user, `#${member.userId ?? member.key}`);
 
         return (
           <li

@@ -42,7 +42,7 @@ export function useCreateChannel(teamId: number, projectId: number | null) {
           queryKey: channelQueries.byTeam(teamId).queryKey,
         }),
         queryClient.invalidateQueries({
-          queryKey: [...projectQueries.all(), 'channels'],
+          queryKey: projectQueries.channelsPrefix(),
         }),
       ]);
     },

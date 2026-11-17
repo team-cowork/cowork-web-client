@@ -24,7 +24,7 @@ export function useUpdateStatus() {
       if (previous) {
         writeMyUser(queryClient, {
           ...previous,
-          status: variables.status,
+          custom_status: variables.custom_status,
           status_message: variables.message ?? null,
         });
       }

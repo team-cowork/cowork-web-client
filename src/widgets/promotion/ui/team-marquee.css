@@ -1,0 +1,72 @@
+/* 팀원 띠. 원본: cowork-promotion/src/css/home.css */
+
+@keyframes marquee-scroll-left {
+  from {
+    transform: translate(0);
+  }
+  to {
+    transform: translate(-50%);
+  }
+}
+@keyframes marquee-scroll-right {
+  from {
+    transform: translate(-50%);
+  }
+  to {
+    transform: translate(0);
+  }
+}
+
+.marquee-window {
+  overflow: hidden;
+}
+.marquee-row {
+  display: flex;
+  width: max-content;
+}
+.marquee-group {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.75rem;
+  padding: 0.25rem 0.75rem 0.25rem 0;
+}
+.marquee-left {
+  animation: marquee-scroll-left 50s linear infinite;
+}
+.marquee-right {
+  animation: marquee-scroll-right 50s linear infinite;
+}
+.marquee-track:hover .marquee-row {
+  animation-play-state: paused;
+}
+
+/* 키보드로 카드에 들어오면 흐름을 멈추고 직접 스크롤하게 한다. */
+.marquee-window:focus-within {
+  overflow-x: auto;
+  padding-inline: 0.25rem;
+}
+.marquee-window:focus-within .marquee-row {
+  animation: none;
+  transform: none;
+}
+.marquee-window:focus-within .marquee-group[aria-hidden='true'] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-row {
+    width: auto;
+    animation: none;
+    transform: none;
+  }
+  .marquee-group {
+    flex-wrap: wrap;
+    flex-shrink: 1;
+    justify-content: center;
+    width: 100%;
+    padding: 0.75rem;
+  }
+  .marquee-group[aria-hidden='true'] {
+    display: none;
+  }
+}

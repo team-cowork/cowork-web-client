@@ -5,7 +5,7 @@ import { type FallbackProps } from 'react-error-boundary';
 
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
-import { type User, toUserStatus } from '@/entities/user/model/user';
+import { type User, resolveUserStatus } from '@/entities/user/model/user';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/button';
@@ -17,7 +17,7 @@ export interface MemberPanelProps {
 }
 
 function isOnline(user: User): boolean {
-  const status = toUserStatus(user.status);
+  const status = resolveUserStatus(user);
 
   return status !== null && status !== 'offline';
 }

@@ -16,7 +16,7 @@ export function useRemoveTeamMember(teamId: number) {
     mutationFn: (targetUserId: number) =>
       deleteTeamMember(teamId, targetUserId),
     onSuccess: (_, targetUserId) => {
-      const channelMembersKey = [...channelQueries.all(), 'members'];
+      const channelMembersKey = channelQueries.membersPrefix();
 
       queryClient.setQueriesData<ChannelMember[]>(
         { queryKey: channelMembersKey },

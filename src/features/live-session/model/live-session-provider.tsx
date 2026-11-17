@@ -13,7 +13,6 @@ import {
 } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import {
   createLocalScreenTracks,
   DisconnectReason,
@@ -24,6 +23,7 @@ import {
   Track,
 } from 'livekit-client';
 
+import { isHttpStatus } from '@/shared/api/http-error';
 import { liveQueries } from '@/entities/live/api/live-queries';
 import { postLiveJoin } from '@/entities/live/api/post-live-join';
 import { postLiveLeave } from '@/entities/live/api/post-live-leave';
@@ -35,12 +35,15 @@ import {
   liveSessionReducer,
   type LiveSessionState,
 } from '@/features/live-session/model/live-session-state';
+import { createExclusiveQueue } from '@/shared/lib/exclusive-queue';
 import {
   applyRemoteVolume,
+  listParticipants,
   type RoomParticipantSnapshot,
   toRoomParticipants,
   toUserId,
 } from '@/shared/lib/livekit-room';
+import { useRemoteAudioToggle } from '@/shared/lib/use-remote-audio-toggle';
 
 type ConnectIntent = 'start' | 'watch';
 
@@ -50,11 +53,15 @@ interface LiveSessionContextValue {
   participants: RoomParticipantSnapshot[];
   screenShareTrack: Track | null;
   audioEnabled: boolean;
+  /** 브라우저 자동재생 정책 때문에 방송 소리를 재생하지 못하는 상태 */
+  audioPlaybackBlocked: boolean;
   goLive: (channelId: number) => Promise<void>;
   watch: (channelId: number) => Promise<void>;
   leave: () => Promise<void>;
   dismiss: () => void;
   toggleAudio: () => void;
+  /** 사용자 클릭 안에서 호출해야 브라우저가 재생을 허용한다 */
+  resumeAudio: () => Promise<void>;
 }
 
 const LiveSessionContext = createContext<LiveSessionContextValue | null>(null);
@@ -75,9 +82,7 @@ function toEndReason(reason: DisconnectReason | undefined): LiveEndReason {
 }
 
 function findScreenShareTrack(room: Room): Track | null {
-  const all = [room.localParticipant, ...room.remoteParticipants.values()];
-
-  for (const participant of all) {
+  for (const participant of listParticipants(room)) {
     const track = participant.getTrackPublication(
       Track.Source.ScreenShare,
     )?.track;
@@ -128,8 +133,8 @@ function detachAudio(track: RemoteTrack) {
 export function LiveSessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const roomRef = useRef<Room | null>(null);
-  const audioEnabledRef = useRef(true);
-  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
+  const { audioEnabled, audioEnabledRef, toggleAudio } =
+    useRemoteAudioToggle(roomRef);
   const channelIdRef = useRef<number | null>(null);
   const generationRef = useRef(0);
   const isHostRef = useRef(false);
@@ -142,7 +147,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
     [],
   );
   const [screenShareTrack, setScreenShareTrack] = useState<Track | null>(null);
-  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [audioPlaybackBlocked, setAudioPlaybackBlocked] = useState(false);
 
   const clearRoom = useCallback(() => {
     generationRef.current += 1;
@@ -151,15 +156,10 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
     isHostRef.current = false;
     setParticipants([]);
     setScreenShareTrack(null);
+    setAudioPlaybackBlocked(false);
   }, []);
 
-  const runExclusive = useCallback((task: () => Promise<void>) => {
-    const run = queueRef.current.then(task, task);
-
-    queueRef.current = run.catch(() => undefined);
-
-    return run;
-  }, []);
+  const [runExclusive] = useState(() => createExclusiveQueue());
 
   // 서버는 웹훅을 처리한 뒤에야 세션을 끝내므로, 바로 다시 조회하면 아직
   // 방송 중으로 나온다. 방송이 끝난 게 확실할 때는 캐시를 직접 비운다.
@@ -183,7 +183,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
         await postLiveLeave(leftChannelId);
       } catch (error) {
         // 호스트 퇴장 웹훅이 먼저 세션을 끝냈다면 404가 정상이다
-        if (!isAxiosError(error) || error.response?.status !== 404) throw error;
+        if (!isHttpStatus(error, 404)) throw error;
       } finally {
         if (endsLive) markLiveEnded(leftChannelId);
         else
@@ -280,6 +280,10 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
             detachAudio(track);
             sync();
           })
+          .on(RoomEvent.AudioPlaybackStatusChanged, () => {
+            if (isCurrent())
+              setAudioPlaybackBlocked(!boundRoom.canPlaybackAudio);
+          })
           .on(RoomEvent.Disconnected, (reason) => {
             if (!isCurrent()) return;
 
@@ -309,12 +313,16 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
           await room.localParticipant.publishTrack(track);
         screenTracks = [];
 
-        if (!room.canPlaybackAudio) await room.startAudio();
+        // 클릭으로 얻은 재생 허용이 만료됐으면 startAudio가 거부된다. 연결은 그대로
+        // 진행하고 소리 켜기 버튼(resumeAudio)으로 복구한다
+        if (!room.canPlaybackAudio)
+          await room.startAudio().catch(() => undefined);
         applyRemoteVolume(room, audioEnabledRef.current);
 
         // 위 작업을 기다리는 사이 방이 끊겼다면(시청 연결 직후 호스트 종료 등)
         // 끊김 처리가 이미 끝났으니 방 없이 방송·시청 상태로 남지 않게 실패로 돌린다
         if (!isCurrent()) throw new Error('라이브 연결이 끊어졌습니다');
+        setAudioPlaybackBlocked(!room.canPlaybackAudio);
 
         dispatch({
           type: 'CONNECTED',
@@ -347,6 +355,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
       }
     },
     [
+      audioEnabledRef,
       clearRoom,
       disconnect,
       markLiveEnded,
@@ -386,15 +395,6 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
 
   const dismiss = useCallback(() => dispatch({ type: 'DISMISS' }), []);
 
-  const toggleAudio = useCallback(() => {
-    const next = !audioEnabled;
-
-    audioEnabledRef.current = next;
-    setAudioEnabled(next);
-
-    if (roomRef.current) applyRemoteVolume(roomRef.current, next);
-  }, [audioEnabled]);
-
   useEffect(() => {
     return () => {
       roomRef.current?.disconnect();
@@ -403,6 +403,14 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
 
   const channelId = getLiveChannelId(state);
 
+  const resumeAudio = useCallback(async () => {
+    const room = roomRef.current;
+    if (!room) return;
+
+    await room.startAudio();
+    setAudioPlaybackBlocked(!room.canPlaybackAudio);
+  }, []);
+
   const value = useMemo(
     () => ({
       state,
@@ -410,14 +418,17 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
       participants,
       screenShareTrack,
       audioEnabled,
+      audioPlaybackBlocked,
       goLive,
       watch,
       leave,
       dismiss,
       toggleAudio,
+      resumeAudio,
     }),
     [
       audioEnabled,
+      audioPlaybackBlocked,
       channelId,
       dismiss,
       goLive,
@@ -426,6 +437,7 @@ export function LiveSessionProvider({ children }: { children: ReactNode }) {
       screenShareTrack,
       state,
       toggleAudio,
+      resumeAudio,
       watch,
     ],
   );

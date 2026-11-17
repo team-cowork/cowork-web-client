@@ -1,5 +1,5 @@
 import { instance } from '@/shared/api/instance';
-import { type ApiResponse } from '@/shared/model/token';
+import { type ApiResponse } from '@/shared/model/api-response';
 import { type Message } from '@/entities/message/model/message';
 
 /** 채널에 고정된 메시지를 최신순으로 최대 100개 내려준다. */

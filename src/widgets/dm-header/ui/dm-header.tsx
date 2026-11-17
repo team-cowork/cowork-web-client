@@ -4,7 +4,7 @@ import { type ReactNode } from 'react';
 
 import {
   USER_STATUS_LABEL,
-  toUserStatus,
+  resolveUserStatus,
   type User,
 } from '@/entities/user/model/user';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
@@ -27,7 +27,7 @@ export function DmHeader({
   onTogglePins,
   className,
 }: DmHeaderProps) {
-  const status = user ? toUserStatus(user.status) : null;
+  const status = user ? resolveUserStatus(user) : null;
   const subtitle =
     user?.status_message ?? (status ? USER_STATUS_LABEL[status] : null);
 

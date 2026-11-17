@@ -1,8 +1,8 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 
+import { getHttpStatus } from '@/shared/api/http-error';
 import { githubQueries } from '@/entities/github/api/github-queries';
 import { putGithubWebhookChannel } from '@/entities/github/api/put-github-webhook-channel';
 import { projectQueries } from '@/entities/project/api/project-queries';
@@ -27,7 +27,7 @@ export function useSetGithubWebhookChannel(
       onClose();
     },
     onError: (error) => {
-      const status = isAxiosError(error) ? error.response?.status : undefined;
+      const status = getHttpStatus(error);
       toast(
         status === 400
           ? '이 프로젝트에 속한 채널만 선택할 수 있어요.'

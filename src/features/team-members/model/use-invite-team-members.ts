@@ -48,7 +48,7 @@ export function useInviteTeamMembers(teamId: number) {
       setTimeout(
         () =>
           queryClient.invalidateQueries({
-            queryKey: [...channelQueries.all(), 'members'],
+            queryKey: channelQueries.membersPrefix(),
           }),
         CHANNEL_MEMBERS_RETRY_DELAY,
       );
