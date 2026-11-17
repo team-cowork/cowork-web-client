@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 
-import { type ProfileBasicValues } from '@/features/profile-edit/ui/profile-basic-fields';
 import { useUpdateProfile } from '@/features/profile-edit/model/use-update-profile';
 import { type ProfileImageDraft } from '@/features/profile-image/model/profile-image-draft';
 import { useDeleteProfileImage } from '@/features/profile-image/model/use-delete-profile-image';
 import { useUploadProfileImage } from '@/features/profile-image/model/use-upload-profile-image';
+import { type UpdateMeRequest } from '@/entities/user/model/user';
 
 export type SaveStepResult = 'skipped' | 'saved' | 'failed';
 
@@ -44,7 +44,7 @@ export function useSaveProfile() {
   }: {
     image: ProfileImageDraft;
     /** 바뀌지 않았으면 비워 둔다 */
-    fields?: ProfileBasicValues;
+    fields?: UpdateMeRequest;
   }): Promise<ProfileSaveResult> => {
     setIsPending(true);
     try {

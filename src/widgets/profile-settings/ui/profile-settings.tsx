@@ -15,7 +15,11 @@ import {
 } from '@/features/profile-image/model/profile-image-draft';
 import { ProfileImageField } from '@/features/profile-image/ui/profile-image-field';
 import { userQueries } from '@/entities/user/api/user-queries';
-import { type User } from '@/entities/user/model/user';
+import {
+  supportsProfileBanner,
+  toProfileBannerColor,
+} from '@/entities/user/model/profile-banner';
+import { type UpdateMeRequest, type User } from '@/entities/user/model/user';
 import {
   type ProfileSaveResult,
   useSaveProfile,
@@ -97,6 +101,7 @@ function toBasicValues(user: User): ProfileBasicValues {
   return {
     nickname: user.nickname ?? '',
     description: user.description ?? '',
+    bannerColor: toProfileBannerColor(user.banner_color),
   };
 }
 
@@ -131,9 +136,13 @@ function ProfileEditForm({ user }: { user: User }) {
   const { save, isPending } = useSaveProfile();
 
   const saved = toBasicValues(user);
+  const bannerSupported = supportsProfileBanner(user);
+  const bannerDirty =
+    bannerSupported && values.bannerColor !== saved.bannerColor;
   const fieldsDirty =
     values.nickname !== saved.nickname ||
-    values.description !== saved.description;
+    values.description !== saved.description ||
+    bannerDirty;
   const dirty = image.type !== 'keep' || fieldsDirty;
 
   // 저장하지 않은 변경이 있으면 새로고침·창 닫기 전에 브라우저 확인 창을 띄운다.
@@ -150,10 +159,14 @@ function ProfileEditForm({ user }: { user: User }) {
     event.preventDefault();
     setResult(null);
 
-    const next = await save({
-      image,
-      fields: fieldsDirty ? values : undefined,
-    });
+    const fields: UpdateMeRequest | undefined = fieldsDirty
+      ? {
+          nickname: values.nickname,
+          description: values.description,
+          ...(bannerDirty && { banner_color: values.bannerColor }),
+        }
+      : undefined;
+    const next = await save({ image, fields });
     // 저장된 사진은 서버 값으로 보여 주고, 실패한 사진은 다시 저장할 수 있게 남겨 둔다.
     if (next.image === 'saved') setImage(KEEP_PROFILE_IMAGE);
     setResult(next);
@@ -190,6 +203,8 @@ function ProfileEditForm({ user }: { user: User }) {
             setValues(next);
             setResult(null);
           }}
+          bannerSupported={bannerSupported}
+          disabled={isPending}
         />
       </SettingsCard>
 
