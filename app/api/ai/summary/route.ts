@@ -7,7 +7,7 @@ import {
 
 // TODO(실험): 시연용이다. 배포하지 않는다. GROQ_API_KEY 가 없으면 아무것도 하지 않는다.
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
+const DEFAULT_MODEL = 'openai/gpt-oss-120b';
 /** 한 번에 보내는 회의록 글자 수 상한. 모델의 입력 한도와 비용을 지킨다. */
 const MAX_CONTENT_LENGTH = 12000;
 
