@@ -5,7 +5,6 @@ import {
   PROMOTION_REPOSITORIES,
 } from '@/widgets/promotion/model/promotion-content';
 import { cn } from '@/shared/lib/cn';
-import { ACHIEVEMENTS_PATH } from '@/shared/model/paths';
 import { Badge } from '@/shared/ui/badge';
 import { CoworkLogo } from '@/shared/ui/icons/cowork-logo';
 import { GithubIcon } from '@/shared/ui/icons/github-icon';
@@ -76,15 +75,6 @@ function PromotionHero({ openWebHref }: PromotionPageProps) {
             <GithubIcon size={16} />
             GitHub 조직 바로가기
           </a>
-          <Link
-            href={ACHIEVEMENTS_PATH}
-            className={cn(
-              promotionLinkButton,
-              'bg-surface-variant text-on-surface-variant',
-            )}
-          >
-            개발 성과 보기
-          </Link>
         </div>
       </div>
     </section>
