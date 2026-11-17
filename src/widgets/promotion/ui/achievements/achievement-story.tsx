@@ -15,8 +15,9 @@ import { cn } from '@/shared/lib/cn';
 import { HOME_PATH } from '@/shared/model/paths';
 import { type AchievementSummary } from '@/widgets/promotion/model/achievements';
 import {
-  PROMOTION_HEADER_HEIGHT,
+  STICKY_SCROLL_OFFSET,
   padSceneNumber,
+  scrollToStickyScene,
 } from '@/widgets/promotion/model/use-sticky-showcase';
 
 import './achievements.css';
@@ -95,7 +96,7 @@ export function AchievementStory({ data }: { data: AchievementSummary }) {
 
   const { scrollYProgress } = useScroll({
     target: rootRef,
-    offset: ['start 64px', 'end end'],
+    offset: STICKY_SCROLL_OFFSET,
   });
   useMotionValueEvent(scrollYProgress, 'change', (value) => {
     const progress = isEnhanced ? value : 0;
@@ -113,17 +114,9 @@ export function AchievementStory({ data }: { data: AchievementSummary }) {
   });
 
   const goTo = (index: number) => {
-    const root = rootRef.current;
-    if (!root) return;
+    if (!rootRef.current) return;
     const target = Math.max(0, Math.min(count - 1, index));
-    const viewportHeight = window.innerHeight - PROMOTION_HEADER_HEIGHT;
-    const scrollable = Math.max(0, root.offsetHeight - viewportHeight);
-    const rootTop = root.getBoundingClientRect().top + window.scrollY;
-    window.scrollTo({
-      top:
-        rootTop - PROMOTION_HEADER_HEIGHT + (target / count) * scrollable + 1,
-      behavior: reduceMotion ? 'auto' : 'smooth',
-    });
+    scrollToStickyScene(rootRef.current, target, count);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
