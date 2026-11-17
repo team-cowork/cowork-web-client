@@ -5,13 +5,6 @@ export interface TokenPairResponse {
   token_type: string;
 }
 
-export interface ApiResponse<T> {
-  status: string;
-  code: number;
-  message: string;
-  data: T;
-}
-
 export const REFRESH_TOKEN_COOKIE = 'refresh_token';
 export const ACCESS_TOKEN_STORAGE_KEY = 'access_token';
 

@@ -1,10 +1,15 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { type FallbackProps } from 'react-error-boundary';
 
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { MessageRow } from '@/widgets/message-list/ui/message-row';
 import { cn } from '@/shared/lib/cn';
+import { Button } from '@/shared/ui/button';
+import { ErrorState } from '@/shared/ui/error-state';
+import { LoadingPane } from '@/shared/ui/loading-pane';
+import { QueryBoundary } from '@/shared/ui/query-boundary';
 import { CloseIcon } from '@/shared/ui/icons/close-icon';
 
 export interface PinnedMessagesPanelProps {
@@ -24,12 +29,6 @@ export function PinnedMessagesPanel({
   onClose,
   className,
 }: PinnedMessagesPanelProps) {
-  const {
-    data: pins,
-    isError,
-    refetch,
-  } = useQuery(messageQueries.pins(channelId));
-
   return (
     <aside
       aria-label="고정된 메시지"
@@ -58,34 +57,46 @@ export function PinnedMessagesPanel({
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-3 pr-3 pl-2">
-        {isError && !pins ? (
-          <p className={cn(STATUS_TEXT_CLASS, 'flex items-center gap-2')}>
-            고정된 메시지를 불러오지 못했어요
-            <button
-              type="button"
-              onClick={() => void refetch()}
-              className="cursor-pointer typography-label-x-small underline"
-            >
-              다시 시도
-            </button>
-          </p>
-        ) : pins === undefined ? (
-          <p className={STATUS_TEXT_CLASS}>불러오는 중…</p>
-        ) : pins.length === 0 ? (
-          <p className={STATUS_TEXT_CLASS}>
-            아직 고정된 메시지가 없어요. 내 메시지에 마우스를 올려 고정할 수
-            있어요.
-          </p>
-        ) : (
-          <ol className="flex flex-col gap-2.5 pb-3">
-            {pins.map((message) => (
-              <li key={message._id}>
-                <MessageRow message={message} />
-              </li>
-            ))}
-          </ol>
-        )}
+        <QueryBoundary
+          loadingFallback={<LoadingPane label="고정된 메시지를 불러오는 중…" />}
+          errorFallback={PinnedMessagesError}
+          resetKeys={[channelId]}
+        >
+          <PinnedMessagesContent channelId={channelId} />
+        </QueryBoundary>
       </div>
     </aside>
+  );
+}
+
+function PinnedMessagesContent({
+  channelId,
+}: Pick<PinnedMessagesPanelProps, 'channelId'>) {
+  const { data: pins } = useSuspenseQuery(messageQueries.pins(channelId));
+  return pins.length === 0 ? (
+    <p className={STATUS_TEXT_CLASS}>
+      아직 고정된 메시지가 없어요. 내 메시지에 마우스를 올려 고정할 수 있어요.
+    </p>
+  ) : (
+    <ol className="flex flex-col gap-2.5 pb-3">
+      {pins.map((message) => (
+        <li key={message._id}>
+          <MessageRow message={message} />
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function PinnedMessagesError({ resetErrorBoundary }: FallbackProps) {
+  return (
+    <ErrorState
+      title="고정된 메시지를 불러오지 못했어요"
+      action={
+        <Button size="S" variant="weak" onClick={resetErrorBoundary}>
+          다시 시도
+        </Button>
+      }
+    />
   );
 }

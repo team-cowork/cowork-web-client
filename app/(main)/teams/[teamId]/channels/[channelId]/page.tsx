@@ -5,9 +5,9 @@ import { useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import { type FallbackProps } from 'react-error-boundary';
 
+import { isHttpStatus } from '@/shared/api/http-error';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { useLastChannelStore } from '@/entities/channel/model/last-channel-store';
 import { LiveStatusBadge } from '@/entities/live/ui/live-status-badge';
@@ -17,8 +17,10 @@ import { VoiceParticipantBadge } from '@/features/voice-session/ui/voice-partici
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
 import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { FileSharePanel } from '@/widgets/file-share/ui/file-share-panel';
+import { MeetingNotePanel } from '@/widgets/meeting-note/ui/meeting-note-panel';
 import { MemberPanel } from '@/widgets/member-panel/ui/member-panel';
 import { MessageSearchPanel } from '@/widgets/message-search/ui/message-search-panel';
+import { MessageList } from '@/widgets/message-list/ui/message-list';
 import { PinnedMessagesPanel } from '@/widgets/message-list/ui/pinned-messages-panel';
 import { ChannelThreadPanel } from '@/widgets/message-list/ui/channel-thread-panel';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
@@ -29,7 +31,7 @@ import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 function ChannelPageError({ error, resetErrorBoundary }: FallbackProps) {
-  if (isAxiosError(error) && error.response?.status === 404) notFound();
+  if (isHttpStatus(error, 404)) notFound();
 
   return (
     <div className="flex flex-1 items-center justify-center p-6">
@@ -61,7 +63,7 @@ export default function ChannelPage() {
       errorFallback={ChannelPageError}
       resetKeys={[teamId, channelId]}
       onError={(error) => {
-        if (isAxiosError(error) && error.response?.status === 404) {
+        if (isHttpStatus(error, 404)) {
           useLastChannelStore.getState().clearLastChannelId(teamId, channelId);
         }
       }}
@@ -80,9 +82,13 @@ function ChannelView({
   teamId: number;
   channelId: number;
 }) {
-  const [sidePanel, setSidePanel] = useState<SidePanel | null>('members');
-  const [threadRoot, setThreadRoot] = useState<Message | null>(null);
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
+  const isMeetingNote = channel.viewType === 'MEETING_NOTE';
+  // 회의록은 본문 폭이 넓어야 읽고 쓰기 편해서 멤버 패널을 닫은 채 시작한다.
+  const [sidePanel, setSidePanel] = useState<SidePanel | null>(
+    isMeetingNote ? null : 'members',
+  );
+  const [threadRoot, setThreadRoot] = useState<Message | null>(null);
 
   const setLastChannelId = useLastChannelStore(
     (state) => state.setLastChannelId,
@@ -97,6 +103,8 @@ function ChannelView({
   }
 
   const isVoice = channel.type === 'VOICE';
+  // 고정 메시지와 메시지 검색은 채팅이 있는 채널에서만 연다.
+  const hasMessages = !isVoice && !isMeetingNote;
 
   // 스레드가 열려 있으면 오른쪽 패널 자리를 스레드가 쓴다. 다른 패널을 열면 스레드는 닫는다.
   const toggleSidePanel = (panel: SidePanel) => {
@@ -119,16 +127,21 @@ function ChannelView({
             ) : undefined
           }
           onToggleMembers={() => toggleSidePanel('members')}
-          onTogglePins={isVoice ? undefined : () => toggleSidePanel('pins')}
-          onToggleSearch={isVoice ? undefined : () => toggleSidePanel('search')}
+          onTogglePins={hasMessages ? () => toggleSidePanel('pins') : undefined}
+          onToggleSearch={
+            hasMessages ? () => toggleSidePanel('search') : undefined
+          }
         />
 
         {isVoice ? (
           <VoiceStage channelId={channelId} />
         ) : channel.viewType === 'FILE_SHARE' ? (
           <FileSharePanel channelId={channelId} />
+        ) : isMeetingNote ? (
+          <MeetingNotePanel teamId={teamId} channelId={channelId} />
         ) : (
           <ChannelChatPanel
+            renderMessageList={(props) => <MessageList {...props} />}
             channelId={channelId}
             projectId={channel.projectId}
             placeholder={`#${channel.name}에 메시지 보내기`}
@@ -145,14 +158,14 @@ function ChannelView({
           rootMessage={threadRoot}
           onClose={() => setThreadRoot(null)}
         />
-      ) : sidePanel === 'search' && !isVoice ? (
+      ) : sidePanel === 'search' && hasMessages ? (
         <MessageSearchPanel
           teamId={teamId}
           channelId={channelId}
           projectId={channel.projectId}
           onClose={() => setSidePanel(null)}
         />
-      ) : sidePanel === 'pins' && !isVoice ? (
+      ) : sidePanel === 'pins' && hasMessages ? (
         <PinnedMessagesPanel
           channelId={channelId}
           subtitle={`# ${channel.name}`}

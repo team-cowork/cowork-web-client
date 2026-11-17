@@ -1,5 +1,5 @@
 import { instance } from '@/shared/api/instance';
-import { type ApiResponse } from '@/shared/model/token';
+import { type ApiResponse } from '@/shared/model/api-response';
 import { type TeamMember } from '@/entities/team/model/team';
 
 export async function getTeamMembers(teamId: number): Promise<TeamMember[]> {

@@ -1,3 +1,8 @@
+import Link from 'next/link';
+
+import { HOME_PATH } from '@/shared/model/paths';
+import { CoworkLogo } from '@/shared/ui/icons/cowork-logo';
+
 const DATAGSM_LOGO_RECTS = [
   [0, 0, 10],
   [0, 2, 4],
@@ -15,12 +20,16 @@ const DATAGSM_LOGO_RECTS = [
 
 export default function SigninPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background px-4">
       <div className="flex w-full max-w-[460px] flex-col items-center gap-5 rounded-3xl bg-surface px-12 pt-12 pb-10">
+        <CoworkLogo className="h-14 w-auto text-primary" />
+
         <div className="flex flex-col items-center gap-2 text-center">
           <h1 className="typography-title-large text-on-surface">cowork</h1>
-          <p className="typography-subtext-medium text-on-surface-variant">
-            DataGSM 계정으로 로그인하세요
+          <p className="typography-body-x-small break-keep text-on-surface-variant">
+            광주소프트웨어마이스터고등학교 학생들이 만드는
+            <br />
+            협업 관리 플랫폼
           </p>
         </div>
 
@@ -45,7 +54,18 @@ export default function SigninPage() {
             DataGSM으로 로그인
           </button>
         </form>
+
+        <p className="typography-subtext-medium text-on-surface-variant">
+          DataGSM 계정으로 로그인하세요
+        </p>
       </div>
+
+      <Link
+        href={HOME_PATH}
+        className="typography-subtext-medium text-on-surface-variant transition-colors hover:text-on-surface"
+      >
+        cowork 소개 보기
+      </Link>
     </div>
   );
 }

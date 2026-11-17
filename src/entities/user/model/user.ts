@@ -21,8 +21,30 @@ export const USER_STATUS_DOT_CLASS: Record<UserStatus, string> = {
   offline: 'bg-cowork-neutral-300',
 };
 
-export function toUserStatus(status: string): UserStatus | null {
-  return USER_STATUSES.find((candidate) => candidate === status) ?? null;
+/** 서버가 내려주는 접속 여부 */
+export type UserPresence = 'online' | 'offline';
+
+export function toUserStatus(
+  status: string | null | undefined,
+): UserStatus | null {
+  const normalized = status?.toLowerCase();
+
+  return USER_STATUSES.find((candidate) => candidate === normalized) ?? null;
+}
+
+/** 서버 `custom_status` 값 형식(예: `DO_NOT_DISTURB`)으로 바꾼다. */
+export function toCustomStatus(status: UserStatus): string {
+  return status.toUpperCase();
+}
+
+/** 접속 여부(`status`)와 사용자가 고른 상태(`custom_status`)를 합쳐 화면에 보일 상태를 정한다. */
+export function resolveUserStatus(
+  user: Pick<User, 'status' | 'custom_status'>,
+): UserStatus | null {
+  const presence = toUserStatus(user.status);
+  if (presence === 'offline') return 'offline';
+
+  return toUserStatus(user.custom_status) ?? presence;
 }
 
 export interface User {
@@ -30,7 +52,8 @@ export interface User {
   name: string;
   email: string;
   sex: string;
-  status: string;
+  status: UserPresence;
+  custom_status: string | null;
   roles: string[];
   major: string | null;
   description: string | null;
@@ -50,7 +73,8 @@ export interface SearchUsersParams {
   nickname?: string;
   major?: string;
   student_role?: string;
-  status?: UserStatus;
+  status?: UserPresence;
+  custom_status?: string;
   role?: string;
   page?: number;
   page_size?: number;
@@ -75,7 +99,7 @@ export interface UpdateMeRequest {
 }
 
 export interface UpdateMyStatusRequest {
-  status: UserStatus;
+  custom_status: string;
   message?: string | null;
   expiresAt?: string | null;
 }

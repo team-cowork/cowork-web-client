@@ -1,5 +1,6 @@
 import { serverInstance } from '@/shared/api/instance';
-import { type ApiResponse, type TokenPairResponse } from '@/shared/model/token';
+import { type ApiResponse } from '@/shared/model/api-response';
+import { type TokenPairResponse } from '@/shared/model/token';
 
 // 서버는 로그인 시도마다 state로 이름을 정한 쿠키(`__Host-cowork_oauth_{state 해시}`)를 내려 준다.
 // 콜백 때 같은 이름으로 돌려보내야 하므로 이름과 값을 `name=value` 그대로 보관한다.
