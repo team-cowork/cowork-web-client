@@ -13,6 +13,7 @@ import {
   TEMPLATE_NAME_MAX_LENGTH,
 } from '@/entities/meeting-note/model/meeting-note';
 import {
+  TemplateSaveError,
   type TemplateSectionDraft,
   useSaveMeetingNoteTemplate,
 } from '@/features/meeting-note-template/model/use-save-meeting-note-template';
@@ -101,6 +102,8 @@ function TemplateForm({
   const [submitted, setSubmitted] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
   const [addedKey, setAddedKey] = useState<string | null>(null);
+  // 새 템플릿이 만들어진 뒤 다음 단계가 실패하면, 다시 저장할 때 템플릿을 또 만들지 않도록 기억한다.
+  const [savedTemplateId, setSavedTemplateId] = useState(template?.id ?? null);
 
   const trimmedName = name.trim();
   const nameError = trimmedName ? undefined : '템플릿 이름을 입력해 주세요';
@@ -147,20 +150,29 @@ function TemplateForm({
 
     saveTemplate.mutate(
       {
-        original: template,
+        templateId: savedTemplateId,
         name: trimmedName,
         sections: rows.map(({ id, title }) => ({ id, title: title.trim() })),
         makeDefault,
+        onCreated: setSavedTemplateId,
       },
       {
         onSuccess: () => router.push(listPath),
-        onError: (error) =>
+        onError: (error) => {
+          const failure =
+            error instanceof TemplateSaveError ? error.failure : error;
+          const message = getHttpErrorMessage(
+            failure,
+            '템플릿을 저장하지 못했어요',
+          );
+          const partlyApplied =
+            error instanceof TemplateSaveError && error.appliedCount > 0;
           toast(
-            getHttpErrorMessage(
-              error,
-              '템플릿을 저장하지 못했어요. 일부 변경만 반영됐을 수 있어요',
-            ),
-          ),
+            partlyApplied
+              ? `${message}. 일부 변경은 이미 저장됐어요. 다시 저장하면 나머지만 반영돼요`
+              : message,
+          );
+        },
       },
     );
   };
