@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useEffectEvent, useRef } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 
 import { useSuspenseInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
@@ -11,11 +11,16 @@ import { type ChannelFile } from '@/entities/message/model/message';
 import { useChannelMessageEvents } from '@/entities/message/model/use-channel-message-events';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { useOpenAttachment } from '@/features/attachment-download/model/use-open-attachment';
+import {
+  AttachmentImageViewer,
+  type ViewerAttachment,
+} from '@/features/attachment-download/ui/attachment-image-viewer';
 import { useDeleteChannelFile } from '@/features/channel-file/model/use-delete-channel-file';
 import { useAttachmentUploads } from '@/features/message-attachment/model/use-attachment-uploads';
 import { AttachmentDrafts } from '@/features/message-attachment/ui/attachment-drafts';
 import { useSendMessage } from '@/features/message-send/model/use-send-message';
 import { cn } from '@/shared/lib/cn';
+import { getPreviewImageType } from '@/shared/lib/file-kind';
 import { formatDate } from '@/shared/lib/format-date';
 import { formatFileSize } from '@/shared/lib/format-file-size';
 import { Button } from '@/shared/ui/button';
@@ -63,7 +68,8 @@ export function FileSharePanel({ channelId, className }: FileSharePanelProps) {
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
       <div className="flex shrink-0 items-center justify-between gap-3 px-6 pt-4 pb-3">
         <p className="typography-subtext-medium text-on-surface-variant">
-          채널에 올라온 파일을 모아 보여줘요. 누르면 새 탭에서 열립니다.
+          채널에 올라온 파일을 모아 보여줘요. 이미지는 바로 보고, 다른 파일은 새
+          탭에서 열려요.
         </p>
         <Button
           size="S"
@@ -121,14 +127,38 @@ function ChannelFilesContent({
   );
   const deleteFile = useDeleteChannelFile(channelId);
   const openAttachment = useOpenAttachment();
-  const open = (file: ChannelFile) =>
+  // 열 때의 이미지 목록을 고정해, 보는 동안 새 파일이 올라와도 순번이 밀리지 않게 한다.
+  const [viewer, setViewer] = useState<{
+    images: ViewerAttachment[];
+    index: number;
+  } | null>(null);
+
+  const list = files.data.pages.flatMap((page) => page.files);
+
+  // 이미지는 불러온 파일 중 이미지끼리 넘겨 보는 뷰어로 열고, 나머지 파일은 새 탭으로 연다.
+  const open = (file: ChannelFile) => {
+    const imageFiles = list.filter(({ fileName }) =>
+      getPreviewImageType(fileName),
+    );
+    const index = imageFiles.findIndex(({ fileId }) => fileId === file.fileId);
+    if (index >= 0) {
+      setViewer({
+        images: imageFiles.map(({ messageId, attachmentIndex, fileName }) => ({
+          messageId,
+          attachmentIndex,
+          name: fileName,
+        })),
+        index,
+      });
+      return;
+    }
+
     openAttachment({
       channelId,
       messageId: file.messageId,
       attachmentIndex: file.attachmentIndex,
     });
-
-  const list = files.data.pages.flatMap((page) => page.files);
+  };
 
   return list.length === 0 ? (
     <div className="flex h-full items-center justify-center">
@@ -181,6 +211,14 @@ function ChannelFilesContent({
             {files.isFetchingNextPage ? '불러오는 중…' : '더 보기'}
           </Button>
         </div>
+      )}
+      {viewer && (
+        <AttachmentImageViewer
+          channelId={channelId}
+          images={viewer.images}
+          initialIndex={viewer.index}
+          onClose={() => setViewer(null)}
+        />
       )}
     </>
   );
