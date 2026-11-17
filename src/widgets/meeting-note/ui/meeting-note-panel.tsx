@@ -97,9 +97,10 @@ function MeetingNoteContent({
     : notes;
 
   // 고른 회의록이 지워졌거나 아직 고르지 않았으면 가장 최근 회의록을 보여 준다.
+  // 검색어로 목록만 좁혀도 읽던 회의록이 바뀌지 않게 검색 결과가 아닌 전체 목록에서 고른다.
   const selectedId = Number(searchParams.get('note'));
   const selected =
-    notes.find((note) => note.id === selectedId) ?? filtered[0] ?? null;
+    notes.find((note) => note.id === selectedId) ?? notes[0] ?? null;
 
   const showNote = (noteId: number | null) =>
     router.replace(
