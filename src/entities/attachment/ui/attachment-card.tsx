@@ -1,8 +1,9 @@
 import { type ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
+import { getFileKind } from '@/shared/lib/file-kind';
 import { CloseIcon } from '@/shared/ui/icons/close-icon';
-import { FileIcon } from '@/shared/ui/icons/file-icon';
+import { FileTypeIcon } from '@/shared/ui/icons/file-type-icon';
 
 export interface AttachmentCardProps {
   name: string;
@@ -27,7 +28,7 @@ export function AttachmentCard({
       )}
     >
       <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-tertiary-container text-on-tertiary-container [&_svg]:size-6">
-        {icon ?? <FileIcon />}
+        {icon ?? <FileTypeIcon kind={getFileKind(name)} />}
       </span>
       <div className="min-w-0 flex-1">
         <p className="truncate typography-label-small text-on-surface">
