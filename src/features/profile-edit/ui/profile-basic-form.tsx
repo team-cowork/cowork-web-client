@@ -3,6 +3,11 @@
 import { type SyntheticEvent, useState } from 'react';
 
 import { useUpdateProfile } from '@/features/profile-edit/model/use-update-profile';
+import { BannerColorPicker } from '@/features/profile-edit/ui/banner-color-picker';
+import {
+  supportsProfileBanner,
+  toProfileBannerColor,
+} from '@/entities/user/model/profile-banner';
 import { type User } from '@/entities/user/model/user';
 import { Button } from '@/shared/ui/button';
 import { TextField } from '@/shared/ui/text-field';
@@ -14,18 +19,27 @@ export interface ProfileBasicFormProps {
 export function ProfileBasicForm({ user }: ProfileBasicFormProps) {
   const [nickname, setNickname] = useState(user.nickname ?? '');
   const [description, setDescription] = useState(user.description ?? '');
+  const savedBannerColor = toProfileBannerColor(user.banner_color);
+  const [bannerColor, setBannerColor] = useState(savedBannerColor);
   const [saved, setSaved] = useState(false);
   const updateProfile = useUpdateProfile();
+  const bannerSupported = supportsProfileBanner(user);
+  const bannerDirty = bannerSupported && bannerColor !== savedBannerColor;
 
   const dirty =
     nickname !== (user.nickname ?? '') ||
-    description !== (user.description ?? '');
+    description !== (user.description ?? '') ||
+    bannerDirty;
 
   const handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
     setSaved(false);
     updateProfile.mutate(
-      { nickname, description },
+      {
+        nickname,
+        description,
+        ...(bannerDirty && { banner_color: bannerColor }),
+      },
       { onSuccess: () => setSaved(true) },
     );
   };
@@ -33,6 +47,7 @@ export function ProfileBasicForm({ user }: ProfileBasicFormProps) {
   const handleReset = () => {
     setNickname(user.nickname ?? '');
     setDescription(user.description ?? '');
+    setBannerColor(savedBannerColor);
     setSaved(false);
   };
 
@@ -50,6 +65,17 @@ export function ProfileBasicForm({ user }: ProfileBasicFormProps) {
         onChange={(event) => setDescription(event.target.value)}
         placeholder="자신을 한 줄로 소개해 보세요"
       />
+      {/* 서버가 배경 색상을 지원할 때만 보여 준다. 그전에는 저장해도 값이 버려진다. */}
+      {bannerSupported && (
+        <BannerColorPicker
+          value={bannerColor}
+          onChange={(next) => {
+            setBannerColor(next);
+            setSaved(false);
+          }}
+          disabled={updateProfile.isPending}
+        />
+      )}
       {updateProfile.isError && (
         <p className="typography-subtext-medium text-error">
           저장하지 못했어요. 다시 시도해 주세요.
