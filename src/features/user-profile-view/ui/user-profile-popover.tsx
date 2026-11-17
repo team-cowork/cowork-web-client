@@ -73,9 +73,11 @@ export function UserProfilePopover({
     if (ref.current) setPosition(placeNextTo(anchor, ref.current));
   }, [anchor, user, isError]);
 
+  // 자리를 잡기 전에는 `invisible`이라 포커스가 가지 않으므로, 자리를 잡은 뒤에 옮긴다.
+  const placed = position !== null;
   useEffect(() => {
-    ref.current?.focus();
-  }, []);
+    if (placed) ref.current?.focus();
+  }, [placed]);
 
   // 뷰어가 떠 있는 동안 `Esc`는 뷰어만 닫는다.
   useEffect(() => {
