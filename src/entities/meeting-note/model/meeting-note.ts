@@ -87,19 +87,26 @@ export const MEETING_NOTE_CONTENT_MAX_LENGTH = 100_000;
 
 export type MeetingNoteContent = Record<string, string>;
 
+/** 섹션으로 나눌 수 없는 본문을 담아 두는 섹션 제목 */
+export const UNSTRUCTURED_CONTENT_TITLE = '본문';
+
 /**
  * 본문 JSON을 섹션 제목 → 문자열 맵으로 바꾼다.
  * 다른 클라이언트가 문자열이 아닌 값을 넣었으면 JSON 문자열로 보여 준다.
+ * JSON 객체가 아닌 본문은 버리지 않고 한 섹션에 그대로 담는다. 버리면 화면에서 사라질 뿐 아니라
+ * 수정 화면에서 저장할 때 빈 섹션으로 덮어써 원문이 지워진다.
  */
 export function parseMeetingNoteContent(content: string): MeetingNoteContent {
+  if (!content.trim()) return {};
+
   let parsed: unknown;
   try {
     parsed = JSON.parse(content);
   } catch {
-    return {};
+    return { [UNSTRUCTURED_CONTENT_TITLE]: content };
   }
   if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    return {};
+    return { [UNSTRUCTURED_CONTENT_TITLE]: content };
   }
 
   return Object.fromEntries(
