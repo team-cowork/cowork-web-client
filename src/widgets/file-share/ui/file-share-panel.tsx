@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent, useRef } from 'react';
 
 import { useSuspenseInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
@@ -38,20 +38,26 @@ export interface FileSharePanelProps {
 export function FileSharePanel({ channelId, className }: FileSharePanelProps) {
   useChannelMessageEvents(channelId);
 
-  const { send } = useSendMessage(channelId);
+  const { sendAsync } = useSendMessage(channelId);
   const uploads = useAttachmentUploads(channelId);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 고른 파일이 모두 올라가면 한 메시지로 묶어 보낸다. 실패한 파일은 목록에 남겨 둔다.
-  const { isUploading, confirmedFiles, uploads: drafts } = uploads;
-  useEffect(() => {
-    if (isUploading || confirmedFiles.length === 0) return;
+  // 고른 파일이 모두 올라가면 한 메시지로 묶어 보낸다. 서버가 실제로 저장해 파일 목록에 뜰 때까지
+  // "보내는 중"으로 두었다가 지운다. 실패하면 이유와 함께 남겨 다시 보낼 수 있게 한다.
+  const { isUploading, isSending, ready, uploads: drafts } = uploads;
+  const sendReady = useEffectEvent(() => {
+    const batch = uploads.takeReadyToSend();
+    if (!batch) return;
 
-    send('', confirmedFiles);
-    for (const draft of drafts) {
-      if (draft.status === 'done') uploads.remove(draft.id);
-    }
-  }, [isUploading, confirmedFiles, drafts, send, uploads]);
+    sendAsync('', batch.files).then(
+      () => uploads.removeMany(batch.ids),
+      () => uploads.markSendFailed(batch.ids),
+    );
+  });
+  const readyCount = ready.length;
+  useEffect(() => {
+    if (!isUploading && readyCount > 0) sendReady();
+  }, [isUploading, readyCount]);
 
   return (
     <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
@@ -61,10 +67,14 @@ export function FileSharePanel({ channelId, className }: FileSharePanelProps) {
         </p>
         <Button
           size="S"
-          disabled={isUploading}
+          disabled={isUploading || isSending}
           onClick={() => fileInputRef.current?.click()}
         >
-          {isUploading ? '올리는 중…' : '파일 올리기'}
+          {isUploading
+            ? '올리는 중…'
+            : isSending
+              ? '보내는 중…'
+              : '파일 올리기'}
         </Button>
         <input
           ref={fileInputRef}
@@ -81,6 +91,7 @@ export function FileSharePanel({ channelId, className }: FileSharePanelProps) {
       <AttachmentDrafts
         uploads={drafts}
         onRemove={uploads.remove}
+        onRetry={uploads.retry}
         className="shrink-0 px-6 pb-3"
       />
 

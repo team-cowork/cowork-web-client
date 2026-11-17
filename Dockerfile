@@ -17,6 +17,9 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 ARG NEXT_PUBLIC_BASE_URL
 ENV NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
+# 빌드 때 만드는 og 이미지·canonical 주소의 공개 origin
+ARG APP_ORIGIN
+ENV APP_ORIGIN=${APP_ORIGIN}
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

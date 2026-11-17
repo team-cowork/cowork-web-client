@@ -1,0 +1,84 @@
+/* 기능 목업의 반복 애니메이션. 원본: cowork-promotion/src/css/showcase.css */
+
+.mock-caret {
+  animation: mock-blink 1s step-end infinite;
+}
+@keyframes mock-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.mock-kanban-card {
+  animation: mock-kanban-slide 2.5s ease-in-out infinite alternate;
+}
+@keyframes mock-kanban-slide {
+  0%,
+  70% {
+    transform: translate(0);
+  }
+  to {
+    transform: translate(4px);
+  }
+}
+
+.mock-meet-tile {
+  animation: mock-meet-pulse 2.4s ease-in-out infinite;
+}
+@keyframes mock-meet-pulse {
+  0%,
+  to {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.mock-typing-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background-color: currentColor;
+  animation: mock-typing-bounce 1s ease-in-out infinite;
+}
+@keyframes mock-typing-bounce {
+  0%,
+  60%,
+  to {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-3px);
+  }
+}
+
+.mock-live-dot {
+  animation: mock-live-pulse 1.6s ease-in-out infinite;
+}
+@keyframes mock-live-pulse {
+  0%,
+  to {
+    box-shadow: 0 0 0 0 rgb(16 185 129 / 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 5px rgb(16 185 129 / 0);
+  }
+}
+
+.mock-scroll {
+  scrollbar-width: none;
+}
+.mock-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mock-caret,
+  .mock-kanban-card,
+  .mock-meet-tile,
+  .mock-typing-dot,
+  .mock-live-dot {
+    animation: none;
+  }
+}
