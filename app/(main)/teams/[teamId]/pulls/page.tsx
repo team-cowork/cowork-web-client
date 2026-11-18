@@ -7,10 +7,11 @@ import { useState } from 'react';
 
 import { notFound } from 'next/navigation';
 
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { projectQueries } from '@/entities/project/api/project-queries';
+import { userQueries } from '@/entities/user/api/user-queries';
 import { PullBoard } from './_ui/pull-board';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
@@ -84,7 +85,18 @@ function TeamPulls({ teamId }: { teamId: number }) {
           />
         </div>
       )}
-      <PullBoard key={project.id} projectId={project.id} />
+      <ProjectPulls key={project.id} projectId={project.id} />
     </>
   );
+}
+
+function ProjectPulls({ projectId }: { projectId: number }) {
+  const { data: members = [] } = useQuery(projectQueries.members(projectId));
+  const { data: me } = useQuery(userQueries.me());
+  // 프로젝트 상세와 같은 기준이다. 세부 권한은 서버가 다시 확인한다.
+  const canWrite = members.some(
+    (member) => member.userId === me?.id && member.write,
+  );
+
+  return <PullBoard projectId={projectId} canWrite={canWrite} />;
 }
