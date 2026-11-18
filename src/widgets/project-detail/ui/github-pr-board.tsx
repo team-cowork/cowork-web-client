@@ -192,6 +192,7 @@ function PullBoard({
           repoId={repoId}
           prNumber={selectedPull.number}
           draft={selectedPull.draft}
+          htmlUrl={selectedPull.htmlUrl}
           canWrite={canWrite}
           onClose={() => setSelectedPull(null)}
         />

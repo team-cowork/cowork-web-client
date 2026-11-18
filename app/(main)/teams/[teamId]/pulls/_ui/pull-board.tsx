@@ -13,6 +13,7 @@ import { githubQueries } from '@/entities/github/api/github-queries';
 import { type GithubPullSummary } from '@/entities/github/model/github';
 import { GithubPrDetailModal } from '@/widgets/project-detail/ui/github-pr-detail-modal';
 import { formatDate } from '@/shared/lib/format-date';
+import { isGithubUrl } from '@/shared/lib/is-github-url';
 import { useVanishedItems } from '@/shared/lib/use-vanished-items';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -165,6 +166,7 @@ function Board({
           repoId={repoId}
           prNumber={selected.number}
           draft={selected.draft}
+          htmlUrl={selected.htmlUrl}
           canWrite={canWrite}
           onClose={() => setSelected(null)}
         />
@@ -180,9 +182,7 @@ function PullCard({
   pull: GithubPullSummary;
   onOpen?: () => void;
 }) {
-  const href = /^https:\/\/github\.com\//.test(pull.htmlUrl)
-    ? pull.htmlUrl
-    : undefined;
+  const href = isGithubUrl(pull.htmlUrl) ? pull.htmlUrl : undefined;
 
   return (
     <KanbanCard onClick={onOpen} href={onOpen ? undefined : href}>
