@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useRef } from 'react';
+import { type DragEvent, type ReactNode, useRef, useState } from 'react';
 
 import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
 import { AttachButton } from '@/features/message-composer/ui/attach-button';
@@ -51,9 +51,31 @@ export function ChatPanel({
     allowEmpty: canSendEmpty,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
+
+  const acceptsDrop = (event: DragEvent) =>
+    onAttachFiles !== undefined && event.dataTransfer.types.includes('Files');
 
   return (
-    <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
+    <div
+      className={cn('relative flex min-h-0 flex-1 flex-col', className)}
+      onDragOver={(event) => {
+        if (!acceptsDrop(event)) return;
+        event.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setDragging(false);
+        }
+      }}
+      onDrop={(event) => {
+        if (!acceptsDrop(event)) return;
+        event.preventDefault();
+        setDragging(false);
+        onAttachFiles?.(event.dataTransfer.files);
+      }}
+    >
       {messageList}
 
       <div className="flex shrink-0 flex-col gap-2 px-4 pb-6">
@@ -93,6 +115,12 @@ export function ChatPanel({
           />
         )}
       </div>
+
+      {dragging && (
+        <div className="pointer-events-none absolute inset-2 flex items-center justify-center rounded-[20px] border-2 border-dashed border-primary bg-surface/90 typography-subtext-large text-primary">
+          여기에 놓으면 첨부돼요
+        </div>
+      )}
     </div>
   );
 }
