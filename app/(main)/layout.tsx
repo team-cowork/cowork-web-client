@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
 
+import { FileDropGuard } from './_ui/file-drop-guard';
 import { MainSidebar } from './_ui/main-sidebar';
 import { LiveSessionProvider } from '@/features/live-session/model/live-session-provider';
 import { VoiceSessionProvider } from '@/features/voice-session/model/voice-session-provider';
@@ -18,6 +19,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         </div>
         <LiveMiniPlayer />
         <LiveVoiceGuard />
+        <FileDropGuard />
       </LiveSessionProvider>
     </VoiceSessionProvider>
   );
