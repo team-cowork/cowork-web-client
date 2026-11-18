@@ -4,6 +4,7 @@ import { type KeyboardEvent, useState } from 'react';
 
 import { type Message } from '@/entities/message/model/message';
 import { useEditMessage } from '@/features/message-edit/model/use-edit-message';
+import { useEscapeToClose } from '@/shared/lib/use-escape-to-close';
 
 export interface MessageEditFormProps {
   message: Message;
@@ -14,6 +15,7 @@ export interface MessageEditFormProps {
 export function MessageEditForm({ message, onDone }: MessageEditFormProps) {
   const [value, setValue] = useState(message.content);
   const { mutate, isPending, isError } = useEditMessage(message);
+  useEscapeToClose(true, onDone);
 
   const save = () => {
     const content = value.trim();
@@ -29,10 +31,7 @@ export function MessageEditForm({ message, onDone }: MessageEditFormProps) {
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.nativeEvent.isComposing) return;
 
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      onDone();
-    } else if (event.key === 'Enter' && !event.shiftKey) {
+    if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       save();
     }

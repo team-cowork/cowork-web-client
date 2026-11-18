@@ -1,6 +1,6 @@
 'use client';
 
-import { type MouseEvent, type ReactNode, useState } from 'react';
+import { type MouseEvent, type ReactNode, useId, useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -13,6 +13,7 @@ import { userQueries } from '@/entities/user/api/user-queries';
 import { useOpenAttachment } from '@/features/attachment-download/model/use-open-attachment';
 import { AttachmentImageViewer } from '@/features/attachment-download/ui/attachment-image-viewer';
 import { DeleteMessageDialog } from '@/features/message-delete/ui/delete-message-dialog';
+import { useEditingMessageStore } from '@/features/message-edit/model/editing-message-store';
 import { MessageEditForm } from '@/features/message-edit/ui/message-edit-form';
 import { useTogglePin } from '@/features/message-pin/model/use-toggle-pin';
 import { useToggleReaction } from '@/features/message-reaction/model/use-toggle-reaction';
@@ -60,7 +61,12 @@ export function MessageRow({
   const toggleReaction = useToggleReaction(message);
   const togglePin = useTogglePin(message);
   const openAttachment = useOpenAttachment();
-  const [editing, setEditing] = useState(false);
+  const rowId = useId();
+  const editing = useEditingMessageStore(
+    (state) => state.editingRowId === rowId,
+  );
+  const startEditing = useEditingMessageStore((state) => state.startEditing);
+  const stopEditing = useEditingMessageStore((state) => state.stopEditing);
   const [deleting, setDeleting] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   // 뷰어에서 처음 보여 줄 이미지 첨부의 순번. 열려 있지 않으면 null이다.
@@ -141,7 +147,7 @@ export function MessageRow({
                     aria-label="메시지 수정"
                     size="S"
                     variant="clear"
-                    onClick={() => setEditing(true)}
+                    onClick={() => startEditing(rowId)}
                   >
                     <EditIcon />
                   </IconButton>
@@ -164,7 +170,7 @@ export function MessageRow({
             <StopClick>
               <MessageEditForm
                 message={message}
-                onDone={() => setEditing(false)}
+                onDone={() => stopEditing(rowId)}
               />
             </StopClick>
           ) : undefined
