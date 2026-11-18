@@ -12,31 +12,41 @@ const LATEST_RELEASE_API =
 
 const ARM64_PATTERN = /arm64|aarch64|apple[-_ ]?silicon/i;
 const X64_PATTERN = /x64|x86[-_]64|intel/i;
+const UNIVERSAL_PATTERN = /universal/i;
+const CPU_PATTERNS = [ARM64_PATTERN, X64_PATTERN, UNIVERSAL_PATTERN];
 
 interface InstallerRule {
   /** 앞에 있는 확장자부터 찾는다. */
   extensions: string[];
-  /** 파일 이름에 CPU가 드러난 Mac 빌드를 고를 때 쓴다. */
-  architecture?: RegExp;
+  /** 파일 이름에 이 플랫폼의 CPU가 드러난 빌드를 먼저 고른다. */
+  architecture: RegExp;
+  acceptsUniversal: boolean;
   /** CPU 표시가 없는 파일을 이 플랫폼용으로 받아도 되는지 */
   acceptsUnlabeled: boolean;
 }
 
 // 데스크톱 앱이 플랫폼별 빌드를 올리면 바로 이어지도록 미리 둔 규칙이다.
-// 기대하는 이름: cowork-<버전>[-arm64].dmg, cowork-<버전>-x64.dmg, cowork-<버전>.exe|.msi
+// 기대하는 이름: cowork-<버전>[-arm64].dmg, cowork-<버전>-x64.dmg, cowork-<버전>-universal.dmg, cowork-<버전>[-x64].exe|.msi
 // CPU 표시가 없는 .dmg는 Apple Silicon 러너(macos-latest)에서 만든 지금의 빌드라 Intel Mac에는 주지 않는다.
 const INSTALLER_RULES: Record<DesktopPlatform, InstallerRule> = {
   'macos-arm64': {
     extensions: ['.dmg'],
     architecture: ARM64_PATTERN,
+    acceptsUniversal: true,
     acceptsUnlabeled: true,
   },
   'macos-x64': {
     extensions: ['.dmg'],
     architecture: X64_PATTERN,
+    acceptsUniversal: true,
     acceptsUnlabeled: false,
   },
-  windows: { extensions: ['.exe', '.msi'], acceptsUnlabeled: true },
+  windows: {
+    extensions: ['.exe', '.msi'],
+    architecture: X64_PATTERN,
+    acceptsUniversal: false,
+    acceptsUnlabeled: true,
+  },
 };
 
 interface ReleaseAsset {
@@ -48,25 +58,24 @@ function pickInstaller(
   assets: ReleaseAsset[],
   platform: DesktopPlatform,
 ): ReleaseAsset | undefined {
-  const { extensions, architecture, acceptsUnlabeled } =
+  const { extensions, architecture, acceptsUniversal, acceptsUnlabeled } =
     INSTALLER_RULES[platform];
   for (const extension of extensions) {
     const installers = assets.filter((asset) =>
       asset.name.toLowerCase().endsWith(extension),
     );
-    if (architecture) {
-      const labeled = installers.filter((asset) =>
-        architecture.test(asset.name),
+    const labeled = installers.filter((asset) => architecture.test(asset.name));
+    if (labeled.length === 1) return labeled[0];
+    if (acceptsUniversal) {
+      const universal = installers.filter((asset) =>
+        UNIVERSAL_PATTERN.test(asset.name),
       );
-      if (labeled.length === 1) return labeled[0];
+      if (universal.length === 1) return universal[0];
     }
     if (!acceptsUnlabeled) continue;
-    const unlabeled = architecture
-      ? installers.filter(
-          (asset) =>
-            !ARM64_PATTERN.test(asset.name) && !X64_PATTERN.test(asset.name),
-        )
-      : installers;
+    const unlabeled = installers.filter(
+      (asset) => !CPU_PATTERNS.some((pattern) => pattern.test(asset.name)),
+    );
     if (unlabeled.length === 1) return unlabeled[0];
   }
   return undefined;
