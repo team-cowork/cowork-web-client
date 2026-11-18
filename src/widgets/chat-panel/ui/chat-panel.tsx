@@ -67,6 +67,7 @@ export function ChatPanel({
           onSend={draft.onSend}
           placeholder={placeholder}
           attachments={attachmentDrafts}
+          onPasteFiles={onAttachFiles}
           canSendEmpty={canSendEmpty}
           sendDisabled={sendDisabled}
           sendDisabledReason={sendDisabledReason}
