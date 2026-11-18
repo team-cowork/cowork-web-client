@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
 import { teamSettingsProfilePath } from '@/shared/model/paths';
+import { useEscapeToClose } from '@/shared/lib/use-escape-to-close';
 import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
 import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
-import { Menu } from '@/shared/ui/menu';
+import { Menu, MenuBackdrop } from '@/shared/ui/menu';
 import { MenuItem } from '@/shared/ui/menu-item';
 
 export interface TeamMenuProps {
@@ -18,26 +19,13 @@ export function TeamMenu({ teamId }: TeamMenuProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [open]);
+  useEscapeToClose(open, () => setOpen(false));
 
   return (
     <div className="relative">
       {open && (
         <>
-          <div
-            aria-hidden
-            className="fixed inset-0 z-40"
-            onClick={() => setOpen(false)}
-          />
+          <MenuBackdrop onClick={() => setOpen(false)} />
           <div className="absolute top-full right-0 z-50 mt-2">
             <Menu>
               <MenuItem

@@ -1,5 +1,4 @@
 import {
-  ACHIEVEMENTS_PATH,
   LICENSE_PATH,
   PRIVACY_PATH,
   SIGNIN_PATH,
@@ -12,7 +11,6 @@ export const PUBLIC_PATHS = [
   PRIVACY_PATH,
   TERMS_PATH,
   LICENSE_PATH,
-  ACHIEVEMENTS_PATH,
 ];
 
 export function isPublicPath(pathname: string): boolean {
