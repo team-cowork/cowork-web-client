@@ -8,8 +8,6 @@ services:
       - '80:3000'
     environment:
       APP_ORIGIN: ${APP_ORIGIN:?APP_ORIGIN is required}
-      # 선택. 개발 성과 페이지가 GitHub 통계를 모을 읽기 토큰. 없으면 저장된 스냅샷을 보여 준다.
-      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     networks:
       - gsmsv-net
 
