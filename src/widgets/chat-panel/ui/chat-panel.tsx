@@ -1,6 +1,12 @@
 'use client';
 
-import { type DragEvent, type ReactNode, useRef, useState } from 'react';
+import {
+  type DragEvent,
+  type ReactNode,
+  type Ref,
+  useRef,
+  useState,
+} from 'react';
 
 import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
 import { AttachButton } from '@/features/message-composer/ui/attach-button';
@@ -26,6 +32,7 @@ export interface ChatPanelProps {
   sendDisabled?: boolean;
   /** 전송을 막은 이유. 전송 버튼에서 알려준다. */
   sendDisabledReason?: string;
+  composerRef?: Ref<HTMLTextAreaElement>;
   className?: string;
 }
 
@@ -44,6 +51,7 @@ export function ChatPanel({
   canSendEmpty = false,
   sendDisabled = false,
   sendDisabledReason,
+  composerRef,
   className,
 }: ChatPanelProps) {
   const draft = useMessageDraft({
@@ -110,6 +118,7 @@ export function ChatPanel({
         {composerStatus}
         <MessageComposer
           value={draft.value}
+          textareaRef={composerRef}
           onChange={(value) => {
             draft.onChange(value);
             onDraftChange?.(value);

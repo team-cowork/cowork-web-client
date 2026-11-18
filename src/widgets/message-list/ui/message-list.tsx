@@ -20,6 +20,7 @@ export interface MessageListProps {
   messages: Message[];
   onSelectMessage?: (message: Message) => void;
   onRetryMessage?: (message: Message) => void;
+  onReplyMessage?: (message: Message) => void;
   hasOlder?: boolean;
   isLoadingOlder?: boolean;
   onLoadOlder?: () => void;
@@ -45,6 +46,7 @@ export function MessageList({
   messages,
   onSelectMessage,
   onRetryMessage,
+  onReplyMessage,
   hasOlder = false,
   isLoadingOlder = false,
   onLoadOlder,
@@ -175,7 +177,11 @@ export function MessageList({
                     'cursor-pointer hover:bg-surface focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none',
                 )}
               >
-                <MessageRow message={message} onRetry={onRetryMessage} />
+                <MessageRow
+                  message={message}
+                  onRetry={onRetryMessage}
+                  onReply={onReplyMessage}
+                />
               </li>
             );
           })}

@@ -92,6 +92,7 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
   const toMessage = (
     content: string,
     attachments: ConfirmedFile[],
+    parent = parentMessage,
   ): Message => {
     const clientMessageId = createUuid();
     const now = new Date().toISOString();
@@ -105,7 +106,7 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
       content: content || toAttachmentContent(attachments),
       type: attachments.length > 0 ? 'FILE' : 'TEXT',
       attachments,
-      parentMessageId: parentMessage?._id ?? null,
+      parentMessageId: parent?._id ?? null,
       isEdited: false,
       isPinned: false,
       clientMessageId,
@@ -113,14 +114,15 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
       reactions: [],
       createdAt: now,
       updatedAt: now,
-      mentionedMessage: parentMessage
-        ? toMentionedMessage(parentMessage)
-        : null,
+      mentionedMessage: parent ? toMentionedMessage(parent) : null,
     };
   };
 
-  const send = (content: string, attachments: ConfirmedFile[] = []) =>
-    mutate(toMessage(content, attachments));
+  const send = (
+    content: string,
+    attachments: ConfirmedFile[] = [],
+    parent?: Message,
+  ) => mutate(toMessage(content, attachments, parent));
 
   /**
    * 서버가 메시지를 실제로 저장할 때까지 기다린다. 결과를 화면에 직접 알려야 할 때 쓴다.

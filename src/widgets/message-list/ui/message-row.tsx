@@ -22,6 +22,7 @@ import { getPreviewImageType } from '@/shared/lib/file-kind';
 import { IconButton } from '@/shared/ui/icon-button';
 import { EditIcon } from '@/shared/ui/icons/edit-icon';
 import { PinIcon } from '@/shared/ui/icons/pin-icon';
+import { ReplyIcon } from '@/shared/ui/icons/reply-icon';
 import { TrashIcon } from '@/shared/ui/icons/trash-icon';
 
 export interface MessageRowProps {
@@ -29,6 +30,7 @@ export interface MessageRowProps {
   timestampFormat?: MessageTimestampFormat;
   showQuote?: boolean;
   onRetry?: (message: Message) => void;
+  onReply?: (message: Message) => void;
 }
 
 // 행을 누르면 스레드가 열리므로, 행 안의 조작 영역에서 일어난 클릭은 위로 올리지 않는다.
@@ -52,6 +54,7 @@ export function MessageRow({
   timestampFormat,
   showQuote,
   onRetry,
+  onReply,
 }: MessageRowProps) {
   const { data: me } = useQuery(userQueries.me());
   const toggleReaction = useToggleReaction(message);
@@ -111,6 +114,16 @@ export function MessageRow({
                 onOpenChange={setPickerOpen}
                 onSelect={toggleReaction}
               />
+              {onReply && (
+                <IconButton
+                  aria-label="답장"
+                  size="S"
+                  variant="clear"
+                  onClick={() => onReply(message)}
+                >
+                  <ReplyIcon />
+                </IconButton>
+              )}
               <IconButton
                 aria-label={message.isPinned ? '고정 해제' : '메시지 고정'}
                 aria-pressed={message.isPinned}
