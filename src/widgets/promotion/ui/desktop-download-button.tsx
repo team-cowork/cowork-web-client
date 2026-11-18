@@ -29,6 +29,20 @@ interface NavigatorUserAgentData {
   getHighEntropyValues(hints: string[]): Promise<{ architecture?: string }>;
 }
 
+function getUserAgentData() {
+  return (navigator as Navigator & { userAgentData?: NavigatorUserAgentData })
+    .userAgentData;
+}
+
+function resolveMacPlatform(
+  detected: DesktopPlatform | undefined,
+  architecture: string | undefined,
+): DesktopPlatform | undefined {
+  if (detected !== 'macos-arm64' || !getUserAgentData()) return detected;
+  if (architecture === undefined) return undefined;
+  return architecture === 'x86' ? 'macos-x64' : 'macos-arm64';
+}
+
 function downloadUrl(platform: DesktopPlatform) {
   return `${DESKTOP_APP_DOWNLOAD_URL}?platform=${platform}`;
 }
@@ -40,25 +54,21 @@ function downloadUrl(platform: DesktopPlatform) {
 export function DesktopDownloadButton({ className }: { className?: string }) {
   const menuId = useId();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isIntelMac, setIsIntelMac] = useState(false);
+  const [macArchitecture, setMacArchitecture] = useState<string>();
   const detected = useSyncExternalStore(
     subscribe,
     readPlatform,
     () => undefined,
   );
-  const platform =
-    detected === 'macos-arm64' && isIntelMac ? 'macos-x64' : detected;
+  const platform = resolveMacPlatform(detected, macArchitecture);
 
   // Chromium 계열 브라우저는 CPU 종류를 알려 주므로 Intel Mac을 가려낸다. Safari·Firefox는 알려 주지 않아 Apple Silicon으로 둔다.
   useEffect(() => {
     if (detected !== 'macos-arm64') return;
-    const userAgentData = (
-      navigator as Navigator & { userAgentData?: NavigatorUserAgentData }
-    ).userAgentData;
-    userAgentData
+    getUserAgentData()
       ?.getHighEntropyValues(['architecture'])
-      .then(({ architecture }) => setIsIntelMac(architecture === 'x86'))
-      .catch(() => {});
+      .then(({ architecture }) => setMacArchitecture(architecture ?? ''))
+      .catch(() => setMacArchitecture(''));
   }, [detected]);
 
   useEffect(() => {
