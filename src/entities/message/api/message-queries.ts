@@ -6,6 +6,7 @@ import { getPins } from '@/entities/message/api/get-pins';
 import { getProjectMessageSearch } from '@/entities/message/api/get-project-message-search';
 import { getTeamMessageSearch } from '@/entities/message/api/get-team-message-search';
 import { getTeamUnread } from '@/entities/message/api/get-team-unread';
+import { getThreads } from '@/entities/message/api/get-threads';
 import {
   getMessages,
   MESSAGE_PAGE_SIZE,
@@ -21,8 +22,8 @@ const ATTACHMENT_URL_STALE_MS = 50 * 1000;
 export const messageQueries = {
   all: () => ['message'] as const,
   unreadPrefix: () => [...messageQueries.all(), 'unread'] as const,
-  repliesPrefix: (channelId: number) =>
-    [...messageQueries.all(), 'replies', channelId] as const,
+  threadPrefix: (channelId: number) =>
+    [...messageQueries.all(), 'thread', channelId] as const,
   byChannel: (channelId: number) =>
     infiniteQueryOptions({
       queryKey: [...messageQueries.all(), 'byChannel', channelId],
@@ -36,11 +37,17 @@ export const messageQueries = {
       staleTime: 0,
       refetchOnWindowFocus: false,
     }),
-  replies: (channelId: number, parentMessageId: string) =>
+  thread: (channelId: number, threadId: number) =>
     queryOptions({
-      queryKey: [...messageQueries.repliesPrefix(channelId), parentMessageId],
-      queryFn: () => getMessages(channelId, { parentMessageId }),
+      queryKey: [...messageQueries.threadPrefix(channelId), threadId],
+      queryFn: () => getMessages(channelId, { threadId }),
       staleTime: 0,
+      refetchOnWindowFocus: false,
+    }),
+  threads: (channelId: number) =>
+    queryOptions({
+      queryKey: [...messageQueries.all(), 'threads', channelId],
+      queryFn: () => getThreads(channelId),
       refetchOnWindowFocus: false,
     }),
   pins: (channelId: number) =>

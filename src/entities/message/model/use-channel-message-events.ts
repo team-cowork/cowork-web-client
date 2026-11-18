@@ -11,16 +11,23 @@ import {
   type MessagePinEvent,
   type MessageReaction,
   type MessageReactionEvent,
+  type Thread,
+  type ThreadRejectedEvent,
 } from '@/entities/message/model/message';
 import {
   applyReaction,
   editMessageContent,
   refetchChannelMessages,
   removeMessage,
+  removeThread,
   setMessagePinned,
   upsertMessage,
+  upsertThread,
 } from '@/entities/message/model/message-cache';
-import { notifyMessageStored } from '@/entities/message/model/message-delivery';
+import {
+  notifyMessageStored,
+  notifyThreadSettled,
+} from '@/entities/message/model/message-delivery';
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { getChatSocket, joinChannelRoom } from '@/shared/api/chat-socket';
@@ -118,6 +125,28 @@ export function useChannelMessageEvents(channelId: number) {
     const handleReactionAdded = handleReaction(true);
     const handleReactionRemoved = handleReaction(false);
 
+    const handleThreadCreated = (thread: Thread) => {
+      if (thread.channelId !== channelId) return;
+
+      upsertThread(queryClient, thread);
+      notifyThreadSettled(thread.parentMessageId, thread);
+    };
+
+    const handleThreadUpdated = (thread: Thread) => {
+      if (thread.channelId === channelId) upsertThread(queryClient, thread);
+    };
+
+    const handleThreadRejected = ({
+      id,
+      parentMessageId,
+      ...event
+    }: ThreadRejectedEvent) => {
+      if (event.channelId !== channelId) return;
+
+      removeThread(queryClient, channelId, id);
+      notifyThreadSettled(parentMessageId, null);
+    };
+
     socket.on('connect', handleConnect);
     socket.on('message', handleMessage);
     socket.on('message:edited', handleEdited);
@@ -126,6 +155,9 @@ export function useChannelMessageEvents(channelId: number) {
     socket.on('message:unpinned', handleMessageUnpinned);
     socket.on('message:reaction:added', handleReactionAdded);
     socket.on('message:reaction:removed', handleReactionRemoved);
+    socket.on('thread:created', handleThreadCreated);
+    socket.on('thread:updated', handleThreadUpdated);
+    socket.on('thread:rejected', handleThreadRejected);
 
     return () => {
       socket.off('connect', handleConnect);
@@ -136,6 +168,9 @@ export function useChannelMessageEvents(channelId: number) {
       socket.off('message:unpinned', handleMessageUnpinned);
       socket.off('message:reaction:added', handleReactionAdded);
       socket.off('message:reaction:removed', handleReactionRemoved);
+      socket.off('thread:created', handleThreadCreated);
+      socket.off('thread:updated', handleThreadUpdated);
+      socket.off('thread:rejected', handleThreadRejected);
 
       leave();
     };

@@ -1,3 +1,5 @@
+import { type Thread } from '@/entities/message/model/message';
+
 /**
  * 서버는 메시지 전송을 접수만 하고 저장은 비동기로 한다.
  * 저장이 끝나면 소켓 `message` 이벤트에 보낸 쪽의 `clientMessageId`가 실려 오므로,
@@ -24,4 +26,22 @@ export function notifyMessageStored(clientMessageId: string | null) {
 
   listeners.get(clientMessageId)?.();
   listeners.delete(clientMessageId);
+}
+
+const threadListeners = new Map<string, (thread: Thread | null) => void>();
+
+export function waitForThread(parentMessageId: string) {
+  const settled = new Promise<Thread | null>((resolve) => {
+    threadListeners.set(parentMessageId, resolve);
+  });
+
+  return { settled, cancel: () => threadListeners.delete(parentMessageId) };
+}
+
+export function notifyThreadSettled(
+  parentMessageId: string,
+  thread: Thread | null,
+) {
+  threadListeners.get(parentMessageId)?.(thread);
+  threadListeners.delete(parentMessageId);
 }
