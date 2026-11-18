@@ -1,10 +1,10 @@
-export type DesktopPlatform = 'macos-arm64' | 'macos-x64' | 'windows';
-
-export const DESKTOP_PLATFORMS: DesktopPlatform[] = [
+export const DESKTOP_PLATFORMS = [
   'macos-arm64',
   'macos-x64',
   'windows',
-];
+] as const;
+
+export type DesktopPlatform = (typeof DESKTOP_PLATFORMS)[number];
 
 export const DESKTOP_APP_RELEASES_URL =
   'https://github.com/team-cowork/cowork-desktop-app-client/releases/latest';
@@ -16,7 +16,7 @@ export const DESKTOP_PLATFORM_LABELS: Record<DesktopPlatform, string> = {
 };
 
 export function isDesktopPlatform(value: unknown): value is DesktopPlatform {
-  return DESKTOP_PLATFORMS.includes(value as DesktopPlatform);
+  return (DESKTOP_PLATFORMS as readonly unknown[]).includes(value);
 }
 
 /**
