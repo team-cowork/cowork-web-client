@@ -83,7 +83,14 @@ export function ChatPanel({
         setDragging(false);
         if (!acceptsDrop(event)) return;
         event.preventDefault();
-        onAttachFiles?.(event.dataTransfer.files);
+        const files = Array.from(event.dataTransfer.items)
+          .filter(
+            (item) =>
+              item.kind === 'file' && !item.webkitGetAsEntry()?.isDirectory,
+          )
+          .map((item) => item.getAsFile())
+          .filter((file) => file !== null);
+        if (files.length > 0) onAttachFiles?.(files);
       }}
     >
       {messageList}
