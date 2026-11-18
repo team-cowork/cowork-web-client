@@ -29,7 +29,7 @@ const STATUS_TEXT_CLASS =
 
 /**
  * 원본 메시지와 답글을 보여주는 스레드 패널.
- * 채널·DM 어디서든 원본 메시지와 답글만 넘기면 그대로 사용할 수 있다.
+ * 채널에서 원본 메시지와 답글만 넘기면 그대로 사용할 수 있다. DM은 스레드를 지원하지 않는다.
  */
 export function ThreadPanel({
   subtitle,

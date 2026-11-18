@@ -9,15 +9,12 @@ import { type FallbackProps } from 'react-error-boundary';
 
 import { isHttpStatus } from '@/shared/api/http-error';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
-import { toThreadRoot } from '@/entities/message/lib/to-thread-root';
-import { type Message } from '@/entities/message/model/message';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { DmConversationMenu } from '@/features/dm-manage/ui/dm-conversation-menu';
 import { ChannelChatPanel } from '@/widgets/chat-panel/ui/channel-chat-panel';
 import { DmHeader } from '@/widgets/dm-header/ui/dm-header';
 import { MessageList } from '@/widgets/message-list/ui/message-list';
 import { PinnedMessagesPanel } from '@/widgets/message-list/ui/pinned-messages-panel';
-import { ChannelThreadPanel } from '@/widgets/message-list/ui/channel-thread-panel';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
 import { ErrorState } from '@/shared/ui/error-state';
@@ -63,7 +60,6 @@ export default function DmPage() {
 }
 
 function DmView({ channelId }: { channelId: number }) {
-  const [threadRoot, setThreadRoot] = useState<Message | null>(null);
   const [pinsOpen, setPinsOpen] = useState(false);
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
   const { data: me } = useSuspenseQuery(userQueries.me());
@@ -82,12 +78,6 @@ function DmView({ channelId }: { channelId: number }) {
   const peer = peerResults[0]?.data;
   const subtitle = peer ? `@ ${peer.nickname ?? peer.name}` : '다이렉트 메시지';
 
-  // 스레드와 고정 메시지는 오른쪽 패널 자리를 함께 쓴다.
-  const togglePins = () => {
-    setThreadRoot(null);
-    setPinsOpen((prev) => !prev || threadRoot !== null);
-  };
-
   return (
     <div className="flex min-h-0 min-w-0 flex-1">
       <div className="flex min-w-0 flex-1 flex-col bg-background">
@@ -100,32 +90,21 @@ function DmView({ channelId }: { channelId: number }) {
               peerName={peer ? (peer.nickname ?? peer.name) : undefined}
             />
           }
-          onTogglePins={togglePins}
+          onTogglePins={() => setPinsOpen((prev) => !prev)}
         />
 
         <ChannelChatPanel
           renderMessageList={(props) => <MessageList {...props} />}
           channelId={channelId}
-          onSelectMessage={(message) => setThreadRoot(toThreadRoot(message))}
         />
       </div>
 
-      {threadRoot ? (
-        <ChannelThreadPanel
-          key={threadRoot._id}
+      {pinsOpen && (
+        <PinnedMessagesPanel
           channelId={channelId}
           subtitle={subtitle}
-          rootMessage={threadRoot}
-          onClose={() => setThreadRoot(null)}
+          onClose={() => setPinsOpen(false)}
         />
-      ) : (
-        pinsOpen && (
-          <PinnedMessagesPanel
-            channelId={channelId}
-            subtitle={subtitle}
-            onClose={() => setPinsOpen(false)}
-          />
-        )
       )}
     </div>
   );
