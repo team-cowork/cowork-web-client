@@ -15,7 +15,7 @@ export interface ChatPanelProps {
   onDraftChange?: (value: string) => void;
   placeholder?: string;
   /** 없으면 첨부 버튼을 비활성화한다 */
-  onAttachFiles?: (files: FileList) => void;
+  onAttachFiles?: (files: Iterable<File>) => void;
   /** 컴포저 위에 보여줄 상태(예: 입력 중 표시, 커맨드 안내) */
   composerStatus?: ReactNode;
   /** 컴포저 안, 입력란 위에 보여줄 전송 전 첨부 */
@@ -67,6 +67,7 @@ export function ChatPanel({
           onSend={draft.onSend}
           placeholder={placeholder}
           attachments={attachmentDrafts}
+          onPasteFiles={onAttachFiles}
           canSendEmpty={canSendEmpty}
           sendDisabled={sendDisabled}
           sendDisabledReason={sendDisabledReason}
