@@ -26,7 +26,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="group"
       className={cn(
-        'inline-flex items-center gap-1 rounded-[14px] bg-surface-container p-1',
+        'inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-[14px] bg-surface-container p-1',
         size === 'M' ? 'h-11' : 'h-[52px]',
         className,
       )}
