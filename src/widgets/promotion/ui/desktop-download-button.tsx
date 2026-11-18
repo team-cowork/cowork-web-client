@@ -9,9 +9,10 @@ import {
   type DesktopPlatform,
   detectDesktopPlatform,
 } from '@/shared/lib/desktop-platform';
+import { useEscapeToClose } from '@/shared/lib/use-escape-to-close';
 import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
 import { DownloadIcon } from '@/shared/ui/icons/download-icon';
-import { Menu } from '@/shared/ui/menu';
+import { Menu, MenuBackdrop } from '@/shared/ui/menu';
 import { MenuItem } from '@/shared/ui/menu-item';
 import { DESKTOP_APP_DOWNLOAD_URL } from '@/widgets/promotion/model/promotion-content';
 
@@ -71,16 +72,7 @@ export function DesktopDownloadButton({ className }: { className?: string }) {
       .catch(() => setMacArchitecture(''));
   }, [detected]);
 
-  useEffect(() => {
-    if (!menuOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false);
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [menuOpen]);
+  useEscapeToClose(menuOpen, () => setMenuOpen(false));
 
   return (
     <div className="relative inline-flex">
@@ -110,11 +102,7 @@ export function DesktopDownloadButton({ className }: { className?: string }) {
 
       {menuOpen && (
         <>
-          <div
-            aria-hidden
-            className="fixed inset-0 z-40"
-            onClick={() => setMenuOpen(false)}
-          />
+          <MenuBackdrop onClick={() => setMenuOpen(false)} />
           <div
             className="absolute top-full right-0 z-50 mt-2"
             onClick={() => setMenuOpen(false)}

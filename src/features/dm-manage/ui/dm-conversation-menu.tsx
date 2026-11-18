@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useHideDm } from '@/features/dm-manage/model/use-hide-dm';
 import { useToggleBlock } from '@/features/dm-manage/model/use-toggle-block';
+import { useEscapeToClose } from '@/shared/lib/use-escape-to-close';
 import { Button } from '@/shared/ui/button';
 import { Dialog } from '@/shared/ui/dialog';
 import { MoreIcon } from '@/shared/ui/icons/more-icon';
-import { Menu } from '@/shared/ui/menu';
+import { Menu, MenuBackdrop } from '@/shared/ui/menu';
 import { MenuItem } from '@/shared/ui/menu-item';
 
 export interface DmConversationMenuProps {
@@ -29,16 +30,7 @@ export function DmConversationMenu({
   const hideDm = useHideDm(channelId);
   const block = useToggleBlock(peerId);
 
-  useEffect(() => {
-    if (!menuOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false);
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [menuOpen]);
+  useEscapeToClose(menuOpen, () => setMenuOpen(false));
 
   const choose = (next: Confirm) => {
     setMenuOpen(false);
@@ -62,11 +54,7 @@ export function DmConversationMenu({
 
       {menuOpen && (
         <>
-          <div
-            aria-hidden
-            className="fixed inset-0 z-40"
-            onClick={() => setMenuOpen(false)}
-          />
+          <MenuBackdrop onClick={() => setMenuOpen(false)} />
           <div className="absolute top-full right-0 z-50 mt-2">
             <Menu>
               <MenuItem onClick={() => choose('hide')}>대화 숨기기</MenuItem>

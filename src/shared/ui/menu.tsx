@@ -38,3 +38,7 @@ export function MenuSeparator({ className }: MenuSeparatorProps) {
     />
   );
 }
+
+export function MenuBackdrop({ onClick }: { onClick: () => void }) {
+  return <div aria-hidden className="fixed inset-0 z-40" onClick={onClick} />;
+}
