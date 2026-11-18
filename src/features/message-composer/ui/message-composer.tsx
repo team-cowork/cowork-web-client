@@ -50,6 +50,7 @@ export function MessageComposer({
 
   const handlePaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     if (!onPasteFiles || e.clipboardData.files.length === 0) return;
+    if (e.clipboardData.getData('text/plain')) return;
     e.preventDefault();
     onPasteFiles(e.clipboardData.files);
   };
