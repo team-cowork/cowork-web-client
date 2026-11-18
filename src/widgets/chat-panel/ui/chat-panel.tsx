@@ -53,13 +53,22 @@ export function ChatPanel({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const dragDepth = useRef(0);
+  const internalDrag = useRef(false);
 
   const acceptsDrop = (event: DragEvent) =>
-    onAttachFiles !== undefined && event.dataTransfer.types.includes('Files');
+    onAttachFiles !== undefined &&
+    !internalDrag.current &&
+    event.dataTransfer.types.includes('Files');
 
   return (
     <div
       className={cn('relative flex min-h-0 flex-1 flex-col', className)}
+      onDragStart={() => {
+        internalDrag.current = true;
+      }}
+      onDragEnd={() => {
+        internalDrag.current = false;
+      }}
       onDragEnter={(event) => {
         if (!acceptsDrop(event)) return;
         dragDepth.current += 1;
@@ -81,7 +90,9 @@ export function ChatPanel({
       onDrop={(event) => {
         dragDepth.current = 0;
         setDragging(false);
-        if (!acceptsDrop(event)) return;
+        const accepted = acceptsDrop(event);
+        internalDrag.current = false;
+        if (!accepted) return;
         event.preventDefault();
         const files = Array.from(event.dataTransfer.items)
           .filter(
