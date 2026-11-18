@@ -50,9 +50,16 @@ export function MessageComposer({
 
   const handlePaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     if (!onPasteFiles || e.clipboardData.getData('text/plain')) return;
-    const files = Array.from(e.clipboardData.files).filter(
-      (file) => file.size > 0,
-    );
+    const pastedAt = Date.now();
+    const files = Array.from(e.clipboardData.files)
+      .filter((file) => file.size > 0)
+      .map((file, i) =>
+        file.name === 'image.png'
+          ? new File([file], `붙여넣은 이미지 ${pastedAt}-${i}.png`, {
+              type: file.type,
+            })
+          : file,
+      );
     if (files.length === 0) return;
     e.preventDefault();
     onPasteFiles(files);
