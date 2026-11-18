@@ -1,14 +1,16 @@
 'use client';
 
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { isHttpStatus } from '@/shared/api/http-error';
 import { messageQueries } from '@/entities/message/api/message-queries';
+import { toMentionedMessage } from '@/entities/message/lib/message-pages';
 import { type Message } from '@/entities/message/model/message';
 import { useChannelMessageEvents } from '@/entities/message/model/use-channel-message-events';
+import { MessageQuote } from '@/entities/message/ui/message-quote';
 import { useMarkChannelRead } from '@/features/channel-read/model/use-mark-channel-read';
 import { useAttachmentUploads } from '@/features/message-attachment/model/use-attachment-uploads';
 import { AttachmentDrafts } from '@/features/message-attachment/ui/attachment-drafts';
@@ -19,6 +21,8 @@ import { TypingIndicator } from '@/features/typing-indicator/ui/typing-indicator
 import { ChatPanel } from '@/widgets/chat-panel/ui/chat-panel';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/button';
+import { IconButton } from '@/shared/ui/icon-button';
+import { CloseIcon } from '@/shared/ui/icons/close-icon';
 import { ErrorState } from '@/shared/ui/error-state';
 import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
@@ -27,6 +31,7 @@ export interface ChannelMessageListSlotProps {
   messages: Message[];
   onSelectMessage?: (message: Message) => void;
   onRetryMessage: (message: Message) => void;
+  onReplyMessage: (message: Message) => void;
   hasOlder: boolean;
   isLoadingOlder: boolean;
   onLoadOlder: () => void;
@@ -123,6 +128,13 @@ function ChannelChatBody({
   const attachments = useAttachmentUploads(channelId);
   const command = useSlashCommand(channelId, projectId);
   const typing = useTyping(channelId);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+  const [replyTarget, setReplyTarget] = useState<Message | null>(null);
+  const replyTo = replyTarget?.channelId === channelId ? replyTarget : null;
+
+  useEffect(() => {
+    if (replyTarget) composerRef.current?.focus();
+  }, [replyTarget]);
 
   // 페이지와 페이지 안의 메시지 모두 최신순이라 뒤집어 오래된 순으로 그린다.
   const messages = data.pages.flat().reverse();
@@ -139,6 +151,7 @@ function ChannelChatBody({
         messages,
         onSelectMessage,
         onRetryMessage: retry,
+        onReplyMessage: setReplyTarget,
         hasOlder: hasNextPage,
         isLoadingOlder: isFetchingNextPage,
         onLoadOlder: () => void fetchNextPage(),
@@ -157,14 +170,35 @@ function ChannelChatBody({
         }
 
         command.reset();
-        send(content, attachments.confirmedFiles);
+        send(content, attachments.confirmedFiles, replyTo ?? undefined);
+        setReplyTarget(null);
         // 실패한 첨부는 조용히 버리지 않고 이유와 함께 남겨 다시 올리거나 지울 수 있게 한다
         attachments.clearSent();
       }}
       onAttachFiles={attachments.add}
+      composerRef={composerRef}
       composerStatus={
         <>
           <TypingIndicator userIds={typing.typingUserIds} />
+          {replyTo && (
+            <div className="flex items-center gap-2 px-1">
+              <span className="shrink-0 typography-label-x-small text-primary">
+                답장
+              </span>
+              <MessageQuote
+                mentioned={toMentionedMessage(replyTo)}
+                className="flex-1"
+              />
+              <IconButton
+                aria-label="답장 취소"
+                size="S"
+                variant="clear"
+                onClick={() => setReplyTarget(null)}
+              >
+                <CloseIcon />
+              </IconButton>
+            </div>
+          )}
           {command.problem && (
             <p
               role="status"

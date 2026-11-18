@@ -1,6 +1,11 @@
 'use client';
 
-import { type ClipboardEvent, type KeyboardEvent, type ReactNode } from 'react';
+import {
+  type ClipboardEvent,
+  type KeyboardEvent,
+  type ReactNode,
+  type Ref,
+} from 'react';
 
 import { cn } from '@/shared/lib/cn';
 import { IconButton } from '@/shared/ui/icon-button';
@@ -9,6 +14,7 @@ import { SendIcon } from '@/shared/ui/icons/send-icon';
 export interface MessageComposerProps {
   value: string;
   onChange: (value: string) => void;
+  textareaRef?: Ref<HTMLTextAreaElement>;
   onSend: () => void;
   placeholder?: string;
   leading?: ReactNode;
@@ -27,6 +33,7 @@ export interface MessageComposerProps {
 export function MessageComposer({
   value,
   onChange,
+  textareaRef,
   onSend,
   placeholder = '메시지를 입력하세요. Markdown 지원',
   leading,
@@ -76,6 +83,7 @@ export function MessageComposer({
       <div className="flex items-center gap-3">
         {leading && <span className="shrink-0">{leading}</span>}
         <textarea
+          ref={textareaRef}
           rows={1}
           value={value}
           onChange={(e) => onChange(e.target.value)}
