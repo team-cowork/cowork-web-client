@@ -8,6 +8,7 @@ export interface MenuProps {
   /** 여는 버튼의 aria-controls가 가리킬 id */
   id?: string;
   'aria-label'?: string;
+  role?: 'menu' | 'group';
 }
 
 /** 드롭다운·컨텍스트 메뉴 팝오버 컨테이너. MenuItem을 자식으로 담는다. */

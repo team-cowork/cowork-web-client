@@ -13,7 +13,6 @@ import { useEscapeToClose } from '@/shared/lib/use-escape-to-close';
 import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
 import { DownloadIcon } from '@/shared/ui/icons/download-icon';
 import { Menu, MenuBackdrop } from '@/shared/ui/menu';
-import { MenuItem } from '@/shared/ui/menu-item';
 import { DESKTOP_APP_DOWNLOAD_URL } from '@/widgets/promotion/model/promotion-content';
 
 const subscribe = () => () => {};
@@ -78,6 +77,8 @@ export function DesktopDownloadButton({ className }: { className?: string }) {
     <div className="relative inline-flex">
       <a
         href={platform ? downloadUrl(platform) : DESKTOP_APP_DOWNLOAD_URL}
+        target="_blank"
+        rel="noopener noreferrer"
         className={cn(className, 'rounded-r-none')}
       >
         <DownloadIcon size={16} />
@@ -88,7 +89,6 @@ export function DesktopDownloadButton({ className }: { className?: string }) {
       <button
         type="button"
         aria-label="다른 운영체제용 설치 파일 고르기"
-        aria-haspopup="menu"
         aria-expanded={menuOpen}
         aria-controls={menuOpen ? menuId : undefined}
         className={cn(
@@ -107,16 +107,18 @@ export function DesktopDownloadButton({ className }: { className?: string }) {
             className="absolute top-full right-0 z-50 mt-2"
             onClick={() => setMenuOpen(false)}
           >
-            <Menu id={menuId} aria-label="운영체제별 설치 파일">
+            <Menu id={menuId} role="group" aria-label="운영체제별 설치 파일">
               {DESKTOP_PLATFORMS.map((option) => (
-                <MenuItem
+                <a
                   key={option}
-                  role="menuitem"
-                  icon={<DownloadIcon size={16} />}
-                  onClick={() => window.location.assign(downloadUrl(option))}
+                  href={downloadUrl(option)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 rounded-md px-2.5 py-2 typography-subtext-large text-on-surface transition-colors hover:bg-surface-container"
                 >
+                  <DownloadIcon size={16} className="text-on-surface-variant" />
                   {DESKTOP_PLATFORM_LABELS[option]}
-                </MenuItem>
+                </a>
               ))}
             </Menu>
           </div>
