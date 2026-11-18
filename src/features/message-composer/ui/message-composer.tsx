@@ -14,7 +14,7 @@ export interface MessageComposerProps {
   leading?: ReactNode;
   /** 입력란 위, 박스 안에 보여줄 전송 전 첨부 */
   attachments?: ReactNode;
-  onPasteFiles?: (files: FileList) => void;
+  onPasteFiles?: (files: File[]) => void;
   /** 입력이 비어 있어도 전송할 수 있는지(예: 첨부만 보내기) */
   canSendEmpty?: boolean;
   /** 첨부 업로드 중처럼 잠시 전송을 막아야 할 때 */
@@ -49,10 +49,13 @@ export function MessageComposer({
   };
 
   const handlePaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
-    if (!onPasteFiles || e.clipboardData.files.length === 0) return;
-    if (e.clipboardData.getData('text/plain')) return;
+    if (!onPasteFiles || e.clipboardData.getData('text/plain')) return;
+    const files = Array.from(e.clipboardData.files).filter(
+      (file) => file.size > 0,
+    );
+    if (files.length === 0) return;
     e.preventDefault();
-    onPasteFiles(e.clipboardData.files);
+    onPasteFiles(files);
   };
 
   return (
