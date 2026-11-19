@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import { useQueries, useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
 
@@ -7,6 +9,7 @@ import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { type User, resolveUserStatus } from '@/entities/user/model/user';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
+import { UserProfilePopover } from '@/features/user-profile-view/ui/user-profile-popover';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/button';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
@@ -73,6 +76,13 @@ function MemberList({ channelId }: { channelId: number }) {
   const online = users.filter(isOnline);
   const offline = users.filter((user) => !isOnline(user));
   const loading = results.some((result) => result.isPending);
+  // 프로필을 띄울 멤버와 누른 항목. 닫혀 있으면 null이다.
+  const [profile, setProfile] = useState<{
+    userId: number;
+    anchor: HTMLElement;
+  } | null>(null);
+  const openProfile = (userId: number, anchor: HTMLElement) =>
+    setProfile({ userId, anchor });
 
   if (loading) return MEMBER_SKELETON;
 
@@ -84,8 +94,21 @@ function MemberList({ channelId }: { channelId: number }) {
         </p>
       )}
 
-      <MemberSection label="온라인" users={online} />
-      <MemberSection label="오프라인" users={offline} dimmed />
+      <MemberSection label="온라인" users={online} onSelect={openProfile} />
+      <MemberSection
+        label="오프라인"
+        users={offline}
+        onSelect={openProfile}
+        dimmed
+      />
+
+      {profile && (
+        <UserProfilePopover
+          userId={profile.userId}
+          anchor={profile.anchor}
+          onClose={() => setProfile(null)}
+        />
+      )}
     </>
   );
 }
@@ -93,10 +116,12 @@ function MemberList({ channelId }: { channelId: number }) {
 interface MemberSectionProps {
   label: string;
   users: User[];
+  /** 멤버를 누르면 그 항목 옆에 프로필을 연다 */
+  onSelect: (userId: number, anchor: HTMLElement) => void;
   dimmed?: boolean;
 }
 
-function MemberSection({ label, users, dimmed }: MemberSectionProps) {
+function MemberSection({ label, users, onSelect, dimmed }: MemberSectionProps) {
   if (users.length === 0) return null;
 
   return (
@@ -106,17 +131,21 @@ function MemberSection({ label, users, dimmed }: MemberSectionProps) {
       </h3>
       <ul className="flex flex-col">
         {users.map((user) => (
-          <li
-            key={user.id}
-            className={cn(
-              'flex h-11 items-center gap-2.5 rounded-lg px-2 hover:bg-surface-container',
-              dimmed && 'opacity-50',
-            )}
-          >
-            <UserAvatar user={user} size={32} />
-            <span className="min-w-0 flex-1 truncate typography-label-x-small text-on-surface">
-              {user.nickname ?? user.name}
-            </span>
+          <li key={user.id}>
+            <button
+              type="button"
+              aria-label={`${user.nickname ?? user.name} 프로필 보기`}
+              onClick={(event) => onSelect(user.id, event.currentTarget)}
+              className={cn(
+                'flex h-11 w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 text-left hover:bg-surface-container focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none',
+                dimmed && 'opacity-50',
+              )}
+            >
+              <UserAvatar user={user} size={32} />
+              <span className="min-w-0 flex-1 truncate typography-label-x-small text-on-surface">
+                {user.nickname ?? user.name}
+              </span>
+            </button>
           </li>
         ))}
       </ul>

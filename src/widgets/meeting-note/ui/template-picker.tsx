@@ -7,7 +7,7 @@ import { CheckIcon } from '@/shared/ui/icons/check-icon';
 import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
 import { FileIcon } from '@/shared/ui/icons/file-icon';
 import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
-import { Menu, MenuSeparator } from '@/shared/ui/menu';
+import { Menu, MenuBackdrop, MenuSeparator } from '@/shared/ui/menu';
 import { MenuItem } from '@/shared/ui/menu-item';
 
 const LOCKED_REASON = '작성한 회의록은 템플릿을 바꿀 수 없어요';
@@ -130,11 +130,7 @@ export function TemplatePicker({
 
       {open && (
         <>
-          <div
-            aria-hidden
-            className="fixed inset-0 z-40"
-            onClick={() => setOpen(false)}
-          />
+          <MenuBackdrop onClick={() => setOpen(false)} />
           <div
             ref={menuRef}
             className="absolute top-full right-0 z-50 mt-2"

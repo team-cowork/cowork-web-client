@@ -7,6 +7,7 @@ import { cn } from '@/shared/lib/cn';
 import { getFileKind, getPreviewImageType } from '@/shared/lib/file-kind';
 import { AlertIcon } from '@/shared/ui/icons/alert-icon';
 import { EyeIcon } from '@/shared/ui/icons/eye-icon';
+import { EyeOffIcon } from '@/shared/ui/icons/eye-off-icon';
 import { FileTypeIcon } from '@/shared/ui/icons/file-type-icon';
 import { RefreshIcon } from '@/shared/ui/icons/refresh-icon';
 import { TrashIcon } from '@/shared/ui/icons/trash-icon';
@@ -16,6 +17,8 @@ export interface AttachmentDraftsProps {
   uploads: AttachmentUpload[];
   onRemove: (id: string) => void;
   onRetry: (id: string) => void;
+  /** 있으면 이미지 첨부에 스포일러 토글을 보여준다(채팅 첨부) */
+  onToggleSpoiler?: (id: string) => void;
   className?: string;
 }
 
@@ -40,6 +43,7 @@ export function AttachmentDrafts({
   uploads,
   onRemove,
   onRetry,
+  onToggleSpoiler,
   className,
 }: AttachmentDraftsProps) {
   if (uploads.length === 0) return null;
@@ -52,6 +56,9 @@ export function AttachmentDrafts({
             upload={upload}
             onRemove={() => onRemove(upload.id)}
             onRetry={() => onRetry(upload.id)}
+            onToggleSpoiler={
+              onToggleSpoiler && (() => onToggleSpoiler(upload.id))
+            }
           />
         </li>
       ))}
@@ -63,12 +70,14 @@ function AttachmentDraft({
   upload,
   onRemove,
   onRetry,
+  onToggleSpoiler,
 }: {
   upload: AttachmentUpload;
   onRemove: () => void;
   onRetry: () => void;
+  onToggleSpoiler?: () => void;
 }) {
-  const { file, status } = upload;
+  const { file, status, spoiler = false } = upload;
   // 확장자만 이미지이고 그릴 수 없는 파일이면 미리보기를 접고 아이콘으로 보여준다.
   const [broken, setBroken] = useState(false);
   const imageType = broken ? undefined : getPreviewImageType(file.name);
@@ -87,11 +96,20 @@ function AttachmentDraft({
           <LocalImage
             file={file}
             alt=""
-            className="size-full object-cover"
+            className={cn(
+              'size-full object-cover',
+              spoiler && 'scale-110 blur-lg',
+            )}
             onError={() => setBroken(true)}
           />
         ) : (
           <FileTypeIcon kind={getFileKind(file.name)} size={40} />
+        )}
+
+        {imageType && spoiler && status !== 'failed' && (
+          <span className="absolute rounded-md bg-black/60 px-2 py-0.5 typography-label-x-small text-white">
+            스포일러
+          </span>
         )}
 
         {status === 'uploading' && (
@@ -148,6 +166,27 @@ function AttachmentDraft({
       )}
 
       <div className="pointer-events-none absolute -top-2 -right-2 flex items-center gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-0.5 opacity-0 shadow-sm transition-opacity group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100">
+        {imageType && onToggleSpoiler && (
+          <button
+            type="button"
+            onClick={onToggleSpoiler}
+            aria-pressed={spoiler}
+            aria-label={
+              spoiler
+                ? `${file.name} 스포일러 해제`
+                : `${file.name} 스포일러로 가리기`
+            }
+            title={spoiler ? '스포일러 해제' : '스포일러로 가리기'}
+            className={cn(
+              'flex size-7 cursor-pointer items-center justify-center rounded-md hover:bg-surface-variant',
+              spoiler
+                ? 'text-primary'
+                : 'text-on-surface-variant hover:text-on-surface',
+            )}
+          >
+            <EyeOffIcon size={16} />
+          </button>
+        )}
         {imageType && (
           <button
             type="button"

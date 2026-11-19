@@ -7,7 +7,6 @@ export const SIGNIN_PATH = '/signin';
 export const PRIVACY_PATH = '/privacy';
 export const TERMS_PATH = '/terms';
 export const LICENSE_PATH = '/license';
-export const ACHIEVEMENTS_PATH = '/achievements';
 
 export function teamPath(teamId: number): string {
   return `/teams/${teamId}`;

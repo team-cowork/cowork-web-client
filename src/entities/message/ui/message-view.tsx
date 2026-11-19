@@ -30,6 +30,11 @@ export interface MessageViewProps {
   onToggleReaction?: (emoji: string) => void;
   /** 첨부 순번으로 파일을 연다 */
   onOpenAttachment?: (attachmentIndex: number) => void;
+  /** 드러낸 스포일러 첨부 순번과, 드러낼 때 부르는 함수 */
+  revealedAttachments?: ReadonlySet<number>;
+  onRevealAttachment?: (attachmentIndex: number) => void;
+  /** 작성자 아바타·이름을 눌렀을 때 누른 요소 옆에 프로필을 연다 */
+  onOpenAuthor?: (anchor: HTMLElement) => void;
   /** 마우스를 올리면 뜨는 도구 모음 */
   actions?: ReactNode;
   actionsVisible?: boolean;
@@ -78,6 +83,9 @@ function UserMessageView({
   onRetry,
   onToggleReaction,
   onOpenAttachment,
+  onOpenAuthor,
+  revealedAttachments,
+  onRevealAttachment,
   actions,
   actionsVisible,
   editor,
@@ -107,6 +115,8 @@ function UserMessageView({
                   : undefined
               }
               onOpen={onOpenAttachment}
+              revealed={revealedAttachments}
+              onReveal={onRevealAttachment}
               className={showContent ? 'mt-2' : undefined}
             />
           </>
@@ -138,6 +148,7 @@ function UserMessageView({
       }
       actions={actions}
       actionsVisible={actionsVisible}
+      onAuthorClick={onOpenAuthor}
       footer={
         message.sendStatus === 'pending' ? (
           // 바로 확정되는 짧은 전송에는 깜빡이지 않도록 잠시 뒤에 나타난다.

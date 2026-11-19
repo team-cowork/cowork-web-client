@@ -1,6 +1,12 @@
 'use client';
 
-import { type ReactNode, useRef } from 'react';
+import {
+  type DragEvent,
+  type ReactNode,
+  type Ref,
+  useRef,
+  useState,
+} from 'react';
 
 import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
 import { AttachButton } from '@/features/message-composer/ui/attach-button';
@@ -15,7 +21,7 @@ export interface ChatPanelProps {
   onDraftChange?: (value: string) => void;
   placeholder?: string;
   /** 없으면 첨부 버튼을 비활성화한다 */
-  onAttachFiles?: (files: FileList) => void;
+  onAttachFiles?: (files: Iterable<File>) => void;
   /** 컴포저 위에 보여줄 상태(예: 입력 중 표시, 커맨드 안내) */
   composerStatus?: ReactNode;
   /** 컴포저 안, 입력란 위에 보여줄 전송 전 첨부 */
@@ -26,6 +32,7 @@ export interface ChatPanelProps {
   sendDisabled?: boolean;
   /** 전송을 막은 이유. 전송 버튼에서 알려준다. */
   sendDisabledReason?: string;
+  composerRef?: Ref<HTMLTextAreaElement>;
   className?: string;
 }
 
@@ -44,6 +51,7 @@ export function ChatPanel({
   canSendEmpty = false,
   sendDisabled = false,
   sendDisabledReason,
+  composerRef,
   className,
 }: ChatPanelProps) {
   const draft = useMessageDraft({
@@ -51,15 +59,66 @@ export function ChatPanel({
     allowEmpty: canSendEmpty,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
+  const dragDepth = useRef(0);
+  const internalDrag = useRef(false);
+
+  const acceptsDrop = (event: DragEvent) =>
+    onAttachFiles !== undefined &&
+    !internalDrag.current &&
+    event.dataTransfer.types.includes('Files');
 
   return (
-    <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
+    <div
+      className={cn('relative flex min-h-0 flex-1 flex-col', className)}
+      onDragStart={() => {
+        internalDrag.current = true;
+      }}
+      onDragEnd={() => {
+        internalDrag.current = false;
+      }}
+      onDragEnter={(event) => {
+        if (!acceptsDrop(event)) return;
+        dragDepth.current += 1;
+        setDragging(true);
+      }}
+      onDragOver={(event) => {
+        if (!acceptsDrop(event)) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+      }}
+      onDragLeave={(event) => {
+        if (!acceptsDrop(event)) return;
+        dragDepth.current -= 1;
+        if (dragDepth.current <= 0) {
+          dragDepth.current = 0;
+          setDragging(false);
+        }
+      }}
+      onDrop={(event) => {
+        dragDepth.current = 0;
+        setDragging(false);
+        const accepted = acceptsDrop(event);
+        internalDrag.current = false;
+        if (!accepted) return;
+        event.preventDefault();
+        const files = Array.from(event.dataTransfer.items)
+          .filter(
+            (item) =>
+              item.kind === 'file' && !item.webkitGetAsEntry()?.isDirectory,
+          )
+          .map((item) => item.getAsFile())
+          .filter((file) => file !== null);
+        if (files.length > 0) onAttachFiles?.(files);
+      }}
+    >
       {messageList}
 
       <div className="flex shrink-0 flex-col gap-2 px-4 pb-6">
         {composerStatus}
         <MessageComposer
           value={draft.value}
+          textareaRef={composerRef}
           onChange={(value) => {
             draft.onChange(value);
             onDraftChange?.(value);
@@ -67,6 +126,7 @@ export function ChatPanel({
           onSend={draft.onSend}
           placeholder={placeholder}
           attachments={attachmentDrafts}
+          onPasteFiles={onAttachFiles}
           canSendEmpty={canSendEmpty}
           sendDisabled={sendDisabled}
           sendDisabledReason={sendDisabledReason}
@@ -92,6 +152,12 @@ export function ChatPanel({
           />
         )}
       </div>
+
+      {dragging && (
+        <div className="pointer-events-none absolute inset-2 flex items-center justify-center rounded-[20px] border-2 border-dashed border-primary bg-surface/90 typography-subtext-large text-primary">
+          여기에 놓으면 첨부돼요
+        </div>
+      )}
     </div>
   );
 }

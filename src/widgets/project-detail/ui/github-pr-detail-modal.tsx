@@ -1,10 +1,13 @@
 'use client';
 
+import { useCallback } from 'react';
+
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { githubQueries } from '@/entities/github/api/github-queries';
 import { GithubPrActions } from '@/features/github-pr-actions/ui/github-pr-actions';
+import { isGithubUrl } from '@/shared/lib/is-github-url';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { ErrorState } from '@/shared/ui/error-state';
@@ -20,6 +23,8 @@ interface GithubPrDetailModalProps {
   /** 상세 응답에는 Draft 여부가 없어 보드 카드 값을 받는다. */
   draft: boolean;
   canWrite: boolean;
+  /** 상세가 열리지 않을 때 GitHub 에서 볼 수 있게 오류 화면에 링크를 보여 준다. */
+  htmlUrl?: string;
   onClose: () => void;
 }
 
@@ -28,12 +33,29 @@ type PullTarget = Pick<
   'projectId' | 'repoId' | 'prNumber'
 >;
 
-function PullDetailError({ resetErrorBoundary }: FallbackProps) {
+function PullDetailError({
+  resetErrorBoundary,
+  htmlUrl,
+}: FallbackProps & { htmlUrl?: string }) {
   return (
     <ErrorState
       title="PR 상세를 불러오지 못했어요"
       description="잠시 후 다시 시도해 주세요."
-      action={<Button onClick={resetErrorBoundary}>다시 시도</Button>}
+      action={
+        <div className="flex items-center gap-3">
+          <Button onClick={resetErrorBoundary}>다시 시도</Button>
+          {htmlUrl && isGithubUrl(htmlUrl) && (
+            <a
+              href={htmlUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="typography-label-medium text-primary hover:underline"
+            >
+              GitHub에서 열기 ↗
+            </a>
+          )}
+        </div>
+      }
     />
   );
 }
@@ -54,11 +76,17 @@ export function GithubPrDetailModal({
   prNumber,
   draft,
   canWrite,
+  htmlUrl,
   onClose,
 }: GithubPrDetailModalProps) {
   // 푸터는 경계 밖에 있어 같은 캐시를 일반 쿼리로 읽고, 상세가 준비된 뒤에만 보여준다.
+  // 머지·닫힌 PR에는 할 수 있는 동작이 없어 푸터를 숨긴다.
   const pull = useQuery(githubQueries.pull(projectId, repoId, prNumber));
   const resetKeys = [projectId, repoId, prNumber];
+  const detailError = useCallback(
+    (props: FallbackProps) => <PullDetailError {...props} htmlUrl={htmlUrl} />,
+    [htmlUrl],
+  );
 
   return (
     <Modal
@@ -67,7 +95,7 @@ export function GithubPrDetailModal({
       title={`PR #${prNumber}`}
       className="w-[720px]"
       footer={
-        pull.data && !pull.isError && canWrite ? (
+        pull.data && !pull.isError && pull.data.state === 'open' && canWrite ? (
           <PullActionsFooter
             projectId={projectId}
             repoId={repoId}
@@ -80,7 +108,7 @@ export function GithubPrDetailModal({
     >
       <QueryBoundary
         loadingFallback={<LoadingPane label="PR 상세를 불러오는 중…" />}
-        errorFallback={PullDetailError}
+        errorFallback={detailError}
         resetKeys={resetKeys}
       >
         <PullDetail projectId={projectId} repoId={repoId} prNumber={prNumber} />
@@ -131,9 +159,7 @@ function PullDetail({ projectId, repoId, prNumber }: PullTarget) {
   const { data: pull } = useSuspenseQuery(
     githubQueries.pull(projectId, repoId, prNumber),
   );
-  const safeGithubUrl = /^https:\/\/github\.com\//.test(pull.htmlUrl)
-    ? pull.htmlUrl
-    : undefined;
+  const safeGithubUrl = isGithubUrl(pull.htmlUrl) ? pull.htmlUrl : undefined;
 
   return (
     <>

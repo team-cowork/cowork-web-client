@@ -38,7 +38,11 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      onClose={onClose}
+      // React는 `<dialog>`의 `close` 이벤트를 fiber 트리를 따라 위로 전파하므로,
+      // 중첩된 Modal이 닫힐 때 바깥 Modal까지 닫히지 않게 자기 dialog의 이벤트만 처리한다.
+      onClose={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
       onClick={(e) => {
         if (e.target === ref.current) onClose();
       }}

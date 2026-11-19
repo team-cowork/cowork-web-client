@@ -1,14 +1,15 @@
 'use client';
 
-import { type SyntheticEvent, useEffect, useState } from 'react';
+import { type SyntheticEvent, useState } from 'react';
 
 import { type Webhook } from '@/entities/webhook/model/webhook';
 import { useWebhookMutations } from '@/features/webhook-manage/model/use-webhook-mutations';
+import { useEscapeToClose } from '@/shared/lib/use-escape-to-close';
 import { Button } from '@/shared/ui/button';
 import { Dialog } from '@/shared/ui/dialog';
 import { IconButton } from '@/shared/ui/icon-button';
 import { MoreIcon } from '@/shared/ui/icons/more-icon';
-import { Menu, MenuSeparator } from '@/shared/ui/menu';
+import { Menu, MenuBackdrop, MenuSeparator } from '@/shared/ui/menu';
 import { MenuItem } from '@/shared/ui/menu-item';
 import { Modal } from '@/shared/ui/modal';
 import { Switch } from '@/shared/ui/switch';
@@ -36,14 +37,7 @@ export function WebhookManageActions({
   const trimmedName = name.trim();
   const validName = trimmedName.length >= 1 && trimmedName.length <= 100;
 
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false);
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [menuOpen]);
+  useEscapeToClose(menuOpen, () => setMenuOpen(false));
 
   const rename = (event: SyntheticEvent) => {
     event.preventDefault();
@@ -76,11 +70,7 @@ export function WebhookManageActions({
         </IconButton>
         {menuOpen && (
           <>
-            <div
-              aria-hidden
-              className="fixed inset-0 z-40"
-              onClick={() => setMenuOpen(false)}
-            />
+            <MenuBackdrop onClick={() => setMenuOpen(false)} />
             <div
               className="absolute top-full right-0 z-50 mt-2"
               onClick={() => setMenuOpen(false)}

@@ -40,11 +40,13 @@ function settlesWithin(promise: Promise<void>, ms: number): Promise<boolean> {
   );
 }
 
-/**
- * 메시지를 먼저 화면에 그린 뒤 전송한다(낙관적 업데이트).
- * `parentMessage`를 넘기면 그 메시지의 스레드 답글로 보낸다.
- */
-export function useSendMessage(channelId: number, parentMessage?: Message) {
+export interface SendTarget {
+  replyTo?: Message;
+  threadId?: number;
+}
+
+/** 메시지를 먼저 화면에 그린 뒤 전송한다(낙관적 업데이트). */
+export function useSendMessage(channelId: number) {
   const queryClient = useQueryClient();
   const { data: me } = useSuspenseQuery(userQueries.me());
 
@@ -59,10 +61,11 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
       postMessage(channelId, {
         content: message.content,
         type: message.attachments.length > 0 ? 'FILE' : 'TEXT',
-        attachments: message.attachments.flatMap(({ objectKey }) =>
-          objectKey ? [{ objectKey }] : [],
+        attachments: message.attachments.flatMap(({ objectKey, spoiler }) =>
+          objectKey ? [{ objectKey, ...(spoiler && { spoiler: true }) }] : [],
         ),
         parentMessageId: message.parentMessageId ?? undefined,
+        threadId: message.threadId ?? undefined,
         // 재시도에도 같은 키를 보내 서버가 중복 저장하지 않게 한다.
         clientMessageId: message.clientMessageId ?? message._id,
       }),
@@ -92,6 +95,7 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
   const toMessage = (
     content: string,
     attachments: ConfirmedFile[],
+    { replyTo, threadId }: SendTarget = {},
   ): Message => {
     const clientMessageId = createUuid();
     const now = new Date().toISOString();
@@ -105,7 +109,8 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
       content: content || toAttachmentContent(attachments),
       type: attachments.length > 0 ? 'FILE' : 'TEXT',
       attachments,
-      parentMessageId: parentMessage?._id ?? null,
+      parentMessageId: replyTo?._id ?? null,
+      threadId: threadId ?? null,
       isEdited: false,
       isPinned: false,
       clientMessageId,
@@ -113,14 +118,15 @@ export function useSendMessage(channelId: number, parentMessage?: Message) {
       reactions: [],
       createdAt: now,
       updatedAt: now,
-      mentionedMessage: parentMessage
-        ? toMentionedMessage(parentMessage)
-        : null,
+      mentionedMessage: replyTo ? toMentionedMessage(replyTo) : null,
     };
   };
 
-  const send = (content: string, attachments: ConfirmedFile[] = []) =>
-    mutate(toMessage(content, attachments));
+  const send = (
+    content: string,
+    attachments: ConfirmedFile[] = [],
+    target?: SendTarget,
+  ) => mutate(toMessage(content, attachments, target));
 
   /**
    * 서버가 메시지를 실제로 저장할 때까지 기다린다. 결과를 화면에 직접 알려야 할 때 쓴다.

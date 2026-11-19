@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useChangeTeamMemberRole } from '@/features/team-members/model/use-change-team-member-role';
 import {
@@ -8,9 +8,10 @@ import {
   type AssignableTeamMemberRole,
   type TeamMemberRole,
 } from '@/entities/team/model/team';
+import { useEscapeToClose } from '@/shared/lib/use-escape-to-close';
 import { Badge } from '@/shared/ui/badge';
 import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
-import { Menu } from '@/shared/ui/menu';
+import { Menu, MenuBackdrop } from '@/shared/ui/menu';
 import { MenuItem } from '@/shared/ui/menu-item';
 
 const ASSIGNABLE_ROLES: AssignableTeamMemberRole[] = ['ADMIN', 'MEMBER'];
@@ -29,16 +30,7 @@ export function TeamMemberRoleMenu({
   const [open, setOpen] = useState(false);
   const changeRole = useChangeTeamMemberRole(teamId);
 
-  useEffect(() => {
-    if (!open) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [open]);
+  useEscapeToClose(open, () => setOpen(false));
 
   if (role === 'OWNER') {
     return <Badge color="brand">소유자</Badge>;
@@ -54,11 +46,7 @@ export function TeamMemberRoleMenu({
     <div className="relative">
       {open && (
         <>
-          <div
-            aria-hidden
-            className="fixed inset-0 z-40"
-            onClick={() => setOpen(false)}
-          />
+          <MenuBackdrop onClick={() => setOpen(false)} />
           <div className="absolute top-full right-0 z-50 mt-2">
             <Menu>
               {ASSIGNABLE_ROLES.map((candidate) => (

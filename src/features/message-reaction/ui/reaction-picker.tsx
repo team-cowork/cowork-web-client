@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
-
 import { cn } from '@/shared/lib/cn';
+import { useEscapeToClose } from '@/shared/lib/use-escape-to-close';
 import { IconButton } from '@/shared/ui/icon-button';
 import { SmilePlusIcon } from '@/shared/ui/icons/smile-plus-icon';
+import { MenuBackdrop } from '@/shared/ui/menu';
 
 const QUICK_EMOJIS = ['👍', '❤️', '😂', '🎉', '😮', '😢', '👀', '✅'];
 
@@ -22,16 +22,7 @@ export function ReactionPicker({
   onSelect,
   className,
 }: ReactionPickerProps) {
-  useEffect(() => {
-    if (!open) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onOpenChange(false);
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [open, onOpenChange]);
+  useEscapeToClose(open, () => onOpenChange(false));
 
   return (
     <div className={cn('relative', className)}>
@@ -48,11 +39,7 @@ export function ReactionPicker({
 
       {open && (
         <>
-          <div
-            aria-hidden
-            className="fixed inset-0 z-40"
-            onClick={() => onOpenChange(false)}
-          />
+          <MenuBackdrop onClick={() => onOpenChange(false)} />
           <div
             role="menu"
             className="absolute top-full right-0 z-50 mt-1 grid w-max grid-cols-4 gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-1.5 shadow-lg"

@@ -1,6 +1,11 @@
 'use client';
 
-import { type KeyboardEvent, type ReactNode } from 'react';
+import {
+  type ClipboardEvent,
+  type KeyboardEvent,
+  type ReactNode,
+  type Ref,
+} from 'react';
 
 import { cn } from '@/shared/lib/cn';
 import { IconButton } from '@/shared/ui/icon-button';
@@ -9,11 +14,13 @@ import { SendIcon } from '@/shared/ui/icons/send-icon';
 export interface MessageComposerProps {
   value: string;
   onChange: (value: string) => void;
+  textareaRef?: Ref<HTMLTextAreaElement>;
   onSend: () => void;
   placeholder?: string;
   leading?: ReactNode;
   /** 입력란 위, 박스 안에 보여줄 전송 전 첨부 */
   attachments?: ReactNode;
+  onPasteFiles?: (files: File[]) => void;
   /** 입력이 비어 있어도 전송할 수 있는지(예: 첨부만 보내기) */
   canSendEmpty?: boolean;
   /** 첨부 업로드 중처럼 잠시 전송을 막아야 할 때 */
@@ -26,10 +33,12 @@ export interface MessageComposerProps {
 export function MessageComposer({
   value,
   onChange,
+  textareaRef,
   onSend,
   placeholder = '메시지를 입력하세요. Markdown 지원',
   leading,
   attachments,
+  onPasteFiles,
   canSendEmpty = false,
   sendDisabled = false,
   sendDisabledReason,
@@ -46,6 +55,23 @@ export function MessageComposer({
     }
   };
 
+  const handlePaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+    if (!onPasteFiles || e.clipboardData.getData('text/plain')) return;
+    const pastedAt = Date.now();
+    const files = Array.from(e.clipboardData.files)
+      .filter((file) => file.size > 0)
+      .map((file, i) =>
+        file.name === 'image.png'
+          ? new File([file], `붙여넣은 이미지 ${pastedAt}-${i}.png`, {
+              type: file.type,
+            })
+          : file,
+      );
+    if (files.length === 0) return;
+    e.preventDefault();
+    onPasteFiles(files);
+  };
+
   return (
     <div
       className={cn(
@@ -57,10 +83,12 @@ export function MessageComposer({
       <div className="flex items-center gap-3">
         {leading && <span className="shrink-0">{leading}</span>}
         <textarea
+          ref={textareaRef}
           rows={1}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           placeholder={placeholder}
           className="max-h-32 flex-1 resize-none bg-transparent py-2.5 typography-subtext-large text-on-surface placeholder:text-on-surface-variant focus:outline-none"
         />

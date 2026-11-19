@@ -22,6 +22,12 @@ const nextConfig: NextConfig = {
       : {}),
   },
   reactCompiler: true,
+  headers: async () => [
+    {
+      source: '/',
+      headers: [{ key: 'Accept-CH', value: 'Sec-CH-UA-Arch' }],
+    },
+  ],
 };
 
 export default nextConfig;

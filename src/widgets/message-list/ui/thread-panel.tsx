@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef } from 'react';
 
 import { type Message } from '@/entities/message/model/message';
-import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
+import { type useMessageDraft } from '@/features/message-composer/model/use-message-draft';
 import { AttachButton } from '@/features/message-composer/ui/attach-button';
 import { MessageComposer } from '@/features/message-composer/ui/message-composer';
 import { MessageRow } from '@/widgets/message-list/ui/message-row';
@@ -17,7 +17,10 @@ export interface ThreadPanelProps {
   replies: Message[] | undefined;
   isRepliesError?: boolean;
   onReloadReplies?: () => void;
-  onSendReply: (content: string) => void;
+  draft: ReturnType<typeof useMessageDraft>;
+  sendDisabled?: boolean;
+  sendDisabledReason?: string;
+  composerNotice?: string;
   onRetryReply?: (message: Message) => void;
   onClose: () => void;
   onAttach?: () => void;
@@ -29,7 +32,7 @@ const STATUS_TEXT_CLASS =
 
 /**
  * 원본 메시지와 답글을 보여주는 스레드 패널.
- * 채널·DM 어디서든 원본 메시지와 답글만 넘기면 그대로 사용할 수 있다.
+ * 채널에서 원본 메시지와 답글만 넘기면 그대로 사용할 수 있다. DM은 스레드를 지원하지 않는다.
  */
 export function ThreadPanel({
   subtitle,
@@ -37,13 +40,15 @@ export function ThreadPanel({
   replies,
   isRepliesError = false,
   onReloadReplies,
-  onSendReply,
+  draft,
+  sendDisabled,
+  sendDisabledReason,
+  composerNotice,
   onRetryReply,
   onClose,
   onAttach,
   className,
 }: ThreadPanelProps) {
-  const draft = useMessageDraft({ onSubmit: onSendReply });
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastReplyId = replies?.at(-1)?._id;
 
@@ -129,10 +134,17 @@ export function ThreadPanel({
       </div>
 
       <div className="shrink-0 px-3 pt-1 pb-4">
+        {composerNotice && (
+          <p className="px-1 pb-1 typography-subtext-small text-on-surface-variant">
+            {composerNotice}
+          </p>
+        )}
         <MessageComposer
           value={draft.value}
           onChange={draft.onChange}
           onSend={draft.onSend}
+          sendDisabled={sendDisabled}
+          sendDisabledReason={sendDisabledReason}
           placeholder="스레드에 답장…"
           leading={<AttachButton onClick={onAttach} />}
         />

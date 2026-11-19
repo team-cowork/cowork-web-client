@@ -66,6 +66,11 @@ export interface User {
   account_description: string | null;
   github_id: string | null;
   profile_image_url: string | null;
+  /**
+   * 프로필 배경 프리셋 키(`PROFILE_BANNER_COLORS`). 고르지 않았으면 null이다.
+   * 서버가 지원하기 전에는 키 자체가 없다.
+   */
+  banner_color?: string | null;
 }
 
 export interface SearchUsersParams {
@@ -96,6 +101,8 @@ export interface UpdateMeRequest {
   nickname?: string;
   github_id?: string | null;
   roles?: string[];
+  /** null이면 기본 배경으로 되돌린다 */
+  banner_color?: string | null;
 }
 
 export interface UpdateMyStatusRequest {

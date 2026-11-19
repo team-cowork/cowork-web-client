@@ -1,15 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useDeleteTeamRole } from '@/features/team-roles/model/use-delete-team-role';
 import { type TeamRole } from '@/entities/team/model/team';
+import { useEscapeToClose } from '@/shared/lib/use-escape-to-close';
 import { Button } from '@/shared/ui/button';
 import { Dialog } from '@/shared/ui/dialog';
 import { IconButton } from '@/shared/ui/icon-button';
 import { MoreIcon } from '@/shared/ui/icons/more-icon';
 import { TrashIcon } from '@/shared/ui/icons/trash-icon';
-import { Menu } from '@/shared/ui/menu';
+import { Menu, MenuBackdrop } from '@/shared/ui/menu';
 import { MenuItem } from '@/shared/ui/menu-item';
 
 export interface DeleteTeamRoleMenuProps {
@@ -27,16 +28,7 @@ export function DeleteTeamRoleMenu({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const deleteRole = useDeleteTeamRole(teamId);
 
-  useEffect(() => {
-    if (!menuOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false);
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [menuOpen]);
+  useEscapeToClose(menuOpen, () => setMenuOpen(false));
 
   const handleDelete = () => {
     deleteRole.mutate(role.id, {
@@ -51,11 +43,7 @@ export function DeleteTeamRoleMenu({
     <div className="relative">
       {menuOpen && (
         <>
-          <div
-            aria-hidden
-            className="fixed inset-0 z-40"
-            onClick={() => setMenuOpen(false)}
-          />
+          <MenuBackdrop onClick={() => setMenuOpen(false)} />
           <div className="absolute top-full right-0 z-50 mt-2">
             <Menu>
               <MenuItem

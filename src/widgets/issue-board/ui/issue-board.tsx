@@ -29,6 +29,7 @@ import { useMoveIssue } from '@/features/github-issue-move/model/use-move-issue'
 import { cn } from '@/shared/lib/cn';
 import { useVanishedItems } from '@/shared/lib/use-vanished-items';
 import { formatDate } from '@/shared/lib/format-date';
+import { isGithubUrl } from '@/shared/lib/is-github-url';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -56,7 +57,6 @@ const githubRepoName = (url: string) =>
     .replace(/\.git$/, '');
 
 /** GitHub 주소만 링크로 쓴다. */
-const isGithubUrl = (url: string) => /^https:\/\/github\.com\//.test(url);
 
 export function IssueBoard({ teamId }: { teamId: number }) {
   return (
