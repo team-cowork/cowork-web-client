@@ -1,6 +1,31 @@
 'use client';
 
-import { type DragEvent, useRef, useState } from 'react';
+import { type DragEvent, useEffect, useRef, useState } from 'react';
+
+// 페이지 안에서 시작한 드래그인지. 드롭 영역이 여럿이어도 같은 기준으로 거르도록
+// 영역마다 따로 두지 않고 문서 하나에서 기록한다. 다른 영역에서 끌어 온 이미지도 걸러진다.
+let internalDrag = false;
+let dragTrackingInstalled = false;
+
+function installDragTracking() {
+  if (dragTrackingInstalled) return;
+  dragTrackingInstalled = true;
+
+  document.addEventListener(
+    'dragstart',
+    () => {
+      internalDrag = true;
+    },
+    true,
+  );
+  document.addEventListener(
+    'dragend',
+    () => {
+      internalDrag = false;
+    },
+    true,
+  );
+}
 
 /**
  * 영역에 파일을 끌어다 놓으면 첨부한다. 반환한 핸들러를 드롭 영역 요소에 펼쳐 넣는다.
@@ -10,20 +35,15 @@ import { type DragEvent, useRef, useState } from 'react';
 export function useFileDrop(onDropFiles?: (files: File[]) => void) {
   const [dragging, setDragging] = useState(false);
   const dragDepth = useRef(0);
-  const internalDrag = useRef(false);
+
+  useEffect(installDragTracking, []);
 
   if (!onDropFiles) return { dragging: false, dropHandlers: {} };
 
   const acceptsDrop = (event: DragEvent) =>
-    !internalDrag.current && event.dataTransfer.types.includes('Files');
+    !internalDrag && event.dataTransfer.types.includes('Files');
 
   const dropHandlers = {
-    onDragStart: () => {
-      internalDrag.current = true;
-    },
-    onDragEnd: () => {
-      internalDrag.current = false;
-    },
     onDragEnter: (event: DragEvent) => {
       if (!acceptsDrop(event)) return;
       dragDepth.current += 1;
@@ -46,7 +66,8 @@ export function useFileDrop(onDropFiles?: (files: File[]) => void) {
       dragDepth.current = 0;
       setDragging(false);
       const accepted = acceptsDrop(event);
-      internalDrag.current = false;
+      // 끌던 요소가 드롭하면서 사라지면 dragend가 오지 않을 수 있어 여기서도 푼다.
+      internalDrag = false;
       if (!accepted) return;
       event.preventDefault();
       const files = Array.from(event.dataTransfer.items)
