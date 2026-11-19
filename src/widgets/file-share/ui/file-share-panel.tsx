@@ -185,7 +185,7 @@ function ChannelFilesContent({
             >
               <AttachmentCard
                 name={file.fileName}
-                meta={`${file.uploaderName} · ${formatDate(file.uploadedAt)} · ${formatFileSize(file.fileSize)}`}
+                meta={`${file.spoiler ? '스포일러 · ' : ''}${file.uploaderName} · ${formatDate(file.uploadedAt)} · ${formatFileSize(file.fileSize)}`}
                 className="pr-12 hover:border-outline"
               />
             </button>
