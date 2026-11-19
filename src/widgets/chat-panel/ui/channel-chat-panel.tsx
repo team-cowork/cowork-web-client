@@ -233,6 +233,7 @@ function ChannelChatBody({
           uploads={attachments.uploads}
           onRemove={attachments.remove}
           onRetry={attachments.retry}
+          onToggleSpoiler={attachments.toggleSpoiler}
         />
       }
       canSendEmpty={attachments.confirmedFiles.length > 0}
