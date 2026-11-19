@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 import { useSuspenseQuery } from '@tanstack/react-query';
 
 import { roleErrorMessage } from '@/features/team-roles/lib/role-error-message';
@@ -13,10 +11,7 @@ import {
 } from '@/entities/team/lib/team-permission';
 import { type TeamRole } from '@/entities/team/model/team';
 import { useTeamPermissions } from '@/entities/team/model/use-team-permissions';
-import { EmptyState } from '@/shared/ui/empty-state';
-import { SearchIcon } from '@/shared/ui/icons/search-icon';
 import { Switch } from '@/shared/ui/switch';
-import { TextField } from '@/shared/ui/text-field';
 
 export interface TeamRolePermissionsTabProps {
   teamId: number;
@@ -32,7 +27,6 @@ export function TeamRolePermissionsTab({
   );
   const myPermissions = useTeamPermissions(teamId);
   const updateRole = useUpdateTeamRole(teamId);
-  const [keyword, setKeyword] = useState('');
 
   const ownerPolicy = isOwnerPolicyRole(role);
   // 서버와 같은 기준: 관리자이거나, 역할 관리 권한이 있고 내 최상위 역할보다 낮은 역할
@@ -48,20 +42,13 @@ export function TeamRolePermissionsTab({
       : null;
   const permissions = { ...role.permissions, ...pendingPermissions };
 
-  // 서버에 검색 API가 없어서 받아 둔 권한 목록을 제목·설명으로 거른다
-  const normalizedKeyword = keyword.trim().toLowerCase();
-  const matchesKeyword = (text: string) =>
-    text.toLowerCase().includes(normalizedKeyword);
-
   // 소유권 이양은 소유자 정책에만 있어서 다른 역할에서는 보여 주지 않는다
   const groups = permissionGroups
     .map((group) => ({
       ...group,
       permissions: group.permissions.filter(
         (permission) =>
-          (ownerPolicy || permission.key !== TRANSFER_TEAM_OWNERSHIP) &&
-          (matchesKeyword(permission.title) ||
-            matchesKeyword(permission.description)),
+          ownerPolicy || permission.key !== TRANSFER_TEAM_OWNERSHIP,
       ),
     }))
     .filter((group) => group.permissions.length > 0);
@@ -87,18 +74,6 @@ export function TeamRolePermissionsTab({
             '권한을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.',
           )}
         </p>
-      )}
-
-      <TextField
-        type="search"
-        aria-label="권한 검색"
-        value={keyword}
-        onChange={(event) => setKeyword(event.target.value)}
-        placeholder="권한 검색"
-      />
-
-      {groups.length === 0 && (
-        <EmptyState icon={<SearchIcon />} title="검색 결과가 없어요" />
       )}
 
       {groups.map((group) => (
