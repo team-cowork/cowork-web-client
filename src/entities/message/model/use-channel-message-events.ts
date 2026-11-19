@@ -69,8 +69,13 @@ export function useChannelMessageEvents(channelId: number) {
     // 연결되기 전에 받은 목록이나 끊겨 있던 동안의 메시지는 이벤트로 오지 않는다.
     // 처음 연결될 때와, 연결 복구로 놓친 이벤트를 받지 못한 재연결 때 목록을 다시 받는다.
     const handleConnect = () => {
-      if (!socket.recovered)
-        void refetchChannelMessages(queryClient, channelId);
+      if (socket.recovered) return;
+
+      void refetchChannelMessages(queryClient, channelId);
+      // 끊겨 있던 동안의 스레드 생성·변경도 이벤트로 오지 않는다.
+      void queryClient.invalidateQueries({
+        queryKey: messageQueries.threads(channelId).queryKey,
+      });
     };
 
     const myId = () => queryClient.getQueryData(userQueries.me().queryKey)?.id;

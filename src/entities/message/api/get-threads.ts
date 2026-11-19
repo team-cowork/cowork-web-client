@@ -15,6 +15,9 @@ export async function getThreads(channelId: number): Promise<Thread[]> {
     });
 
     threads.push(...data.data.content);
-    if (data.data.last) return threads;
+    // `last`가 없거나 빈 페이지가 와도 끝낸다. 응답 형태가 바뀌어도 요청이 끝없이 반복되지 않게 한다.
+    if (data.data.last !== false || data.data.content.length === 0) {
+      return threads;
+    }
   }
 }
