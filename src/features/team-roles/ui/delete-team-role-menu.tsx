@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 
+import { roleErrorMessage } from '@/features/team-roles/lib/role-error-message';
 import { useDeleteTeamRole } from '@/features/team-roles/model/use-delete-team-role';
+import { isOwnerPolicyRole } from '@/entities/team/lib/team-permission';
 import { type TeamRole } from '@/entities/team/model/team';
 import { useEscapeToClose } from '@/shared/lib/use-escape-to-close';
 import { Button } from '@/shared/ui/button';
@@ -29,6 +31,15 @@ export function DeleteTeamRoleMenu({
   const deleteRole = useDeleteTeamRole(teamId);
 
   useEscapeToClose(menuOpen, () => setMenuOpen(false));
+
+  // 기본 역할과 소유자 역할은 서버가 삭제를 막는다
+  if (role.isDefault || isOwnerPolicyRole(role)) return null;
+
+  const closeConfirm = () => {
+    if (deleteRole.isPending) return;
+    setConfirmOpen(false);
+    deleteRole.reset();
+  };
 
   const handleDelete = () => {
     deleteRole.mutate(role.id, {
@@ -74,16 +85,23 @@ export function DeleteTeamRoleMenu({
 
       <Dialog
         open={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
+        onClose={closeConfirm}
         title="역할을 삭제할까요?"
-        description={`"${role.name}" 역할이 삭제되고, 이 역할을 가진 모든 멤버에게서 제거됩니다.`}
+        description={
+          deleteRole.isError
+            ? roleErrorMessage(
+                deleteRole.error,
+                '역할을 삭제하지 못했어요. 잠시 후 다시 시도해 주세요.',
+              )
+            : `"${role.name}" 역할이 삭제되고, 이 역할을 가진 모든 멤버에게서 제거됩니다.`
+        }
       >
         <Button
           type="button"
           variant="weak"
           color="neutral"
           disabled={deleteRole.isPending}
-          onClick={() => setConfirmOpen(false)}
+          onClick={closeConfirm}
         >
           취소
         </Button>

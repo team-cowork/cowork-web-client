@@ -2,26 +2,16 @@
 
 import { useState } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
-
 import { useGithubAppInstall } from '@/features/github-app-install/model/use-github-app-install';
-import { teamQueries } from '@/entities/team/api/team-queries';
-import { toTeamMemberRole } from '@/entities/team/model/team';
-import { userQueries } from '@/entities/user/api/user-queries';
+import { useTeamPermissions } from '@/entities/team/model/use-team-permissions';
 import { Button } from '@/shared/ui/button';
 import { Dialog } from '@/shared/ui/dialog';
 import { SettingsCard } from '@/shared/ui/settings-card';
 
 export function TeamGithubSettings({ teamId }: { teamId: number }) {
-  const { data: members = [] } = useQuery(teamQueries.members(teamId));
-  const { data: me } = useQuery(userQueries.me());
   const [confirmOpen, setConfirmOpen] = useState(false);
   const { install, uninstall } = useGithubAppInstall(teamId);
-
-  const myRole = toTeamMemberRole(
-    members.find((member) => member.userId === me?.id)?.role ?? '',
-  );
-  const canManage = myRole === 'OWNER' || myRole === 'ADMIN';
+  const canManage = useTeamPermissions(teamId).can('manage_github');
 
   return (
     <>

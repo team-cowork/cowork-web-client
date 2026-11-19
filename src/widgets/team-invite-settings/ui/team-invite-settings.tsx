@@ -10,8 +10,8 @@ import {
   INVITE_DURATION_LABEL,
   type Invite,
   type InviteDuration,
-  toTeamMemberRole,
 } from '@/entities/team/model/team';
+import { useTeamPermissions } from '@/entities/team/model/use-team-permissions';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { formatDate } from '@/shared/lib/format-date';
 import { Badge } from '@/shared/ui/badge';
@@ -66,15 +66,10 @@ export function TeamInviteSettings({ teamId }: TeamInviteSettingsProps) {
 function TeamInviteList({ teamId }: { teamId: number }) {
   const { data: invites } = useSuspenseQuery(teamQueries.invites(teamId));
   const { data: me } = useSuspenseQuery(userQueries.me());
-  const { data: members } = useSuspenseQuery(teamQueries.members(teamId));
   const revokeInvite = useRevokeTeamInvite(teamId);
   const [revokingCode, setRevokingCode] = useState<string | null>(null);
   const [failedCode, setFailedCode] = useState<string | null>(null);
-
-  const myRole = toTeamMemberRole(
-    members.find((member) => member.userId === me.id)?.role ?? '',
-  );
-  const isTeamManager = myRole === 'OWNER' || myRole === 'ADMIN';
+  const isTeamManager = useTeamPermissions(teamId).can('manage_invites');
 
   const handleRevoke = (inviteCode: string) => {
     setRevokingCode(inviteCode);

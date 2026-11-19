@@ -2,7 +2,9 @@
 
 import { type SyntheticEvent, useState } from 'react';
 
+import { roleErrorMessage } from '@/features/team-roles/lib/role-error-message';
 import { useUpdateTeamRole } from '@/features/team-roles/model/use-update-team-role';
+import { isOwnerPolicyRole } from '@/entities/team/lib/team-permission';
 import { type TeamRole } from '@/entities/team/model/team';
 import { Button } from '@/shared/ui/button';
 import { SettingRow } from '@/shared/ui/setting-row';
@@ -21,12 +23,17 @@ export function TeamRoleDisplayTab({ teamId, role }: TeamRoleDisplayTabProps) {
 
   const updateRole = useUpdateTeamRole(teamId);
 
+  // 소유자 역할은 전부, 기본 역할은 이름만 서버가 바꾸지 못하게 막는다
+  const readOnly = isOwnerPolicyRole(role);
+  const nameLocked = readOnly || role.isDefault;
+
   const trimmedName = name.trim();
   const dirty =
     trimmedName !== role.name ||
     colorHex !== role.colorHex ||
     mentionable !== role.mentionable;
-  const canSubmit = trimmedName.length > 0 && dirty && !updateRole.isPending;
+  const canSubmit =
+    !readOnly && trimmedName.length > 0 && dirty && !updateRole.isPending;
 
   const handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
@@ -34,7 +41,11 @@ export function TeamRoleDisplayTab({ teamId, role }: TeamRoleDisplayTabProps) {
 
     updateRole.mutate({
       roleId: role.id,
-      request: { name: trimmedName, colorHex, mentionable },
+      request: {
+        ...(nameLocked ? {} : { name: trimmedName }),
+        colorHex,
+        mentionable,
+      },
     });
   };
 
@@ -52,6 +63,7 @@ export function TeamRoleDisplayTab({ teamId, role }: TeamRoleDisplayTabProps) {
           value={name}
           onChange={(event) => setName(event.target.value)}
           maxLength={50}
+          disabled={nameLocked}
           className="flex-1"
         />
         <div className="flex flex-col gap-2">
@@ -69,6 +81,7 @@ export function TeamRoleDisplayTab({ teamId, role }: TeamRoleDisplayTabProps) {
               onChange={(event) => setColorHex(event.target.value)}
               placeholder="#5865F2"
               maxLength={7}
+              disabled={readOnly}
               className="w-28"
             />
           </div>
@@ -79,12 +92,24 @@ export function TeamRoleDisplayTab({ teamId, role }: TeamRoleDisplayTabProps) {
         label="멘션 허용"
         description="이 역할을 멘션으로 호출할 수 있게 해요"
       >
-        <Switch checked={mentionable} onCheckedChange={setMentionable} />
+        <Switch
+          checked={mentionable}
+          disabled={readOnly}
+          onCheckedChange={setMentionable}
+        />
       </SettingRow>
 
+      {readOnly && (
+        <p className="typography-subtext-medium text-on-surface-variant">
+          소유자 역할은 바꿀 수 없어요.
+        </p>
+      )}
       {updateRole.isError && (
         <p className="typography-subtext-medium text-error">
-          저장하지 못했어요. 다시 시도해 주세요.
+          {roleErrorMessage(
+            updateRole.error,
+            '저장하지 못했어요. 다시 시도해 주세요.',
+          )}
         </p>
       )}
 
