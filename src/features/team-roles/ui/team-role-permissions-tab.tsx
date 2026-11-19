@@ -13,7 +13,6 @@ import {
 } from '@/entities/team/lib/team-permission';
 import { type TeamRole } from '@/entities/team/model/team';
 import { useTeamPermissions } from '@/entities/team/model/use-team-permissions';
-import { useDebouncedValue } from '@/shared/lib/use-debounced-value';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { SearchIcon } from '@/shared/ui/icons/search-icon';
 import { Switch } from '@/shared/ui/switch';
@@ -50,10 +49,7 @@ export function TeamRolePermissionsTab({
   const permissions = { ...role.permissions, ...pendingPermissions };
 
   // 서버에 검색 API가 없어서 받아 둔 권한 목록을 제목·설명으로 거른다
-  const normalizedKeyword = useDebouncedValue(
-    keyword.trim().toLowerCase(),
-    200,
-  );
+  const normalizedKeyword = keyword.trim().toLowerCase();
   const matchesKeyword = (text: string) =>
     text.toLowerCase().includes(normalizedKeyword);
 
