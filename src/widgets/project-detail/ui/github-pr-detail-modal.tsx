@@ -80,6 +80,7 @@ export function GithubPrDetailModal({
   onClose,
 }: GithubPrDetailModalProps) {
   // 푸터는 경계 밖에 있어 같은 캐시를 일반 쿼리로 읽고, 상세가 준비된 뒤에만 보여준다.
+  // 머지·닫힌 PR에는 할 수 있는 동작이 없어 푸터를 숨긴다.
   const pull = useQuery(githubQueries.pull(projectId, repoId, prNumber));
   const resetKeys = [projectId, repoId, prNumber];
   const detailError = useCallback(
@@ -94,7 +95,7 @@ export function GithubPrDetailModal({
       title={`PR #${prNumber}`}
       className="w-[720px]"
       footer={
-        pull.data && !pull.isError && canWrite ? (
+        pull.data && !pull.isError && pull.data.state === 'open' && canWrite ? (
           <PullActionsFooter
             projectId={projectId}
             repoId={repoId}

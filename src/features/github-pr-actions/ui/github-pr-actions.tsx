@@ -39,14 +39,14 @@ export function GithubPrActions({
         disabled={pending}
         onClick={() => approve.mutate()}
       >
-        {approve.isPending ? '요청을 보내는 중이에요…' : '승인하기'}
+        {approve.isPending ? '처리하는 중이에요…' : '승인하기'}
       </Button>
       <Button
         size="S"
         disabled={pending || mergeBlockedReason !== undefined}
         onClick={() => setConfirmOpen(true)}
       >
-        {merge.isPending ? '요청을 보내는 중이에요…' : '머지하기'}
+        {merge.isPending ? '처리하는 중이에요…' : '머지하기'}
       </Button>
       <Dialog
         open={confirmOpen}
@@ -54,7 +54,7 @@ export function GithubPrActions({
           if (!merge.isPending) setConfirmOpen(false);
         }}
         title="이 PR을 스쿼시 머지할까요?"
-        description="여러 커밋을 하나로 합치는 squash merge를 요청해요. 비동기로 처리되니 결과는 GitHub에서 확인해 주세요."
+        description="여러 커밋을 하나로 합치는 squash merge를 요청해요. 요청한 뒤 PR 상태를 다시 확인해 결과를 알려 드려요."
       >
         <Button
           variant="weak"
@@ -70,7 +70,7 @@ export function GithubPrActions({
             merge.mutate(undefined, { onSuccess: () => setConfirmOpen(false) })
           }
         >
-          {merge.isPending ? '요청을 보내는 중이에요…' : '스쿼시 머지 요청하기'}
+          {merge.isPending ? '처리하는 중이에요…' : '스쿼시 머지하기'}
         </Button>
       </Dialog>
     </>
