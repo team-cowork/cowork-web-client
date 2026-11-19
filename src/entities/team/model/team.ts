@@ -1,19 +1,3 @@
-export const TEAM_MEMBER_ROLES = ['OWNER', 'ADMIN', 'MEMBER'] as const;
-
-export type TeamMemberRole = (typeof TEAM_MEMBER_ROLES)[number];
-
-export type AssignableTeamMemberRole = Exclude<TeamMemberRole, 'OWNER'>;
-
-export const TEAM_MEMBER_ROLE_LABEL: Record<TeamMemberRole, string> = {
-  OWNER: '소유자',
-  ADMIN: '관리자',
-  MEMBER: '멤버',
-};
-
-export function toTeamMemberRole(role: string): TeamMemberRole | null {
-  return TEAM_MEMBER_ROLES.find((candidate) => candidate === role) ?? null;
-}
-
 export const DEFAULT_ROLE_COLOR_HEX = '#5865F2';
 
 export const INVITE_DURATIONS = ['1d', '7d', '30d', 'never'] as const;
@@ -31,7 +15,6 @@ export interface TeamSummary {
   id: number;
   name: string;
   iconUrl: string | null;
-  myRole: string;
 }
 
 export interface Team {
@@ -74,7 +57,6 @@ export interface TeamRolePermissionGroup {
 export interface TeamMember {
   id: number;
   userId: number;
-  role: string;
   roles: TeamRole[];
   joinedAt: string;
 }
@@ -112,8 +94,8 @@ export interface InviteMembersRequest {
   userIds: number[];
 }
 
-export interface ChangeMemberRoleRequest {
-  role: AssignableTeamMemberRole;
+export interface TransferTeamOwnershipRequest {
+  targetUserId: number;
 }
 
 export interface CreateTeamRoleRequest {
