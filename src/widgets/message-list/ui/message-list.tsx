@@ -9,7 +9,10 @@ import {
   useRef,
 } from 'react';
 
+import { defaultRangeExtractor, useVirtualizer } from '@tanstack/react-virtual';
+
 import { type Message } from '@/entities/message/model/message';
+import { useEditingMessageStore } from '@/features/message-edit/model/editing-message-store';
 import { MessageRow } from '@/widgets/message-list/ui/message-row';
 import { cn } from '@/shared/lib/cn';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -37,10 +40,17 @@ const DEFAULT_EMPTY_STATE = (
   />
 );
 
+// 아직 재지 않은 행의 높이. 그려지면 실제 높이로 바뀐다.
+const ESTIMATED_ROW_PX = 72;
+const ROW_GAP_PX = 18;
+// 화면 밖 위아래로 미리 그려 두는 행 수.
+const OVERSCAN_ROWS = 8;
 // 바닥에서 이 거리 안에 있으면 새 메시지가 올 때 따라 내려간다.
 const NEAR_BOTTOM_PX = 120;
+// 바닥에 붙어 있다고 보는 거리. 이미지가 늦게 떠서 행이 커져도 이 안이면 바닥을 유지한다.
+const PINNED_BOTTOM_PX = 8;
 // 맨 위에 닿기 전에 미리 이전 메시지를 요청한다.
-const LOAD_OLDER_MARGIN_PX = 200;
+const LOAD_OLDER_MARGIN_PX = 400;
 
 export function MessageList({
   messages,
@@ -54,15 +64,52 @@ export function MessageList({
   className,
 }: MessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const topSentinelRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
+  const isPinnedRef = useRef(true);
   const distanceFromBottomRef = useRef<number | null>(null);
+  const olderRequestedRef = useRef(false);
+
+  const editingMessageId = useEditingMessageStore(
+    (state) => state.editingMessageId,
+  );
+  const editingIndex =
+    editingMessageId === null
+      ? -1
+      : messages.findIndex((message) => message._id === editingMessageId);
+
+  // 돌려주는 함수를 메모하면 화면이 낡아지므로 컴파일러가 이 컴포넌트의 메모를 건너뛴다. 의도한 동작이다.
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const virtualizer = useVirtualizer({
+    count: messages.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => ESTIMATED_ROW_PX,
+    gap: ROW_GAP_PX,
+    overscan: OVERSCAN_ROWS,
+    getItemKey: (index) => {
+      const message = messages[index];
+      return message ? (message.clientMessageId ?? message._id) : index;
+    },
+    // 수정 중인 행은 화면 밖으로 나가도 그대로 두어 입력 중인 글이 사라지지 않게 한다.
+    rangeExtractor: (range) => {
+      const indexes = defaultRangeExtractor(range);
+      if (editingIndex < 0 || indexes.includes(editingIndex)) return indexes;
+
+      return [...indexes, editingIndex].sort((a, b) => a - b);
+    },
+  });
 
   const firstMessageId = messages[0]?._id;
   const lastMessageId = messages.at(-1)?._id;
   const isLastPending = messages.at(-1)?.sendStatus === 'pending';
 
+  // 이 목록이 사라지면 수정 중이던 메시지는 더는 수정 중이 아니다.
+  useEffect(
+    () => () => useEditingMessageStore.setState({ editingMessageId: null }),
+    [],
+  );
+
   // 이전 메시지가 위에 붙어도 보던 메시지가 밀려나지 않게 바닥 기준 거리를 되돌린다.
+  // 이미 잰 아래쪽 행은 높이가 그대로라 바닥 기준이 가장 정확하다.
   useLayoutEffect(() => {
     const container = scrollRef.current;
     if (!container || distanceFromBottomRef.current === null) return;
@@ -79,31 +126,54 @@ export function MessageList({
 
     if (isNearBottomRef.current || isLastPending) {
       container.scrollTop = container.scrollHeight;
+      isPinnedRef.current = true;
     }
   }, [lastMessageId, isLastPending]);
 
-  useEffect(() => {
+  // 새로 그려진 행의 실제 높이나 이미지 로드로 목록이 길어져도 바닥에 붙어 있었다면 바닥을 유지한다.
+  useLayoutEffect(() => {
     const container = scrollRef.current;
-    const sentinel = topSentinelRef.current;
-    if (!container || !sentinel || !hasOlder || isLoadingOlder) return;
+    if (
+      !container ||
+      !isPinnedRef.current ||
+      distanceFromBottomRef.current !== null
+    ) {
+      return;
+    }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return;
+    const distance =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    if (distance > 1) container.scrollTop = container.scrollHeight;
+  });
 
-        distanceFromBottomRef.current =
-          container.scrollHeight - container.scrollTop;
-        onLoadOlder?.();
-      },
-      {
-        root: container,
-        rootMargin: `${LOAD_OLDER_MARGIN_PX}px 0px 0px 0px`,
-      },
-    );
-    observer.observe(sentinel);
+  const requestOlder = () => {
+    const container = scrollRef.current;
+    if (
+      !container ||
+      !hasOlder ||
+      isLoadingOlder ||
+      olderRequestedRef.current ||
+      container.scrollTop >= LOAD_OLDER_MARGIN_PX
+    ) {
+      return;
+    }
 
-    return () => observer.disconnect();
-  }, [hasOlder, isLoadingOlder, onLoadOlder]);
+    olderRequestedRef.current = true;
+    isPinnedRef.current = false;
+    distanceFromBottomRef.current =
+      container.scrollHeight - container.scrollTop;
+    onLoadOlder?.();
+  };
+
+  // 이전 메시지를 다 읽어 오기 전까지는 다음 요청을 막는다.
+  useEffect(() => {
+    if (!isLoadingOlder) olderRequestedRef.current = false;
+  }, [isLoadingOlder]);
+
+  // 처음 열 때나 한 번 읽고도 화면이 덜 찼을 때 이어서 읽는다.
+  useEffect(() => {
+    requestOlder();
+  });
 
   if (messages.length === 0) {
     return (
@@ -119,9 +189,11 @@ export function MessageList({
     const container = scrollRef.current;
     if (!container) return;
 
-    isNearBottomRef.current =
-      container.scrollHeight - container.scrollTop - container.clientHeight <
-      NEAR_BOTTOM_PX;
+    const distance =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    isNearBottomRef.current = distance < NEAR_BOTTOM_PX;
+    isPinnedRef.current = distance < PINNED_BOTTOM_PX;
+    requestOlder();
   };
 
   // 본문의 마크다운 링크를 눌렀을 때는 스레드를 열지 않는다.
@@ -148,14 +220,19 @@ export function MessageList({
       className={cn('min-h-0 flex-1 overflow-y-auto', className)}
     >
       <div className="flex min-h-full flex-col justify-end py-4 pr-4 pl-2">
-        <div ref={topSentinelRef} aria-hidden className="h-px shrink-0" />
         {isLoadingOlder && (
           <p className="py-2 text-center typography-subtext-medium text-on-surface-variant">
             이전 메시지를 불러오는 중…
           </p>
         )}
-        <ol className="flex flex-col gap-[18px]">
-          {messages.map((message) => {
+        <ol
+          className="relative w-full"
+          style={{ height: virtualizer.getTotalSize() }}
+        >
+          {virtualizer.getVirtualItems().map((virtualItem) => {
+            const message = messages[virtualItem.index];
+            if (!message) return null;
+
             const selectable =
               onSelectMessage !== undefined &&
               message.type !== 'SYSTEM' &&
@@ -163,7 +240,10 @@ export function MessageList({
 
             return (
               <li
-                key={message.clientMessageId ?? message._id}
+                key={virtualItem.key}
+                data-index={virtualItem.index}
+                ref={virtualizer.measureElement}
+                style={{ transform: `translateY(${virtualItem.start}px)` }}
                 {...(selectable && {
                   role: 'button',
                   tabIndex: 0,
@@ -172,7 +252,7 @@ export function MessageList({
                   onKeyDown: handleKeyDown(message),
                 })}
                 className={cn(
-                  'rounded-[12px]',
+                  'absolute top-0 left-0 w-full rounded-[12px]',
                   selectable &&
                     'cursor-pointer hover:bg-surface focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none',
                 )}
