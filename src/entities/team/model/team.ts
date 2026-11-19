@@ -54,6 +54,8 @@ export interface TeamRole {
   permissions: Record<string, boolean>;
   createdAt: string | null;
   updatedAt: string | null;
+  /** 모든 멤버에게 자동 적용되는 기본 역할(@everyone). 직접 부여·회수·삭제할 수 없다 */
+  isDefault: boolean;
 }
 
 export interface TeamRolePermission {
