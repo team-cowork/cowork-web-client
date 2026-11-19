@@ -21,6 +21,7 @@ import { channelPath } from '@/shared/model/paths';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { ErrorState } from '@/shared/ui/error-state';
+import { MobileNavButton } from '@/shared/ui/mobile-nav-button';
 import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 import { FolderIcon } from '@/shared/ui/icons/folder-icon';
@@ -50,8 +51,9 @@ export function ProjectDetail({ teamId, projectId }: ProjectDetailProps) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-background">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-8 py-10">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-8 py-10 max-md:px-4 max-md:py-6">
         <header className="flex items-start gap-4">
+          <MobileNavButton className="self-center" />
           <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-tertiary-container text-on-tertiary-container">
             <FolderIcon size={24} />
           </span>

@@ -18,6 +18,7 @@ import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { LoadingPane } from '@/shared/ui/loading-pane';
+import { MobileNavButton } from '@/shared/ui/mobile-nav-button';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 import { SegmentedControl } from '@/shared/ui/segmented-control';
 
@@ -38,10 +39,11 @@ export default function TeamPullsPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-background">
-      <header className="flex h-12 shrink-0 items-center px-6">
+      <header className="flex h-12 shrink-0 items-center gap-2 px-6 max-md:px-4">
+        <MobileNavButton />
         <h1 className="typography-label-medium text-on-surface">PR 보드</h1>
       </header>
-      <div className="flex min-w-0 flex-1 flex-col gap-3 px-6 pb-6">
+      <div className="flex min-w-0 flex-1 flex-col gap-3 px-6 pb-6 max-md:px-4">
         <QueryBoundary
           loadingFallback={<LoadingPane label="프로젝트를 불러오는 중…" />}
           errorFallback={PullsError}

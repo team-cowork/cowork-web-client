@@ -79,10 +79,10 @@ function TeamRoleDetailContent({
   ).length;
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-dvh max-md:flex-col">
       <TeamRoleDetailNav teamId={teamId} roles={roles} activeRoleId={roleId} />
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-y-auto px-10 py-8">
+      <div className="flex min-w-0 flex-1 flex-col overflow-y-auto px-10 py-8 max-md:px-4 max-md:py-5">
         <div className="flex items-center justify-between gap-4 pr-12">
           <h1 className="typography-title-medium text-on-surface">
             역할 수정 — {role.name}

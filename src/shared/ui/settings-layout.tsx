@@ -10,12 +10,12 @@ export interface SettingsLayoutProps {
 
 export function SettingsLayout({ nav, footer, children }: SettingsLayoutProps) {
   return (
-    <div className="-mx-6 -my-5 flex flex-1">
-      <aside className="flex w-56 shrink-0 flex-col justify-between bg-surface-container-low px-3 py-5">
+    <div className="-mx-6 -my-5 flex flex-1 max-md:flex-col">
+      <aside className="flex w-56 shrink-0 flex-col justify-between bg-surface-container-low px-3 py-5 max-md:w-full max-md:gap-2 max-md:py-3">
         <div className="flex flex-col gap-0.5">{nav}</div>
         {footer && <div className="flex flex-col gap-0.5">{footer}</div>}
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col gap-3.5 px-6 py-5">
+      <div className="flex min-w-0 flex-1 flex-col gap-3.5 px-6 py-5 max-md:px-4">
         {children}
       </div>
     </div>

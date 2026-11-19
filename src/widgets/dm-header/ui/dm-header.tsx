@@ -9,6 +9,7 @@ import {
 } from '@/entities/user/model/user';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { cn } from '@/shared/lib/cn';
+import { MobileNavButton } from '@/shared/ui/mobile-nav-button';
 import { MoreIcon } from '@/shared/ui/icons/more-icon';
 import { PinIcon } from '@/shared/ui/icons/pin-icon';
 import { SearchIcon } from '@/shared/ui/icons/search-icon';
@@ -35,15 +36,19 @@ export function DmHeader({
     <header
       className={cn('flex h-12 shrink-0 items-center gap-2 px-4', className)}
     >
+      <MobileNavButton />
       <UserAvatar user={user} size={24} ringClassName="ring-background" />
-      <h1 className="shrink-0 typography-label-small text-on-surface">
+      <h1 className="min-w-0 truncate typography-label-small text-on-surface">
         {user ? (user.nickname ?? user.name) : ''}
       </h1>
 
       {subtitle && (
         <>
-          <span aria-hidden className="h-5 w-px shrink-0 bg-outline-variant" />
-          <p className="min-w-0 flex-1 truncate typography-subtext-medium text-on-surface-variant">
+          <span
+            aria-hidden
+            className="h-5 w-px shrink-0 bg-outline-variant max-md:hidden"
+          />
+          <p className="min-w-0 flex-1 truncate typography-subtext-medium text-on-surface-variant max-md:hidden">
             {subtitle}
           </p>
         </>

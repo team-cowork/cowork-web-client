@@ -64,7 +64,13 @@ export function MessageItem({
   );
 
   return (
-    <div className={cn('group relative flex items-start px-4 py-1', className)}>
+    <div
+      tabIndex={actions ? -1 : undefined}
+      className={cn(
+        'group relative flex items-start px-4 py-1 focus:outline-none',
+        className,
+      )}
+    >
       {onAuthorClick ? (
         <button
           type="button"
@@ -115,7 +121,7 @@ export function MessageItem({
             'absolute -top-3 right-4 z-10 flex items-center gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-0.5 shadow-sm transition-opacity',
             actionsVisible
               ? 'opacity-100'
-              : 'pointer-events-none opacity-0 group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100',
+              : 'pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 group-has-[:focus]:pointer-events-auto group-has-[:focus]:opacity-100 pointer-coarse:group-focus:pointer-events-auto pointer-coarse:group-focus:opacity-100',
           )}
         >
           {actions}
