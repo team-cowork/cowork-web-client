@@ -132,9 +132,15 @@ function ChannelFilesContent({
   const openAttachment = useOpenAttachment();
   // 열 때의 이미지 목록을 고정해, 보는 동안 새 파일이 올라와도 순번이 밀리지 않게 한다.
   const [viewer, setViewer] = useState<{
-    images: ViewerAttachment[];
+    images: (ViewerAttachment & { spoiler: boolean })[];
     index: number;
   } | null>(null);
+  // 뷰어에서 드러낸 스포일러 파일. 카드에는 썸네일이 없어 뷰어에서만 가린다.
+  const [revealed, setRevealed] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const revealKey = ({ messageId, attachmentIndex }: ViewerAttachment) =>
+    `${messageId}:${attachmentIndex}`;
 
   const list = files.data.pages.flatMap((page) => page.files);
 
@@ -146,11 +152,14 @@ function ChannelFilesContent({
     const index = imageFiles.findIndex(({ fileId }) => fileId === file.fileId);
     if (index >= 0) {
       setViewer({
-        images: imageFiles.map(({ messageId, attachmentIndex, fileName }) => ({
-          messageId,
-          attachmentIndex,
-          name: fileName,
-        })),
+        images: imageFiles.map(
+          ({ messageId, attachmentIndex, fileName, spoiler }) => ({
+            messageId,
+            attachmentIndex,
+            name: fileName,
+            spoiler: Boolean(spoiler),
+          }),
+        ),
         index,
       });
       return;
@@ -218,9 +227,15 @@ function ChannelFilesContent({
       {viewer && (
         <AttachmentImageViewer
           channelId={channelId}
-          images={viewer.images}
+          images={viewer.images.map((image) => ({
+            ...image,
+            covered: image.spoiler && !revealed.has(revealKey(image)),
+          }))}
           initialIndex={viewer.index}
           onClose={() => setViewer(null)}
+          onReveal={(image) =>
+            setRevealed((prev) => new Set(prev).add(revealKey(image)))
+          }
         />
       )}
     </>
