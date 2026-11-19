@@ -37,6 +37,7 @@ export interface Message {
   type: MessageType;
   attachments: MessageAttachment[];
   parentMessageId: string | null;
+  threadId?: number | null;
   isEdited: boolean;
   isPinned: boolean;
   clientMessageId: string | null;
@@ -50,7 +51,7 @@ export interface Message {
 
 export interface GetMessagesParams {
   before?: string;
-  parentMessageId?: string;
+  threadId?: number;
 }
 
 export interface SendMessageRequest {
@@ -58,7 +59,28 @@ export interface SendMessageRequest {
   type: 'TEXT' | 'FILE';
   attachments?: { objectKey: string }[];
   parentMessageId?: string;
+  threadId?: number;
   clientMessageId: string;
+}
+
+export interface Thread {
+  id: number;
+  channelId: number;
+  name: string;
+  parentMessageId: string;
+  isArchived: boolean;
+  createdBy: number;
+}
+
+export interface CreateThreadRequest {
+  name: string;
+  parentMessageId: string;
+}
+
+export interface ThreadRejectedEvent {
+  id: number;
+  channelId: number;
+  parentMessageId: string;
 }
 
 export interface CreateFileUploadUrlRequest {

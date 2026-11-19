@@ -4,7 +4,9 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { type Message } from '@/entities/message/model/message';
+import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
 import { useSendMessage } from '@/features/message-send/model/use-send-message';
+import { useCreateThread } from '@/features/thread-create/model/use-create-thread';
 import { ThreadPanel } from '@/widgets/message-list/ui/thread-panel';
 
 export interface ChannelThreadPanelProps {
@@ -16,8 +18,9 @@ export interface ChannelThreadPanelProps {
 }
 
 /**
- * 원본 메시지의 답글을 불러와 보여주고 답글을 보내는 스레드 패널.
- * 새 답글은 채널 화면의 실시간 구독이 이 패널의 캐시에도 넣어준다.
+ * 원본 메시지의 스레드 메시지를 불러와 보여주고 스레드에 메시지를 보내는 패널.
+ * 스레드가 아직 없으면 첫 메시지를 보낼 때 만든다.
+ * 새 스레드 메시지는 채널 화면의 실시간 구독이 이 패널의 캐시에도 넣어준다.
  */
 export function ChannelThreadPanel({
   channelId,
@@ -34,21 +37,66 @@ export function ChannelThreadPanel({
   });
   const root = cachedRoot ?? rootMessage;
 
-  const { data, isError, refetch } = useQuery(
-    messageQueries.replies(channelId, root._id),
+  const threads = useQuery(messageQueries.threads(channelId));
+  const thread = threads.data?.find(
+    (candidate) => candidate.parentMessageId === root._id,
   );
-  const { send, retry } = useSendMessage(channelId, root);
+  const threadMessages = useQuery({
+    ...messageQueries.thread(channelId, thread?.id ?? 0),
+    enabled: thread !== undefined,
+  });
+  const { send, retry } = useSendMessage(channelId);
+  const createThread = useCreateThread(channelId);
+
+  const draft = useMessageDraft({
+    onSubmit: (content) => {
+      if (thread) {
+        send(content, [], { threadId: thread.id });
+        return;
+      }
+
+      // `mutate`에 넘긴 콜백은 패널이 닫히면 불리지 않아, 스레드를 만드는 중에 패널을 닫으면
+      // 첫 메시지가 사라진다. Promise로 이어 가면 닫혀도 메시지를 보낸다.
+      createThread.mutateAsync(root).then(
+        (created) => {
+          send(content, [], { threadId: created.id });
+          // 만드는 동안 더 입력한 내용은 지우지 않는다.
+          draft.onChange((current) =>
+            current.trim() === content ? '' : current,
+          );
+        },
+        () => undefined,
+      );
+      return false;
+    },
+  });
 
   // 서버가 최신순으로 주므로 뒤집어 오래된 순으로 그린다.
-  const replies = data && [...data].reverse();
+  const replies = !threads.data
+    ? undefined
+    : thread
+      ? threadMessages.data && [...threadMessages.data].reverse()
+      : [];
 
   return (
     <ThreadPanel
       rootMessage={root}
       replies={replies}
-      isRepliesError={isError && !data}
-      onReloadReplies={() => void refetch()}
-      onSendReply={send}
+      isRepliesError={
+        (threads.isError && !threads.data) ||
+        (threadMessages.isError && !threadMessages.data)
+      }
+      onReloadReplies={() =>
+        void (thread ? threadMessages.refetch() : threads.refetch())
+      }
+      draft={draft}
+      sendDisabled={createThread.isPending}
+      sendDisabledReason="스레드를 만드는 중"
+      composerNotice={
+        createThread.isError
+          ? '스레드를 만들지 못했어요. 다시 보내 주세요.'
+          : undefined
+      }
       onRetryReply={retry}
       {...props}
     />

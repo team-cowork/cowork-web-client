@@ -11,7 +11,6 @@ import { isHttpStatus } from '@/shared/api/http-error';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { useLastChannelStore } from '@/entities/channel/model/last-channel-store';
 import { LiveStatusBadge } from '@/entities/live/ui/live-status-badge';
-import { toThreadRoot } from '@/entities/message/lib/to-thread-root';
 import { type Message } from '@/entities/message/model/message';
 import { VoiceParticipantBadge } from '@/features/voice-session/ui/voice-participant-badge';
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
@@ -152,7 +151,7 @@ function ChannelView({
             channelId={channelId}
             projectId={channel.projectId}
             placeholder={`#${channel.name}에 메시지 보내기`}
-            onSelectMessage={(message) => setThreadRoot(toThreadRoot(message))}
+            onSelectMessage={setThreadRoot}
           />
         )}
       </div>

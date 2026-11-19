@@ -12,14 +12,23 @@ import {
   type ConfirmedFile,
   type Message,
   type MessageReaction,
+  type Thread,
 } from '@/entities/message/model/message';
 
 /**
- * 메시지를 채널 목록에, 답글이면 원본의 스레드 캐시에도 넣는다.
+ * 메시지를 채널 목록에, 스레드 메시지면 그 스레드 캐시에만 넣는다.
  * 같은 `_id` 또는 `clientMessageId`가 있으면 교체해 낙관적 메시지를 실제 메시지로 바꾼다.
  */
 export function upsertMessage(queryClient: QueryClient, message: Message) {
-  const { channelId, parentMessageId } = message;
+  const { channelId, parentMessageId, threadId } = message;
+
+  if (threadId != null) {
+    queryClient.setQueryData(
+      messageQueries.thread(channelId, threadId).queryKey,
+      (messages) => messages && upsertNewestFirst(messages, message),
+    );
+    return;
+  }
 
   queryClient.setQueryData(
     messageQueries.byChannel(channelId).queryKey,
@@ -39,13 +48,28 @@ export function upsertMessage(queryClient: QueryClient, message: Message) {
       );
     },
   );
+}
 
-  if (parentMessageId !== null) {
-    queryClient.setQueryData(
-      messageQueries.replies(channelId, parentMessageId).queryKey,
-      (replies) => replies && upsertNewestFirst(replies, message),
-    );
-  }
+export function upsertThread(queryClient: QueryClient, thread: Thread) {
+  queryClient.setQueryData(
+    messageQueries.threads(thread.channelId).queryKey,
+    (threads) =>
+      threads && [
+        ...threads.filter((cached) => cached.id !== thread.id),
+        thread,
+      ],
+  );
+}
+
+export function removeThread(
+  queryClient: QueryClient,
+  channelId: number,
+  threadId: number,
+) {
+  queryClient.setQueryData(
+    messageQueries.threads(channelId).queryKey,
+    (threads) => threads?.filter((thread) => thread.id !== threadId),
+  );
 }
 
 function mapChannelMessages(
@@ -59,8 +83,8 @@ function mapChannelMessages(
     (data) => data && { ...data, pages: data.pages.map(transform) },
   );
   queryClient.setQueriesData<Message[]>(
-    { queryKey: messageQueries.repliesPrefix(channelId) },
-    (replies) => replies && transform(replies),
+    { queryKey: messageQueries.threadPrefix(channelId) },
+    (messages) => messages && transform(messages),
   );
   if (includePins) {
     queryClient.setQueryData(
@@ -185,38 +209,33 @@ export function setMessagePinned(
   });
 }
 
-/** 전송 상태와 관계없이 채널 목록에 이 메시지가 있는지 */
+function findCachedMessage(queryClient: QueryClient, message: Message) {
+  const { channelId, threadId } = message;
+  const messages =
+    threadId != null
+      ? queryClient.getQueryData(
+          messageQueries.thread(channelId, threadId).queryKey,
+        )
+      : queryClient
+          .getQueryData(messageQueries.byChannel(channelId).queryKey)
+          ?.pages.flat();
+
+  return messages?.find((cached) => isSameMessage(cached, message));
+}
+
+/** 전송 상태와 관계없이 채널 목록(스레드 메시지면 스레드)에 이 메시지가 있는지 */
 export function hasMessage(
   queryClient: QueryClient,
   message: Message,
 ): boolean {
-  const data = queryClient.getQueryData(
-    messageQueries.byChannel(message.channelId).queryKey,
-  );
-
-  return (
-    data?.pages.some((page) =>
-      page.some((cached) => isSameMessage(cached, message)),
-    ) ?? false
-  );
+  return findCachedMessage(queryClient, message) !== undefined;
 }
 
 export function isMessagePending(
   queryClient: QueryClient,
   message: Message,
 ): boolean {
-  const data = queryClient.getQueryData(
-    messageQueries.byChannel(message.channelId).queryKey,
-  );
-
-  return (
-    data?.pages.some((page) =>
-      page.some(
-        (cached) =>
-          cached.sendStatus === 'pending' && isSameMessage(cached, message),
-      ),
-    ) ?? false
-  );
+  return findCachedMessage(queryClient, message)?.sendStatus === 'pending';
 }
 
 // 전송 타임아웃 판정은 메시지 목록만 기다리면 되므로, 고정 메시지·파일 목록은
@@ -233,13 +252,17 @@ export function refetchChannelMessages(
     queryKey: messageQueries.channelFiles(channelId).queryKey,
     exact: true,
   });
+  void queryClient.invalidateQueries({
+    queryKey: messageQueries.threads(channelId).queryKey,
+    exact: true,
+  });
 
   return Promise.all([
     queryClient.invalidateQueries({
       queryKey: messageQueries.byChannel(channelId).queryKey,
     }),
     queryClient.invalidateQueries({
-      queryKey: messageQueries.repliesPrefix(channelId),
+      queryKey: messageQueries.threadPrefix(channelId),
     }),
   ]);
 }
