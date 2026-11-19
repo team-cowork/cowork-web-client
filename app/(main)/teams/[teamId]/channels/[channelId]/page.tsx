@@ -23,6 +23,7 @@ import { MessageSearchPanel } from '@/widgets/message-search/ui/message-search-p
 import { MessageList } from '@/widgets/message-list/ui/message-list';
 import { PinnedMessagesPanel } from '@/widgets/message-list/ui/pinned-messages-panel';
 import { ChannelThreadPanel } from '@/widgets/message-list/ui/channel-thread-panel';
+import { VoiceActivityPanel } from '@/widgets/voice-activity/ui/voice-activity-panel';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
@@ -73,7 +74,7 @@ export default function ChannelPage() {
   );
 }
 
-type SidePanel = 'members' | 'pins' | 'search';
+type SidePanel = 'members' | 'pins' | 'search' | 'activity';
 
 function ChannelView({
   teamId,
@@ -85,8 +86,9 @@ function ChannelView({
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
   const isMeetingNote = channel.viewType === 'MEETING_NOTE';
   // 회의록은 본문 폭이 넓어야 읽고 쓰기 편해서 멤버 패널을 닫은 채 시작한다.
+  // 음성 채널은 입장·퇴장 기록을 바로 보여 주어 쌓인 미읽음을 읽음 처리한다.
   const [sidePanel, setSidePanel] = useState<SidePanel | null>(
-    isMeetingNote ? null : 'members',
+    isMeetingNote ? null : channel.type === 'VOICE' ? 'activity' : 'members',
   );
   const [threadRoot, setThreadRoot] = useState<Message | null>(null);
 
@@ -131,6 +133,9 @@ function ChannelView({
           onToggleSearch={
             hasMessages ? () => toggleSidePanel('search') : undefined
           }
+          onToggleActivity={
+            isVoice ? () => toggleSidePanel('activity') : undefined
+          }
         />
 
         {isVoice ? (
@@ -169,6 +174,12 @@ function ChannelView({
         <PinnedMessagesPanel
           channelId={channelId}
           subtitle={`# ${channel.name}`}
+          onClose={() => setSidePanel(null)}
+        />
+      ) : sidePanel === 'activity' && isVoice ? (
+        <VoiceActivityPanel
+          channelId={channelId}
+          subtitle={channel.name}
           onClose={() => setSidePanel(null)}
         />
       ) : (
