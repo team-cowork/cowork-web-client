@@ -5,17 +5,17 @@ import { type DragEvent, useRef, useState } from 'react';
 /**
  * 영역에 파일을 끌어다 놓으면 첨부한다. 반환한 핸들러를 드롭 영역 요소에 펼쳐 넣는다.
  * 화면 안에서 끄는 것(이미지·텍스트 등)은 파일 첨부로 보지 않는다.
- * `onDropFiles`가 없으면 드롭을 받지 않는다.
+ * `onDropFiles`가 없으면 드롭을 받지 않으므로 핸들러도 돌려주지 않는다.
  */
 export function useFileDrop(onDropFiles?: (files: File[]) => void) {
   const [dragging, setDragging] = useState(false);
   const dragDepth = useRef(0);
   const internalDrag = useRef(false);
 
+  if (!onDropFiles) return { dragging: false, dropHandlers: {} };
+
   const acceptsDrop = (event: DragEvent) =>
-    onDropFiles !== undefined &&
-    !internalDrag.current &&
-    event.dataTransfer.types.includes('Files');
+    !internalDrag.current && event.dataTransfer.types.includes('Files');
 
   const dropHandlers = {
     onDragStart: () => {
@@ -56,7 +56,7 @@ export function useFileDrop(onDropFiles?: (files: File[]) => void) {
         )
         .map((item) => item.getAsFile())
         .filter((file) => file !== null);
-      if (files.length > 0) onDropFiles?.(files);
+      if (files.length > 0) onDropFiles(files);
     },
   };
 
