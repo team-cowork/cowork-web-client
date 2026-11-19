@@ -1,6 +1,6 @@
 'use client';
 
-import { type MouseEvent, type ReactNode, useId, useState } from 'react';
+import { type MouseEvent, type ReactNode, useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
@@ -61,9 +61,8 @@ export function MessageRow({
   const toggleReaction = useToggleReaction(message);
   const togglePin = useTogglePin(message);
   const openAttachment = useOpenAttachment();
-  const rowId = useId();
   const editing = useEditingMessageStore(
-    (state) => state.editingRowId === rowId,
+    (state) => state.editingMessageId === message._id,
   );
   const startEditing = useEditingMessageStore((state) => state.startEditing);
   const stopEditing = useEditingMessageStore((state) => state.stopEditing);
@@ -147,7 +146,7 @@ export function MessageRow({
                     aria-label="메시지 수정"
                     size="S"
                     variant="clear"
-                    onClick={() => startEditing(rowId)}
+                    onClick={() => startEditing(message._id)}
                   >
                     <EditIcon />
                   </IconButton>
@@ -170,7 +169,7 @@ export function MessageRow({
             <StopClick>
               <MessageEditForm
                 message={message}
-                onDone={() => stopEditing(rowId)}
+                onDone={() => stopEditing(message._id)}
               />
             </StopClick>
           ) : undefined

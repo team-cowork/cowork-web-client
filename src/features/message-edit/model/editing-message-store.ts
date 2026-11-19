@@ -1,16 +1,16 @@
 import { create } from 'zustand';
 
 interface EditingMessageState {
-  editingRowId: string | null;
-  startEditing: (rowId: string) => void;
-  stopEditing: (rowId: string) => void;
+  editingMessageId: string | null;
+  startEditing: (messageId: string) => void;
+  stopEditing: (messageId: string) => void;
 }
 
 export const useEditingMessageStore = create<EditingMessageState>()((set) => ({
-  editingRowId: null,
-  startEditing: (rowId) => set({ editingRowId: rowId }),
-  stopEditing: (rowId) =>
+  editingMessageId: null,
+  startEditing: (messageId) => set({ editingMessageId: messageId }),
+  stopEditing: (messageId) =>
     set((state) =>
-      state.editingRowId === rowId ? { editingRowId: null } : state,
+      state.editingMessageId === messageId ? { editingMessageId: null } : state,
     ),
 }));
