@@ -33,7 +33,7 @@ export function PinnedMessagesPanel({
     <aside
       aria-label="고정된 메시지"
       className={cn(
-        'flex w-100 shrink-0 flex-col border-l border-outline-variant bg-surface',
+        'flex w-100 shrink-0 flex-col border-l border-outline-variant bg-surface max-md:fixed max-md:inset-0 max-md:z-30 max-md:w-full max-md:border-l-0',
         className,
       )}
     >

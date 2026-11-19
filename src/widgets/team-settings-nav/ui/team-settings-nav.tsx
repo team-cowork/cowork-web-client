@@ -41,14 +41,14 @@ export function TeamSettingsNav({
     <nav
       aria-label="팀 설정"
       className={cn(
-        'flex w-60 shrink-0 flex-col bg-surface-container-low px-3 py-6',
+        'flex w-60 shrink-0 flex-col bg-surface-container-low px-3 py-6 max-md:w-full max-md:py-3 max-md:pr-14',
         className,
       )}
     >
-      <h1 className="truncate px-2.5 pb-4 typography-label-small text-on-surface">
+      <h1 className="truncate px-2.5 pb-4 typography-label-small text-on-surface max-md:pb-2">
         {teamName}
       </h1>
-      <ul className="flex flex-col gap-0.5">
+      <ul className="flex flex-col gap-0.5 max-md:flex-row max-md:overflow-x-auto">
         {sections.map((section) => {
           const active = pathname === section.href;
 
@@ -58,7 +58,7 @@ export function TeamSettingsNav({
                 href={section.href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex h-9 items-center rounded-lg px-2.5 typography-label-small transition-colors',
+                  'flex h-9 items-center rounded-lg px-2.5 typography-label-small whitespace-nowrap transition-colors',
                   active
                     ? 'bg-surface-container text-on-surface'
                     : 'text-on-surface-variant hover:bg-surface-container/60 hover:text-on-surface',
