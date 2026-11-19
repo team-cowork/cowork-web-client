@@ -5,7 +5,6 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import {
   buildEditorFields,
   serializeEditorFields,
-  toEditorValues,
 } from '@/entities/meeting-note/lib/editor-fields';
 import {
   clearMeetingNoteDraft,
@@ -20,7 +19,6 @@ import {
   type MeetingNoteContent,
   type MeetingNoteTemplate,
   parseMeetingNoteContent,
-  pickActiveTemplate,
 } from '@/entities/meeting-note/model/meeting-note';
 
 // 입력이 멈추고 이만큼 지나면 이 브라우저에 자동으로 임시저장한다
@@ -62,22 +60,21 @@ export function useMeetingNoteForm({
     const templateGone =
       !!stored &&
       !note &&
+      stored.templateId !== null &&
       !templates.some(({ id }) => id === stored.templateId);
     const draft = stored && !isStale && !templateGone ? stored : null;
     const content: MeetingNoteContent = draft?.content ?? noteContent;
 
     return {
-      // 템플릿에 입력 칸이 없는 키도 잃지 않도록 회의록과 임시저장본의 키를 모두 남긴다.
-      orphanSource: { ...noteContent, ...draft?.content },
+      // 이미 쓴 회의록은 템플릿을 바꿀 수 없으니, 템플릿에서 지워진 섹션의 내용도 잃지 않게
+      // 내용이 있는 키를 남긴다. 새 회의록은 고른 템플릿의 칸만 보여 준다.
+      orphanSource: note ? nonEmpty({ ...noteContent, ...draft?.content }) : {},
       restoredDraft: draft !== null,
       staleDraft: isStale,
-      templateId:
-        note?.templateId ??
-        draft?.templateId ??
-        pickActiveTemplate(templates)?.id ??
-        null,
+      // 새 회의록은 템플릿 없이 시작한다. 템플릿은 쓰는 사람이 골라서 쓴다.
+      templateId: note ? note.templateId : (draft?.templateId ?? null),
       title: draft?.title ?? note?.title ?? '',
-      values: toEditorValues(content),
+      values: content,
     };
   });
 
@@ -87,8 +84,13 @@ export function useMeetingNoteForm({
   // 게시하거나 버린 뒤에는 남은 자동 저장이 임시저장본을 되살리지 않게 막는다.
   const finished = useRef(false);
 
+  const fieldsOf = (id: number | null) =>
+    buildEditorFields(
+      templates.find((candidate) => candidate.id === id) ?? null,
+      initial.orphanSource,
+    );
   const template = templates.find(({ id }) => id === templateId) ?? null;
-  const fields = buildEditorFields(template, initial.orphanSource);
+  const fields = fieldsOf(templateId);
   const content = serializeEditorFields(fields, values);
   const attendeeCount = countAttendees(
     parseMeetingNoteContent(content),
@@ -112,7 +114,6 @@ export function useMeetingNoteForm({
   const isDirty = isFormDirty || hasExternalChanges;
 
   const writeDraft = () =>
-    templateId !== null &&
     writeMeetingNoteDraft(target, {
       templateId,
       title,
@@ -131,7 +132,7 @@ export function useMeetingNoteForm({
 
   // 입력이 바뀔 때마다 시간을 다시 잰다
   useEffect(() => {
-    if (!isFormDirty || templateId === null) return;
+    if (!isFormDirty) return;
 
     const timer = setTimeout(autoSave, AUTO_SAVE_DELAY_MS);
     return () => clearTimeout(timer);
@@ -148,7 +149,21 @@ export function useMeetingNoteForm({
   return {
     templateId,
     template,
-    selectTemplate: setTemplateId,
+    /** 이 템플릿으로 바꾸면 사라지는, 내용이 있는 칸의 제목들 */
+    lostBySwitchingTo: (nextId: number | null) => {
+      const next = new Set(fieldsOf(nextId).map(({ title: key }) => key));
+      return Object.keys(nonEmpty(values)).filter((key) => !next.has(key));
+    },
+    /** 템플릿을 바꾸고, 새 템플릿에 없는 칸의 내용은 버린다. */
+    selectTemplate: (nextId: number | null) => {
+      const next = new Set(fieldsOf(nextId).map(({ title: key }) => key));
+      setTemplateId(nextId);
+      setValues((prev) =>
+        Object.fromEntries(
+          Object.entries(prev).filter(([key]) => next.has(key)),
+        ),
+      );
+    },
     title,
     setTitle,
     trimmedTitle,
@@ -171,4 +186,10 @@ export function useMeetingNoteForm({
       clearMeetingNoteDraft(target);
     },
   };
+}
+
+function nonEmpty(content: MeetingNoteContent): MeetingNoteContent {
+  return Object.fromEntries(
+    Object.entries(content).filter(([, value]) => value.trim()),
+  );
 }

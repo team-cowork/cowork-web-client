@@ -17,7 +17,8 @@ export interface TemplatePickerProps {
   selected: MeetingNoteTemplate | null;
   /** 이미 쓴 회의록은 템플릿을 바꿀 수 없다. */
   locked: boolean;
-  onSelect: (templateId: number) => void;
+  /** null이면 템플릿 없이 쓴다. */
+  onSelect: (templateId: number | null) => void;
   onManage: () => void;
 }
 
@@ -142,6 +143,17 @@ export function TemplatePicker({
                   {LOCKED_REASON}
                 </p>
               )}
+              <MenuItem
+                role="menuitemradio"
+                aria-checked={selected === null}
+                tabIndex={-1}
+                disabled={locked && selected !== null}
+                icon={selected === null ? <CheckIcon size={16} /> : <span />}
+                onClick={() => choose(() => onSelect(null))}
+                className="disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                템플릿 없음
+              </MenuItem>
               {templates.map((template) => {
                 const isSelected = template.id === selected?.id;
                 return (
@@ -159,7 +171,7 @@ export function TemplatePicker({
                   </MenuItem>
                 );
               })}
-              {templates.length > 0 && <MenuSeparator />}
+              <MenuSeparator />
               <MenuItem
                 role="menuitem"
                 tabIndex={-1}
