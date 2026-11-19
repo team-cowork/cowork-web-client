@@ -65,6 +65,8 @@ export function useAttachmentUploads(channelId: number, scope?: string) {
         error: '파일을 보내지 못했어요',
       }),
     removeMany: (ids: string[]) => store.remove(key, ids),
+    /** 보내기 전 단계에서 멈췄을 때 "보내는 중"이던 첨부를 다시 보낼 수 있게 되돌린다 */
+    restoreReady: (ids: string[]) => store.update(key, ids, { status: 'done' }),
     /**
      * 스토어의 최신 상태에서 다 올라간 첨부를 꺼내 "보내는 중"으로 바꾼다.
      * 렌더 시점 값을 쓰지 않으므로 여러 번 불려도 같은 첨부를 두 번 꺼내지 않는다.

@@ -1,9 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
+
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { type Message } from '@/entities/message/model/message';
+import { clearAttachmentDraft } from '@/features/message-attachment/model/attachment-upload-store';
 import { useAttachmentUploads } from '@/features/message-attachment/model/use-attachment-uploads';
 import { AttachmentDrafts } from '@/features/message-attachment/ui/attachment-drafts';
 import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
@@ -53,19 +56,28 @@ export function ChannelThreadPanel({
   const { send, retry } = useSendMessage(channelId);
   const createThread = useCreateThread(channelId);
   // 채널 입력창의 첨부와 섞이지 않도록 스레드마다 따로 둔다.
-  const attachments = useAttachmentUploads(channelId, `thread:${root._id}`);
+  const attachmentScope = `thread:${root._id}`;
+  const attachments = useAttachmentUploads(channelId, attachmentScope);
   const canSendEmpty = attachments.confirmedFiles.length > 0;
+
+  // 입력한 글은 패널을 닫으면 사라지므로, 첨부도 함께 지워 첨부만 남거나 쌓이지 않게 한다.
+  useEffect(
+    () => () => clearAttachmentDraft(channelId, attachmentScope),
+    [channelId, attachmentScope],
+  );
 
   const draft = useMessageDraft({
     allowEmpty: canSendEmpty,
     onSubmit: (content) => {
-      const files = attachments.confirmedFiles;
-      // 실패한 첨부는 조용히 버리지 않고 이유와 함께 남겨 다시 올리거나 지울 수 있게 한다
-      const clearSentFiles = attachments.clearSent;
+      // 보낼 첨부를 "보내는 중"으로 바꿔, 스레드를 만드는 사이에 지우거나 바꾸지 못하게 한다.
+      // 실패한 첨부는 담지 않고 이유와 함께 남겨 다시 올리거나 지울 수 있게 한다.
+      const batch = attachments.takeReadyToSend();
+      const files = batch?.files ?? [];
+      const ids = batch?.ids ?? [];
 
       if (thread) {
         send(content, files, { threadId: thread.id });
-        clearSentFiles();
+        attachments.removeMany(ids);
         return;
       }
 
@@ -74,14 +86,14 @@ export function ChannelThreadPanel({
       createThread.mutateAsync(root).then(
         (created) => {
           send(content, files, { threadId: created.id });
-          clearSentFiles();
+          attachments.removeMany(ids);
           // 만드는 동안 더 입력한 내용은 지우지 않는다.
           draft.onChange((current) =>
             current.trim() === content ? '' : current,
           );
         },
         // 스레드를 만들지 못하면 입력과 첨부를 남겨 다시 보낼 수 있게 한다.
-        () => undefined,
+        () => attachments.restoreReady(ids),
       );
       return false;
     },

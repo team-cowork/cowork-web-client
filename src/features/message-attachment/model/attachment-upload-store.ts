@@ -38,6 +38,14 @@ export function toDraftKey(channelId: number, scope?: string) {
   return scope ? `${channelId}:${scope}` : String(channelId);
 }
 
+/** 입력창을 떠날 때 그 입력창의 첨부를 모두 지운다. 올리던 업로드는 멈춘다. */
+export function clearAttachmentDraft(channelId: number, scope?: string) {
+  const store = useAttachmentUploadStore.getState();
+  const key = toDraftKey(channelId, scope);
+  const ids = (store.uploadsByDraft[key] ?? []).map(({ id }) => id);
+  if (ids.length > 0) store.remove(key, ids);
+}
+
 interface AttachmentUploadState {
   uploadsByDraft: Record<AttachmentDraftKey, AttachmentUpload[]>;
   add: (
