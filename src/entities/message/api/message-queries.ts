@@ -6,6 +6,7 @@ import { getPins } from '@/entities/message/api/get-pins';
 import { getProjectMessageSearch } from '@/entities/message/api/get-project-message-search';
 import { getTeamMessageSearch } from '@/entities/message/api/get-team-message-search';
 import { getTeamUnread } from '@/entities/message/api/get-team-unread';
+import { getThreads } from '@/entities/message/api/get-threads';
 import {
   getMessages,
   MESSAGE_PAGE_SIZE,
@@ -15,14 +16,15 @@ import { type SearchMessagesParams } from '@/entities/message/model/message';
 const UNREAD_REFETCH_INTERVAL_MS = 30 * 1000;
 // 첨부 URL은 60초 뒤 만료되므로 그보다 조금 일찍 새로 받는다.
 const ATTACHMENT_URL_STALE_MS = 50 * 1000;
+const THREADS_STALE_MS = 5 * 60 * 1000;
 
 // 새 메시지·수정·삭제는 소켓 이벤트로 캐시에 직접 반영한다.
 // 포커스 복귀 때 다시 받아오면 전송 중인 메시지가 사라지므로 끈다.
 export const messageQueries = {
   all: () => ['message'] as const,
   unreadPrefix: () => [...messageQueries.all(), 'unread'] as const,
-  repliesPrefix: (channelId: number) =>
-    [...messageQueries.all(), 'replies', channelId] as const,
+  threadPrefix: (channelId: number) =>
+    [...messageQueries.all(), 'thread', channelId] as const,
   byChannel: (channelId: number) =>
     infiniteQueryOptions({
       queryKey: [...messageQueries.all(), 'byChannel', channelId],
@@ -36,11 +38,19 @@ export const messageQueries = {
       staleTime: 0,
       refetchOnWindowFocus: false,
     }),
-  replies: (channelId: number, parentMessageId: string) =>
+  thread: (channelId: number, threadId: number) =>
     queryOptions({
-      queryKey: [...messageQueries.repliesPrefix(channelId), parentMessageId],
-      queryFn: () => getMessages(channelId, { parentMessageId }),
+      queryKey: [...messageQueries.threadPrefix(channelId), threadId],
+      queryFn: () => getMessages(channelId, { threadId }),
       staleTime: 0,
+      refetchOnWindowFocus: false,
+    }),
+  threads: (channelId: number) =>
+    queryOptions({
+      queryKey: [...messageQueries.all(), 'threads', channelId],
+      queryFn: () => getThreads(channelId),
+      // 스레드 생성·변경은 소켓 이벤트로 캐시에 반영하므로, 패널을 열 때마다 전체를 다시 받지 않는다.
+      staleTime: THREADS_STALE_MS,
       refetchOnWindowFocus: false,
     }),
   pins: (channelId: number) =>

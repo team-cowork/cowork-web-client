@@ -12,6 +12,8 @@ export interface ViewerAttachment {
   messageId: string;
   attachmentIndex: number;
   name: string;
+  /** 아직 드러내지 않은 스포일러면 뷰어에서도 가려 둔다 */
+  covered?: boolean;
 }
 
 export interface AttachmentImageViewerProps {
@@ -20,6 +22,8 @@ export interface AttachmentImageViewerProps {
   images: ViewerAttachment[];
   initialIndex: number;
   onClose: () => void;
+  /** 가려 둔 스포일러를 뷰어에서 드러냈을 때. 목록의 가림도 함께 풀 수 있게 알린다. */
+  onReveal?: (image: ViewerAttachment) => void;
 }
 
 /**
@@ -31,6 +35,7 @@ export function AttachmentImageViewer({
   images,
   initialIndex,
   onClose,
+  onReveal,
 }: AttachmentImageViewerProps) {
   const [index, setIndex] = useState(initialIndex);
   const current = images[index] ?? images[0];
@@ -64,6 +69,8 @@ export function AttachmentImageViewer({
           attachmentIndex: current.attachmentIndex,
         })
       }
+      covered={current.covered}
+      onReveal={() => onReveal?.(current)}
     />
   );
 }

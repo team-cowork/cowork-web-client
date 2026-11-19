@@ -1,10 +1,11 @@
 'use client';
 
-import { type MouseEvent, type ReactNode, useState } from 'react';
+import { type MouseEvent, type ReactNode, useId, useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
 import { type Message } from '@/entities/message/model/message';
+import { isCoveredSpoiler } from '@/entities/message/ui/message-attachments';
 import {
   MessageView,
   type MessageTimestampFormat,
@@ -13,6 +14,7 @@ import { userQueries } from '@/entities/user/api/user-queries';
 import { useOpenAttachment } from '@/features/attachment-download/model/use-open-attachment';
 import { AttachmentImageViewer } from '@/features/attachment-download/ui/attachment-image-viewer';
 import { DeleteMessageDialog } from '@/features/message-delete/ui/delete-message-dialog';
+import { useEditingMessageStore } from '@/features/message-edit/model/editing-message-store';
 import { MessageEditForm } from '@/features/message-edit/ui/message-edit-form';
 import { useTogglePin } from '@/features/message-pin/model/use-toggle-pin';
 import { useToggleReaction } from '@/features/message-reaction/model/use-toggle-reaction';
@@ -60,11 +62,22 @@ export function MessageRow({
   const toggleReaction = useToggleReaction(message);
   const togglePin = useTogglePin(message);
   const openAttachment = useOpenAttachment();
-  const [editing, setEditing] = useState(false);
+  const rowId = useId();
+  const editing = useEditingMessageStore(
+    (state) => state.editingRowId === rowId,
+  );
+  const startEditing = useEditingMessageStore((state) => state.startEditing);
+  const stopEditing = useEditingMessageStore((state) => state.stopEditing);
   const [deleting, setDeleting] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   // 뷰어에서 처음 보여 줄 이미지 첨부의 순번. 열려 있지 않으면 null이다.
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  // 드러낸 스포일러 첨부 순번. 목록과 뷰어가 함께 써서 한쪽에서 드러내면 다른 쪽도 드러난다.
+  const [revealed, setRevealed] = useState<ReadonlySet<number>>(
+    () => new Set(),
+  );
+  const reveal = (attachmentIndex: number) =>
+    setRevealed((prev) => new Set(prev).add(attachmentIndex));
   // 프로필을 띄울 기준 요소(누른 작성자 아바타·이름). 닫혀 있으면 null이다.
   const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null);
 
@@ -73,9 +86,20 @@ export function MessageRow({
   const isMine = me !== undefined && message.authorId === me.id;
 
   // 이미지는 앱 안 뷰어로 보고, 나머지 파일은 새 탭으로 연다.
+  // 아직 드러내지 않은 스포일러는 뷰어에서 넘겨 볼 때도 가려 둔다.
   const images = message.attachments.flatMap((attachment, attachmentIndex) =>
     getPreviewImageType(attachment.name)
-      ? [{ messageId: message._id, attachmentIndex, name: attachment.name }]
+      ? [
+          {
+            messageId: message._id,
+            attachmentIndex,
+            name: attachment.name,
+            covered: isCoveredSpoiler(
+              attachment,
+              revealed.has(attachmentIndex),
+            ),
+          },
+        ]
       : [],
   );
   const openAttachmentAt = (attachmentIndex: number) => {
@@ -103,6 +127,8 @@ export function MessageRow({
         onRetry={onRetry}
         onToggleReaction={interactive ? toggleReaction : undefined}
         onOpenAttachment={interactive ? openAttachmentAt : undefined}
+        revealedAttachments={revealed}
+        onRevealAttachment={reveal}
         onOpenAuthor={message.type === 'SYSTEM' ? undefined : setProfileAnchor}
         actionsVisible={pickerOpen}
         actions={
@@ -141,7 +167,7 @@ export function MessageRow({
                     aria-label="메시지 수정"
                     size="S"
                     variant="clear"
-                    onClick={() => setEditing(true)}
+                    onClick={() => startEditing(rowId)}
                   >
                     <EditIcon />
                   </IconButton>
@@ -164,7 +190,7 @@ export function MessageRow({
             <StopClick>
               <MessageEditForm
                 message={message}
-                onDone={() => setEditing(false)}
+                onDone={() => stopEditing(rowId)}
               />
             </StopClick>
           ) : undefined
@@ -178,6 +204,7 @@ export function MessageRow({
             images={images}
             initialIndex={viewerIndex}
             onClose={() => setViewerIndex(null)}
+            onReveal={(image) => reveal(image.attachmentIndex)}
           />
         </StopClick>
       )}

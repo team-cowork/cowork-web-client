@@ -27,7 +27,15 @@ export function useAttachmentUploads(channelId: number, scope?: string) {
   const ready = uploads.filter((upload) => upload.status === 'done');
   // 원본 파일을 함께 넘겨 서버 미리보기를 받기 전까지 화면에서 바로 그릴 수 있게 한다.
   const confirmedFiles = ready.flatMap((upload) =>
-    upload.confirmed ? [{ ...upload.confirmed, localFile: upload.file }] : [],
+    upload.confirmed
+      ? [
+          {
+            ...upload.confirmed,
+            spoiler: upload.spoiler,
+            localFile: upload.file,
+          },
+        ]
+      : [],
   );
 
   return {
@@ -39,6 +47,11 @@ export function useAttachmentUploads(channelId: number, scope?: string) {
     add: (files: Iterable<File>) => store.add(key, channelId, files),
     retry: (id: string) => store.retry(key, id),
     remove: (id: string) => store.remove(key, [id]),
+    /** 보내기 전에 첨부를 스포일러로 가릴지 켜고 끈다 */
+    toggleSpoiler: (id: string) => {
+      const upload = uploads.find((item) => item.id === id);
+      if (upload) store.update(key, [id], { spoiler: !upload.spoiler });
+    },
     /** 보낸 첨부만 지우고, 실패한 첨부는 이유와 함께 남겨 둔다 */
     clearSent: () =>
       store.remove(
@@ -75,7 +88,13 @@ export function useAttachmentUploads(channelId: number, scope?: string) {
         // 원본 파일을 함께 넘겨 서버 미리보기를 받기 전까지 화면에서 바로 그릴 수 있게 한다.
         files: sendable.flatMap((upload) =>
           upload.confirmed
-            ? [{ ...upload.confirmed, localFile: upload.file }]
+            ? [
+                {
+                  ...upload.confirmed,
+                  spoiler: upload.spoiler,
+                  localFile: upload.file,
+                },
+              ]
             : [],
         ),
       };

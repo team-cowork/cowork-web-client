@@ -4,7 +4,7 @@ import { type ReactNode, useLayoutEffect, useRef } from 'react';
 
 import { type Message } from '@/entities/message/model/message';
 import { useFileDrop } from '@/features/message-composer/model/use-file-drop';
-import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
+import { type useMessageDraft } from '@/features/message-composer/model/use-message-draft';
 import { AttachButton } from '@/features/message-composer/ui/attach-button';
 import { FileDropOverlay } from '@/features/message-composer/ui/file-drop-overlay';
 import { MessageComposer } from '@/features/message-composer/ui/message-composer';
@@ -19,7 +19,8 @@ export interface ThreadPanelProps {
   replies: Message[] | undefined;
   isRepliesError?: boolean;
   onReloadReplies?: () => void;
-  onSendReply: (content: string) => void;
+  draft: ReturnType<typeof useMessageDraft>;
+  composerNotice?: string;
   onRetryReply?: (message: Message) => void;
   onClose: () => void;
   /** 없으면 첨부 버튼을 비활성화한다 */
@@ -48,7 +49,8 @@ export function ThreadPanel({
   replies,
   isRepliesError = false,
   onReloadReplies,
-  onSendReply,
+  draft,
+  composerNotice,
   onRetryReply,
   onClose,
   onAttachFiles,
@@ -58,10 +60,6 @@ export function ThreadPanel({
   sendDisabledReason,
   className,
 }: ThreadPanelProps) {
-  const draft = useMessageDraft({
-    onSubmit: onSendReply,
-    allowEmpty: canSendEmpty,
-  });
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { dragging, dropHandlers } = useFileDrop(onAttachFiles);
@@ -150,6 +148,11 @@ export function ThreadPanel({
       </div>
 
       <div className="shrink-0 px-3 pt-1 pb-4">
+        {composerNotice && (
+          <p className="px-1 pb-1 typography-subtext-small text-on-surface-variant">
+            {composerNotice}
+          </p>
+        )}
         <MessageComposer
           value={draft.value}
           onChange={draft.onChange}

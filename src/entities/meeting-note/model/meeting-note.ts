@@ -20,7 +20,8 @@ export interface MeetingNoteAttachment {
 export interface MeetingNote {
   id: number;
   channelId: number;
-  templateId: number;
+  /** 템플릿 없이 쓴 회의록이면 null */
+  templateId: number | null;
   title: string;
   /** 섹션 제목을 키로 하는 JSON 객체 문자열 */
   content: string;
@@ -53,7 +54,8 @@ export interface MeetingNoteTemplate {
 }
 
 export interface CreateMeetingNoteRequest {
-  templateId: number;
+  /** null이면 템플릿 없이 본문 하나로 쓴다. */
+  templateId: number | null;
   title: string;
   content: string;
   attachments?: MeetingNoteAttachment[];
@@ -87,7 +89,7 @@ export const MEETING_NOTE_CONTENT_MAX_LENGTH = 100_000;
 
 export type MeetingNoteContent = Record<string, string>;
 
-/** 섹션으로 나눌 수 없는 본문을 담아 두는 섹션 제목 */
+/** 템플릿 없이 쓴 본문과, 섹션으로 나눌 수 없는 본문을 담아 두는 섹션 제목 */
 export const UNSTRUCTURED_CONTENT_TITLE = '본문';
 
 /**
@@ -123,6 +125,18 @@ export function serializeMeetingNoteContent(
   return JSON.stringify(content);
 }
 
+/** 템플릿 없이 본문 하나만 쓴 회의록인지. 이때는 섹션 제목 없이 문서처럼 보여 준다. */
+export function isUnstructuredContent(
+  sections: { title: string }[],
+  template: MeetingNoteTemplate | null,
+): boolean {
+  return (
+    template === null &&
+    sections.length === 1 &&
+    sections[0]?.title === UNSTRUCTURED_CONTENT_TITLE
+  );
+}
+
 export interface MeetingNoteSectionView {
   title: string;
   type: SectionType;
@@ -148,15 +162,6 @@ export function toSectionViews(
     .map(([title, value]) => ({ title, type: 'MARKDOWN' as const, value }));
 
   return [...fromTemplate, ...orphaned];
-}
-
-/** 쓰려고 고를 템플릿. 활성 템플릿이 없으면 가장 먼저 만든 것을 쓴다. */
-export function pickActiveTemplate(
-  templates: MeetingNoteTemplate[],
-): MeetingNoteTemplate | null {
-  return (
-    templates.find((template) => template.isActive) ?? templates[0] ?? null
-  );
 }
 
 /** 참석자 칸은 쉼표로 구분한 이름 목록이다. */

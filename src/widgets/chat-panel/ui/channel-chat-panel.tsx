@@ -176,7 +176,7 @@ function ChannelChatBody({
         }
 
         command.reset();
-        send(content, attachments.confirmedFiles, replyTo);
+        send(content, attachments.confirmedFiles, { replyTo });
         setReplyTarget(undefined);
         // 실패한 첨부는 조용히 버리지 않고 이유와 함께 남겨 다시 올리거나 지울 수 있게 한다
         attachments.clearSent();
@@ -233,6 +233,7 @@ function ChannelChatBody({
           uploads={attachments.uploads}
           onRemove={attachments.remove}
           onRetry={attachments.retry}
+          onToggleSpoiler={attachments.toggleSpoiler}
         />
       }
       canSendEmpty={attachments.confirmedFiles.length > 0}
