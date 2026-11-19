@@ -1,12 +1,16 @@
 import {
   type MeetingNoteContent,
-  type MeetingNoteTemplate,
   type SectionType,
+  type TemplateSection,
   serializeMeetingNoteContent,
   toSectionType,
+  UNSTRUCTURED_CONTENT_TITLE,
 } from '@/entities/meeting-note/model/meeting-note';
 
 export const DEFAULT_SECTION_PLACEHOLDER = '내용을 입력하세요...';
+
+/** 템플릿 없이 쓸 때 본문 칸의 안내 문구 */
+export const UNSTRUCTURED_PLACEHOLDER = '내용을 입력하세요';
 
 /** 편집 화면의 입력 칸 하나 */
 export interface EditorField {
@@ -18,22 +22,33 @@ export interface EditorField {
 
 /**
  * 템플릿 섹션 순서대로 입력 칸을 만든다.
+ * `sections`가 null이면 템플릿 없이 쓰는 회의록이라 본문 칸 하나만 둔다. 템플릿이 지워진 회의록은
+ * null이 아니라 빈 배열로 넘겨, 원래 없던 본문 칸이 생기지 않게 한다.
  * 템플릿에 없는 키(지워지거나 이름이 바뀐 섹션의 내용)도 잃지 않게 끝에 붙인다.
  */
 export function buildEditorFields(
-  template: MeetingNoteTemplate | null,
+  sections: TemplateSection[] | null,
   orphanSource: MeetingNoteContent,
 ): EditorField[] {
-  const sections = template?.sections ?? [];
-  const known = new Set(sections.map((section) => section.title));
+  const fromTemplate: EditorField[] = sections
+    ? sections.map((section) => ({
+        title: section.title,
+        type: toSectionType(section.type),
+        placeholder: section.placeholder || DEFAULT_SECTION_PLACEHOLDER,
+        isRequired: section.isRequired,
+      }))
+    : [
+        {
+          title: UNSTRUCTURED_CONTENT_TITLE,
+          type: 'MARKDOWN',
+          placeholder: UNSTRUCTURED_PLACEHOLDER,
+          isRequired: false,
+        },
+      ];
+  const known = new Set(fromTemplate.map((field) => field.title));
 
   return [
-    ...sections.map((section) => ({
-      title: section.title,
-      type: toSectionType(section.type),
-      placeholder: section.placeholder || DEFAULT_SECTION_PLACEHOLDER,
-      isRequired: section.isRequired,
-    })),
+    ...fromTemplate,
     ...Object.keys(orphanSource)
       .filter((title) => !known.has(title))
       .map((title) => ({
@@ -45,37 +60,6 @@ export function buildEditorFields(
   ];
 }
 
-export const EDITOR_BULLET = '• ';
-
-/**
- * 본문은 마크다운 목록(`- `)으로 저장하고, 편집기에서는 글머리 기호(`• `)로 보여 준다.
- * 두 표기는 길이가 같지만, 입력 중에 바꾸면 textarea 값이 통째로 바뀌어 커서가 끝으로 간다.
- * 그래서 입력 칸은 바꾼 뒤 커서를 원래 자리로 되돌려야 한다.
- */
-export function toEditorBullets(markdown: string): string {
-  return markdown.replace(/^- /gm, EDITOR_BULLET);
-}
-
-export function toMarkdownBullets(text: string): string {
-  return text.replace(/^• /gm, '- ');
-}
-
-export function isEditorBulletLine(line: string): boolean {
-  return line.startsWith(EDITOR_BULLET);
-}
-
-/** 저장된 본문을 편집기 표기로 바꾼다. 목록은 글머리 기호로 보여 준다. */
-export function toEditorValues(
-  content: MeetingNoteContent,
-): MeetingNoteContent {
-  return Object.fromEntries(
-    Object.entries(content).map(([key, value]) => [
-      key,
-      toEditorBullets(value),
-    ]),
-  );
-}
-
 /** 입력 칸의 값을 서버에 보낼 본문 JSON으로 바꾼다. */
 export function serializeEditorFields(
   fields: EditorField[],
@@ -83,14 +67,11 @@ export function serializeEditorFields(
 ): string {
   return serializeMeetingNoteContent(
     Object.fromEntries(
-      fields.map((field) => {
-        // 목록을 끝내며 남은 빈 줄 같은 끝 공백은 저장하지 않는다.
-        const value = (values[field.title] ?? '').trimEnd();
-        return [
-          field.title,
-          field.type === 'MARKDOWN' ? toMarkdownBullets(value) : value,
-        ];
-      }),
+      // 끝에 남은 빈 줄 같은 공백은 저장하지 않는다.
+      fields.map((field) => [
+        field.title,
+        (values[field.title] ?? '').trimEnd(),
+      ]),
     ),
   );
 }
