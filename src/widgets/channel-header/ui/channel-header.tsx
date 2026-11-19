@@ -8,6 +8,7 @@ import { type Channel } from '@/entities/channel/model/channel';
 import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
 import { cn } from '@/shared/lib/cn';
 import { channelSettingsOverviewPath } from '@/shared/model/paths';
+import { HistoryIcon } from '@/shared/ui/icons/history-icon';
 import { LockIcon } from '@/shared/ui/icons/lock-icon';
 import { PinIcon } from '@/shared/ui/icons/pin-icon';
 import { SearchIcon } from '@/shared/ui/icons/search-icon';
@@ -23,6 +24,8 @@ export interface ChannelHeaderProps {
   onTogglePins?: () => void;
   /** 없으면 검색 버튼을 비활성화한다 */
   onToggleSearch?: () => void;
+  /** 없으면 활동 기록 버튼을 숨긴다(음성 채널에서만 쓴다) */
+  onToggleActivity?: () => void;
   className?: string;
 }
 
@@ -33,6 +36,7 @@ export function ChannelHeader({
   onToggleMembers,
   onTogglePins,
   onToggleSearch,
+  onToggleActivity,
   className,
 }: ChannelHeaderProps) {
   return (
@@ -84,6 +88,16 @@ export function ChannelHeader({
             className="cursor-pointer text-on-surface-variant hover:text-on-surface"
           >
             <PinIcon size={20} />
+          </button>
+        )}
+        {onToggleActivity && (
+          <button
+            type="button"
+            aria-label="활동 기록"
+            onClick={onToggleActivity}
+            className="cursor-pointer text-on-surface-variant hover:text-on-surface"
+          >
+            <HistoryIcon size={20} />
           </button>
         )}
         <button
