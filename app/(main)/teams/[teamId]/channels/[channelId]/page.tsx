@@ -24,6 +24,7 @@ import { MessageList } from '@/widgets/message-list/ui/message-list';
 import { PinnedMessagesPanel } from '@/widgets/message-list/ui/pinned-messages-panel';
 import { ChannelThreadPanel } from '@/widgets/message-list/ui/channel-thread-panel';
 import { VoiceActivityPanel } from '@/widgets/voice-activity/ui/voice-activity-panel';
+import { VoiceLogReader } from '@/widgets/voice-activity/ui/voice-log-reader';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
@@ -85,10 +86,11 @@ function ChannelView({
 }) {
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
   const isMeetingNote = channel.viewType === 'MEETING_NOTE';
+  const isVoice = channel.type === 'VOICE';
   // 회의록은 본문 폭이 넓어야 읽고 쓰기 편해서 멤버 패널을 닫은 채 시작한다.
   // 음성 채널은 입장·퇴장 기록을 바로 보여 주어 쌓인 미읽음을 읽음 처리한다.
   const [sidePanel, setSidePanel] = useState<SidePanel | null>(
-    isMeetingNote ? null : channel.type === 'VOICE' ? 'activity' : 'members',
+    isMeetingNote ? null : isVoice ? 'activity' : 'members',
   );
   const [threadRoot, setThreadRoot] = useState<Message | null>(null);
 
@@ -104,7 +106,6 @@ function ChannelView({
     notFound();
   }
 
-  const isVoice = channel.type === 'VOICE';
   // 고정 메시지와 메시지 검색은 채팅이 있는 채널에서만 연다.
   const hasMessages = !isVoice && !isMeetingNote;
 
@@ -138,6 +139,7 @@ function ChannelView({
           }
         />
 
+        {isVoice && <VoiceLogReader channelId={channelId} />}
         {isVoice ? (
           <VoiceStage channelId={channelId} />
         ) : channel.viewType === 'FILE_SHARE' ? (

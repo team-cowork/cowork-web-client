@@ -16,7 +16,7 @@ import {
   type ViewerAttachment,
 } from '@/features/attachment-download/ui/attachment-image-viewer';
 import { useDeleteChannelFile } from '@/features/channel-file/model/use-delete-channel-file';
-import { useMarkChannelRead } from '@/features/channel-read/model/use-mark-channel-read';
+import { useMarkLatestRead } from '@/features/channel-read/model/use-mark-latest-read';
 import { useAttachmentUploads } from '@/features/message-attachment/model/use-attachment-uploads';
 import { AttachmentDrafts } from '@/features/message-attachment/ui/attachment-drafts';
 import { useSendMessage } from '@/features/message-send/model/use-send-message';
@@ -43,6 +43,8 @@ export interface FileSharePanelProps {
  */
 export function FileSharePanel({ channelId, className }: FileSharePanelProps) {
   useChannelMessageEvents(channelId);
+  // 파일 말고 다른 메시지가 뒤에 있어도 채널의 가장 최근 메시지까지 읽음 처리한다.
+  useMarkLatestRead(channelId);
 
   const { sendAsync } = useSendMessage(channelId);
   const uploads = useAttachmentUploads(channelId);
@@ -135,16 +137,6 @@ function ChannelFilesContent({
   } | null>(null);
 
   const list = files.data.pages.flatMap((page) => page.files);
-
-  // 파일은 채팅 메시지로 저장되므로, 가장 최근 파일의 메시지까지 읽음 처리한다.
-  useMarkChannelRead(
-    channelId,
-    list.reduce<string | undefined>(
-      (latest, { messageId }) =>
-        latest === undefined || messageId > latest ? messageId : latest,
-      undefined,
-    ),
-  );
 
   // 이미지는 불러온 파일 중 이미지끼리 넘겨 보는 뷰어로 열고, 나머지 파일은 새 탭으로 연다.
   const open = (file: ChannelFile) => {
