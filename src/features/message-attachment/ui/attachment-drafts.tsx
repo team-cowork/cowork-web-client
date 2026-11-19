@@ -166,7 +166,8 @@ function AttachmentDraft({
       )}
 
       <div className="pointer-events-none absolute -top-2 -right-2 flex items-center gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-0.5 opacity-0 shadow-sm transition-opacity group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100">
-        {imageType && onToggleSpoiler && (
+        {/* 보내는 중인 첨부는 이미 전송에 담겼으므로 바꾸거나 지울 수 없다 */}
+        {imageType && onToggleSpoiler && status !== 'sending' && (
           <button
             type="button"
             onClick={onToggleSpoiler}
@@ -197,14 +198,16 @@ function AttachmentDraft({
             <EyeIcon size={16} />
           </button>
         )}
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label={`${file.name} 첨부 삭제`}
-          className="flex size-7 cursor-pointer items-center justify-center rounded-md text-error hover:bg-error/10"
-        >
-          <TrashIcon size={16} />
-        </button>
+        {status !== 'sending' && (
+          <button
+            type="button"
+            onClick={onRemove}
+            aria-label={`${file.name} 첨부 삭제`}
+            className="flex size-7 cursor-pointer items-center justify-center rounded-md text-error hover:bg-error/10"
+          >
+            <TrashIcon size={16} />
+          </button>
+        )}
       </div>
     </div>
   );

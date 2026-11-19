@@ -1,9 +1,14 @@
 'use client';
 
+import { useEffect } from 'react';
+
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { type Message } from '@/entities/message/model/message';
+import { clearAttachmentDraft } from '@/features/message-attachment/model/attachment-upload-store';
+import { useAttachmentUploads } from '@/features/message-attachment/model/use-attachment-uploads';
+import { AttachmentDrafts } from '@/features/message-attachment/ui/attachment-drafts';
 import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
 import { useSendMessage } from '@/features/message-send/model/use-send-message';
 import { useCreateThread } from '@/features/thread-create/model/use-create-thread';
@@ -16,6 +21,9 @@ export interface ChannelThreadPanelProps {
   onClose: () => void;
   className?: string;
 }
+
+const UPLOADING_HINT =
+  '파일을 올리는 중이에요. 업로드가 끝나면 보낼 수 있어요.';
 
 /**
  * 원본 메시지의 스레드 메시지를 불러와 보여주고 스레드에 메시지를 보내는 패널.
@@ -47,11 +55,29 @@ export function ChannelThreadPanel({
   });
   const { send, retry } = useSendMessage(channelId);
   const createThread = useCreateThread(channelId);
+  // 채널 입력창의 첨부와 섞이지 않도록 스레드마다 따로 둔다.
+  const attachmentScope = `thread:${root._id}`;
+  const attachments = useAttachmentUploads(channelId, attachmentScope);
+  const canSendEmpty = attachments.confirmedFiles.length > 0;
+
+  // 입력한 글은 패널을 닫으면 사라지므로, 첨부도 함께 지워 첨부만 남거나 쌓이지 않게 한다.
+  useEffect(
+    () => () => clearAttachmentDraft(channelId, attachmentScope),
+    [channelId, attachmentScope],
+  );
 
   const draft = useMessageDraft({
+    allowEmpty: canSendEmpty,
     onSubmit: (content) => {
+      // 보낼 첨부를 "보내는 중"으로 바꿔, 스레드를 만드는 사이에 지우거나 바꾸지 못하게 한다.
+      // 실패한 첨부는 담지 않고 이유와 함께 남겨 다시 올리거나 지울 수 있게 한다.
+      const batch = attachments.takeReadyToSend();
+      const files = batch?.files ?? [];
+      const ids = batch?.ids ?? [];
+
       if (thread) {
-        send(content, [], { threadId: thread.id });
+        send(content, files, { threadId: thread.id });
+        attachments.removeMany(ids);
         return;
       }
 
@@ -59,13 +85,15 @@ export function ChannelThreadPanel({
       // 첫 메시지가 사라진다. Promise로 이어 가면 닫혀도 메시지를 보낸다.
       createThread.mutateAsync(root).then(
         (created) => {
-          send(content, [], { threadId: created.id });
+          send(content, files, { threadId: created.id });
+          attachments.removeMany(ids);
           // 만드는 동안 더 입력한 내용은 지우지 않는다.
           draft.onChange((current) =>
             current.trim() === content ? '' : current,
           );
         },
-        () => undefined,
+        // 스레드를 만들지 못하면 입력과 첨부를 남겨 다시 보낼 수 있게 한다.
+        () => attachments.restoreReady(ids),
       );
       return false;
     },
@@ -90,14 +118,26 @@ export function ChannelThreadPanel({
         void (thread ? threadMessages.refetch() : threads.refetch())
       }
       draft={draft}
-      sendDisabled={createThread.isPending}
-      sendDisabledReason="스레드를 만드는 중"
+      sendDisabled={createThread.isPending || attachments.isUploading}
+      sendDisabledReason={
+        createThread.isPending ? '스레드를 만드는 중' : UPLOADING_HINT
+      }
       composerNotice={
         createThread.isError
           ? '스레드를 만들지 못했어요. 다시 보내 주세요.'
           : undefined
       }
       onRetryReply={retry}
+      onAttachFiles={attachments.add}
+      attachmentDrafts={
+        <AttachmentDrafts
+          uploads={attachments.uploads}
+          onRemove={attachments.remove}
+          onRetry={attachments.retry}
+          onToggleSpoiler={attachments.toggleSpoiler}
+        />
+      }
+      canSendEmpty={canSendEmpty}
       {...props}
     />
   );
