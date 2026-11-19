@@ -7,3 +7,22 @@
   color: var(--color-on-surface-variant);
   opacity: 0.6;
 }
+
+/* 체크리스트: 체크 상자와 글을 한 줄에 놓고, 목록 기호는 지운다. */
+.markdown-editor ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0;
+}
+.markdown-editor ul[data-type='taskList'] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.markdown-editor ul[data-type='taskList'] li > label {
+  flex-shrink: 0;
+  margin-top: 0.3em;
+}
+.markdown-editor ul[data-type='taskList'] li > div {
+  flex: 1;
+  min-width: 0;
+}
