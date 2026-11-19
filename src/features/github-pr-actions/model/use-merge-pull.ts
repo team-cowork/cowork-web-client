@@ -29,10 +29,11 @@ export function useMergePull(
       );
     },
     onSuccess: (merged) => {
+      // 다시 조회에 실패해도 false가 되므로 "처리되지 않았다"고 단정하지 않는다.
       toast(
         merged
           ? 'PR을 머지했어요'
-          : '머지가 처리되지 않았어요. GitHub에서 PR 상태를 확인해 주세요',
+          : '머지됐는지 아직 확인하지 못했어요. GitHub에서 PR 상태를 확인해 주세요',
       );
       void queryClient.invalidateQueries({
         queryKey: githubQueries.pulls(projectId, repoId),
