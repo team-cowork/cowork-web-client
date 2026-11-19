@@ -1,6 +1,12 @@
 'use client';
 
-import { useEffect, useEffectEvent, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   buildEditorFields,
@@ -49,6 +55,12 @@ export function useMeetingNoteForm({
   const noteId = note?.id ?? null;
   const target: MeetingNoteDraftTarget = { userId, channelId, noteId };
 
+  // null이면 템플릿 없이 쓰는 회의록이고, 지워진 템플릿이면 칸이 하나도 없다.
+  const sectionsOf = (id: number | null) =>
+    id === null
+      ? null
+      : (templates.find((candidate) => candidate.id === id)?.sections ?? []);
+
   // 처음 연 순간의 상태. 임시저장본이 있으면 그것부터 이어 쓴다.
   const [initial] = useState(() => {
     const noteContent = note ? parseMeetingNoteContent(note.content) : {};
@@ -56,39 +68,53 @@ export function useMeetingNoteForm({
     // 다른 곳에서 회의록이 고쳐진 뒤의 임시저장본은 최신 내용을 덮어쓰므로 쓰지 않는다.
     const isStale =
       !!stored && !!note && isDraftOlderThan(stored, note.updatedAt);
-    // 새 회의록 임시저장본은 그 템플릿이 지워졌으면 쓰지 않는다.
-    const templateGone =
-      !!stored &&
-      !note &&
-      stored.templateId !== null &&
-      !templates.some(({ id }) => id === stored.templateId);
-    const draft = stored && !isStale && !templateGone ? stored : null;
-    const content: MeetingNoteContent = draft?.content ?? noteContent;
+    const draft = stored && !isStale ? stored : null;
+    // 새 회의록 임시저장본의 템플릿이 지워졌으면, 버리지 않고 템플릿 없이 이어 쓴다.
+    const draftTemplateId =
+      draft?.templateId != null &&
+      templates.some(({ id }) => id === draft.templateId)
+        ? draft.templateId
+        : null;
+    // 채널에서 기본 템플릿을 정해 두었으면 새 회의록에 쓰고, 없으면 템플릿 없이 시작한다.
+    const templateId = note
+      ? note.templateId
+      : draft
+        ? draftTemplateId
+        : (templates.find(({ isActive }) => isActive)?.id ?? null);
+    const known = new Set(
+      buildEditorFields(sectionsOf(templateId), {}).map(({ title }) => title),
+    );
 
     return {
-      // 이미 쓴 회의록은 템플릿을 바꿀 수 없으니, 템플릿에서 지워진 섹션의 내용도 잃지 않게
-      // 내용이 있는 키를 남긴다. 새 회의록은 고른 템플릿의 칸만 보여 준다.
-      orphanSource: note ? nonEmpty({ ...noteContent, ...draft?.content }) : {},
+      // 처음 템플릿에 칸이 없는 내용(지워지거나 이름이 바뀐 섹션)은 고아 칸으로 남겨,
+      // 템플릿을 바꾸거나 저장해도 말없이 사라지지 않게 한다.
+      orphanSource: Object.fromEntries(
+        Object.entries(nonEmpty({ ...noteContent, ...draft?.content })).filter(
+          ([key]) => !known.has(key),
+        ),
+      ),
       restoredDraft: draft !== null,
       staleDraft: isStale,
-      // 새 회의록은 템플릿 없이 시작한다. 템플릿은 쓰는 사람이 골라서 쓴다.
-      templateId: note ? note.templateId : (draft?.templateId ?? null),
+      templateId,
       title: draft?.title ?? note?.title ?? '',
-      values: content,
+      values: draft?.content ?? noteContent,
     };
   });
 
   const [templateId, setTemplateId] = useState(initial.templateId);
   const [title, setTitle] = useState(initial.title);
   const [values, setValues] = useState(initial.values);
+  // 편집기를 memo로 감싸 다른 칸에 입력할 때 다시 그리지 않도록 참조를 고정한다.
+  const setValue = useCallback(
+    (key: string, value: string) =>
+      setValues((prev) => ({ ...prev, [key]: value })),
+    [],
+  );
   // 게시하거나 버린 뒤에는 남은 자동 저장이 임시저장본을 되살리지 않게 막는다.
   const finished = useRef(false);
 
   const fieldsOf = (id: number | null) =>
-    buildEditorFields(
-      templates.find((candidate) => candidate.id === id) ?? null,
-      initial.orphanSource,
-    );
+    buildEditorFields(sectionsOf(id), initial.orphanSource);
   const template = templates.find(({ id }) => id === templateId) ?? null;
   const fields = fieldsOf(templateId);
   const content = serializeEditorFields(fields, values);
@@ -149,10 +175,12 @@ export function useMeetingNoteForm({
   return {
     templateId,
     template,
-    /** 이 템플릿으로 바꾸면 사라지는, 내용이 있는 칸의 제목들 */
+    /** 이 템플릿으로 바꾸면 사라지는, 지금 보이고 내용이 있는 칸의 제목들 */
     lostBySwitchingTo: (nextId: number | null) => {
       const next = new Set(fieldsOf(nextId).map(({ title: key }) => key));
-      return Object.keys(nonEmpty(values)).filter((key) => !next.has(key));
+      return fields
+        .map(({ title: key }) => key)
+        .filter((key) => values[key]?.trim() && !next.has(key));
     },
     /** 템플릿을 바꾸고, 새 템플릿에 없는 칸의 내용은 버린다. */
     selectTemplate: (nextId: number | null) => {
@@ -168,8 +196,7 @@ export function useMeetingNoteForm({
     setTitle,
     trimmedTitle,
     values,
-    setValue: (key: string, value: string) =>
-      setValues((prev) => ({ ...prev, [key]: value })),
+    setValue,
     fields,
     content,
     attendeeCount,

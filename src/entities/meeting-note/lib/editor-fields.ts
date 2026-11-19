@@ -1,7 +1,7 @@
 import {
   type MeetingNoteContent,
-  type MeetingNoteTemplate,
   type SectionType,
+  type TemplateSection,
   serializeMeetingNoteContent,
   toSectionType,
   UNSTRUCTURED_CONTENT_TITLE,
@@ -21,16 +21,17 @@ export interface EditorField {
 }
 
 /**
- * 템플릿 섹션 순서대로 입력 칸을 만든다. 템플릿이 없으면 본문 칸 하나만 둔다.
- * 템플릿에 없는 키(지워지거나 이름이 바뀐 섹션의 내용, 템플릿을 바꾸기 전에 쓴 내용)도
- * 잃지 않게 끝에 붙인다.
+ * 템플릿 섹션 순서대로 입력 칸을 만든다.
+ * `sections`가 null이면 템플릿 없이 쓰는 회의록이라 본문 칸 하나만 둔다. 템플릿이 지워진 회의록은
+ * null이 아니라 빈 배열로 넘겨, 원래 없던 본문 칸이 생기지 않게 한다.
+ * 템플릿에 없는 키(지워지거나 이름이 바뀐 섹션의 내용)도 잃지 않게 끝에 붙인다.
  */
 export function buildEditorFields(
-  template: MeetingNoteTemplate | null,
+  sections: TemplateSection[] | null,
   orphanSource: MeetingNoteContent,
 ): EditorField[] {
-  const fromTemplate: EditorField[] = template
-    ? template.sections.map((section) => ({
+  const fromTemplate: EditorField[] = sections
+    ? sections.map((section) => ({
         title: section.title,
         type: toSectionType(section.type),
         placeholder: section.placeholder || DEFAULT_SECTION_PLACEHOLDER,

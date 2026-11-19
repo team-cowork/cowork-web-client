@@ -14,7 +14,8 @@ const LOCKED_REASON = '작성한 회의록은 템플릿을 바꿀 수 없어요'
 
 export interface TemplatePickerProps {
   templates: MeetingNoteTemplate[];
-  selected: MeetingNoteTemplate | null;
+  /** 고른 템플릿 id. null이면 템플릿 없이 쓴다. 지워진 템플릿의 id일 수도 있다. */
+  selectedId: number | null;
   /** 이미 쓴 회의록은 템플릿을 바꿀 수 없다. */
   locked: boolean;
   /** null이면 템플릿 없이 쓴다. */
@@ -28,7 +29,7 @@ export interface TemplatePickerProps {
  */
 export function TemplatePicker({
   templates,
-  selected,
+  selectedId,
   locked,
   onSelect,
   onManage,
@@ -96,7 +97,13 @@ export function TemplatePicker({
     }
   };
 
-  const label = selected ? `${selected.name} 템플릿` : '템플릿 없음';
+  const selected = templates.find(({ id }) => id === selectedId);
+  const label =
+    selectedId === null
+      ? '템플릿 없음'
+      : selected
+        ? `${selected.name} 템플릿`
+        : '삭제된 템플릿';
 
   return (
     <div className="relative">
@@ -145,17 +152,17 @@ export function TemplatePicker({
               )}
               <MenuItem
                 role="menuitemradio"
-                aria-checked={selected === null}
+                aria-checked={selectedId === null}
                 tabIndex={-1}
-                disabled={locked && selected !== null}
-                icon={selected === null ? <CheckIcon size={16} /> : <span />}
+                disabled={locked && selectedId !== null}
+                icon={selectedId === null ? <CheckIcon size={16} /> : <span />}
                 onClick={() => choose(() => onSelect(null))}
                 className="disabled:cursor-not-allowed disabled:opacity-40"
               >
                 템플릿 없음
               </MenuItem>
               {templates.map((template) => {
-                const isSelected = template.id === selected?.id;
+                const isSelected = template.id === selectedId;
                 return (
                   <MenuItem
                     key={template.id}

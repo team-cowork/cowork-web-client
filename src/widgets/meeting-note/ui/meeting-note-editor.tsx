@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 
+import dynamic from 'next/dynamic';
 import { notFound, useRouter } from 'next/navigation';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 
 import { AttachmentCard } from '@/entities/attachment/ui/attachment-card';
 import { meetingNoteQueries } from '@/entities/meeting-note/api/meeting-note-queries';
-import { type EditorField } from '@/entities/meeting-note/lib/editor-fields';
 import {
   MEETING_NOTE_CONTENT_MAX_LENGTH,
   MEETING_NOTE_TITLE_MAX_LENGTH,
@@ -16,6 +16,7 @@ import {
   type MeetingNote,
   type MeetingNoteAttachment,
   type MeetingNoteTemplate,
+  type SectionType,
 } from '@/entities/meeting-note/model/meeting-note';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { userDisplayName } from '@/entities/user/lib/user-display';
@@ -39,9 +40,14 @@ import {
 import { Avatar } from '@/shared/ui/avatar';
 import { Button } from '@/shared/ui/button';
 import { Dialog } from '@/shared/ui/dialog';
-import { MarkdownEditor } from '@/shared/ui/markdown-editor';
 import { PaperclipIcon } from '@/shared/ui/icons/paperclip-icon';
 import { useToast } from '@/shared/ui/toast-provider';
+
+// Tiptap·ProseMirror는 크고 서버에서 그리지 않으므로, 편집 화면 첫 번들에서 떼어 낸다.
+const MarkdownEditor = dynamic(
+  () => import('@/shared/ui/markdown-editor').then((mod) => mod.MarkdownEditor),
+  { ssr: false, loading: () => <div className="min-h-[1.5em]" /> },
+);
 
 export interface MeetingNoteEditorProps {
   teamId: number;
@@ -238,7 +244,7 @@ function MeetingNoteDocument({
           <>
             <TemplatePicker
               templates={templates}
-              selected={form.template}
+              selectedId={form.templateId}
               locked={note !== undefined}
               onSelect={selectTemplate}
               onManage={() =>
@@ -322,11 +328,14 @@ function MeetingNoteDocument({
             {form.fields.map((field) => (
               <DocumentSection
                 key={field.title}
-                field={field}
+                title={field.title}
+                type={field.type}
+                placeholder={field.placeholder}
+                isRequired={field.isRequired}
                 bare={isUnstructured}
                 value={form.values[field.title] ?? ''}
                 error={submitted && form.missingFields.has(field.title)}
-                onChange={(value) => form.setValue(field.title, value)}
+                onChange={form.setValue}
               />
             ))}
 
@@ -459,57 +468,71 @@ function MeetingNoteDocument({
   );
 }
 
-function DocumentSection({
-  field,
+/**
+ * 입력 칸 하나. 한 칸에 입력할 때 다른 칸의 편집기까지 다시 그리지 않도록
+ * memo로 감싸고, 값이 아닌 props는 모두 바뀌지 않는 원시값이나 고정된 함수로 받는다.
+ */
+const DocumentSection = memo(function DocumentSection({
+  title,
+  type,
+  placeholder,
+  isRequired,
   bare,
   value,
   error,
   onChange,
 }: {
-  field: EditorField;
+  title: string;
+  type: SectionType;
+  placeholder: string;
+  isRequired: boolean;
   /** 템플릿 없이 본문만 쓸 때는 섹션 제목 없이 문서처럼 보여 준다. */
   bare: boolean;
   value: string;
   error: boolean;
-  onChange: (value: string) => void;
+  onChange: (title: string, value: string) => void;
 }) {
+  const handleChange = useCallback(
+    (next: string) => onChange(title, next),
+    [onChange, title],
+  );
   const inputClass =
     'w-full bg-transparent typography-body-medium text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none';
   // 날짜 형식이 아닌 기존 값은 날짜 입력기에서 빈칸으로 보이므로 글로 고치게 둔다.
   const isDateInput =
-    field.type === 'DATE' && (!value || /^\d{4}-\d{2}-\d{2}$/.test(value));
+    type === 'DATE' && (!value || /^\d{4}-\d{2}-\d{2}$/.test(value));
 
   return (
     <section className="flex flex-col gap-2">
       {!bare && (
         <h2 className="typography-title-small text-on-surface">
-          {field.title}
-          {field.isRequired && (
+          {title}
+          {isRequired && (
             <span aria-hidden className="ml-0.5 text-primary">
               *
             </span>
           )}
         </h2>
       )}
-      {field.type === 'MARKDOWN' ? (
+      {type === 'MARKDOWN' ? (
         <MarkdownEditor
-          aria-label={bare ? '회의록 본문' : field.title}
-          aria-required={field.isRequired || undefined}
+          aria-label={bare ? '회의록 본문' : title}
+          aria-required={isRequired || undefined}
           aria-invalid={error || undefined}
           defaultValue={value}
-          placeholder={field.placeholder}
-          onChange={onChange}
+          placeholder={placeholder}
+          onChange={handleChange}
           className={cn(inputClass, bare && 'min-h-[40vh]')}
         />
       ) : (
         <input
-          aria-label={field.title}
-          aria-required={field.isRequired || undefined}
+          aria-label={title}
+          aria-required={isRequired || undefined}
           aria-invalid={error || undefined}
           type={isDateInput ? 'date' : 'text'}
           value={value}
-          placeholder={field.placeholder}
-          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          onChange={(event) => handleChange(event.target.value)}
           className={cn(inputClass, 'h-7')}
         />
       )}
@@ -520,4 +543,4 @@ function DocumentSection({
       )}
     </section>
   );
-}
+});
