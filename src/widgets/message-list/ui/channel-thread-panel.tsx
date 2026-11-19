@@ -55,12 +55,18 @@ export function ChannelThreadPanel({
         return;
       }
 
-      createThread.mutate(root, {
-        onSuccess: (created) => {
+      // `mutate`에 넘긴 콜백은 패널이 닫히면 불리지 않아, 스레드를 만드는 중에 패널을 닫으면
+      // 첫 메시지가 사라진다. Promise로 이어 가면 닫혀도 메시지를 보낸다.
+      createThread.mutateAsync(root).then(
+        (created) => {
           send(content, [], { threadId: created.id });
-          draft.onChange('');
+          // 만드는 동안 더 입력한 내용은 지우지 않는다.
+          draft.onChange((current) =>
+            current.trim() === content ? '' : current,
+          );
         },
-      });
+        () => undefined,
+      );
       return false;
     },
   });
