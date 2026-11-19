@@ -61,8 +61,8 @@ export function useSendMessage(channelId: number) {
       postMessage(channelId, {
         content: message.content,
         type: message.attachments.length > 0 ? 'FILE' : 'TEXT',
-        attachments: message.attachments.flatMap(({ objectKey }) =>
-          objectKey ? [{ objectKey }] : [],
+        attachments: message.attachments.flatMap(({ objectKey, spoiler }) =>
+          objectKey ? [{ objectKey, ...(spoiler && { spoiler: true }) }] : [],
         ),
         parentMessageId: message.parentMessageId ?? undefined,
         threadId: message.threadId ?? undefined,
