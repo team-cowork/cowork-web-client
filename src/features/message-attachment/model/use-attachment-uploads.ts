@@ -2,6 +2,7 @@
 
 import {
   type AttachmentUpload,
+  toDraftKey,
   useAttachmentUploadStore,
 } from '@/features/message-attachment/model/attachment-upload-store';
 
@@ -16,9 +17,10 @@ const NO_UPLOADS: AttachmentUpload[] = [];
  * 메시지에 붙일 파일을 고르는 즉시 올리고 진행 상태를 관리한다.
  * 업로드가 끝난 파일만 전송에 쓸 수 있고, 화면을 옮겨도 업로드는 이어진다.
  */
-export function useAttachmentUploads(channelId: number) {
+export function useAttachmentUploads(channelId: number, scope?: string) {
+  const key = toDraftKey(channelId, scope);
   const uploads = useAttachmentUploadStore(
-    (state) => state.uploadsByChannel[channelId] ?? NO_UPLOADS,
+    (state) => state.uploadsByDraft[key] ?? NO_UPLOADS,
   );
   const store = useAttachmentUploadStore.getState();
 
@@ -34,22 +36,22 @@ export function useAttachmentUploads(channelId: number) {
     confirmedFiles,
     isUploading: uploads.some((upload) => upload.status === 'uploading'),
     isSending: uploads.some((upload) => upload.status === 'sending'),
-    add: (files: Iterable<File>) => store.add(channelId, files),
-    retry: (id: string) => store.retry(channelId, id),
-    remove: (id: string) => store.remove(channelId, [id]),
+    add: (files: Iterable<File>) => store.add(key, channelId, files),
+    retry: (id: string) => store.retry(key, id),
+    remove: (id: string) => store.remove(key, [id]),
     /** 보낸 첨부만 지우고, 실패한 첨부는 이유와 함께 남겨 둔다 */
     clearSent: () =>
       store.remove(
-        channelId,
+        key,
         ready.map((upload) => upload.id),
       ),
     markSendFailed: (ids: string[]) =>
-      store.update(channelId, ids, {
+      store.update(key, ids, {
         status: 'failed',
         failedStep: 'send',
         error: '파일을 보내지 못했어요',
       }),
-    removeMany: (ids: string[]) => store.remove(channelId, ids),
+    removeMany: (ids: string[]) => store.remove(key, ids),
     /**
      * 스토어의 최신 상태에서 다 올라간 첨부를 꺼내 "보내는 중"으로 바꾼다.
      * 렌더 시점 값을 쓰지 않으므로 여러 번 불려도 같은 첨부를 두 번 꺼내지 않는다.
@@ -57,8 +59,7 @@ export function useAttachmentUploads(channelId: number) {
      */
     takeReadyToSend: () => {
       const latest =
-        useAttachmentUploadStore.getState().uploadsByChannel[channelId] ??
-        NO_UPLOADS;
+        useAttachmentUploadStore.getState().uploadsByDraft[key] ?? NO_UPLOADS;
       if (latest.some((upload) => upload.status === 'uploading')) return null;
 
       const sendable = latest.filter(
@@ -67,7 +68,7 @@ export function useAttachmentUploads(channelId: number) {
       if (sendable.length === 0) return null;
 
       const ids = sendable.map((upload) => upload.id);
-      store.update(channelId, ids, { status: 'sending' });
+      store.update(key, ids, { status: 'sending' });
 
       return {
         ids,

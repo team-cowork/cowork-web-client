@@ -19,7 +19,10 @@ import {
 import { userQueries } from '@/entities/user/api/user-queries';
 import { userDisplayName } from '@/entities/user/lib/user-display';
 import { type User } from '@/entities/user/model/user';
-import { useAttachmentUploadStore } from '@/features/message-attachment/model/attachment-upload-store';
+import {
+  toDraftKey,
+  useAttachmentUploadStore,
+} from '@/features/message-attachment/model/attachment-upload-store';
 import { useAttachmentUploads } from '@/features/message-attachment/model/use-attachment-uploads';
 import { AttachmentDrafts } from '@/features/message-attachment/ui/attachment-drafts';
 import { useCreateMeetingNote } from '@/features/meeting-note-write/model/use-create-meeting-note';
@@ -122,8 +125,9 @@ function MeetingNoteDocument({
   useEffect(
     () => () => {
       const store = useAttachmentUploadStore.getState();
-      const ids = (store.uploadsByChannel[channelId] ?? []).map(({ id }) => id);
-      if (ids.length > 0) store.remove(channelId, ids);
+      const key = toDraftKey(channelId);
+      const ids = (store.uploadsByDraft[key] ?? []).map(({ id }) => id);
+      if (ids.length > 0) store.remove(key, ids);
     },
     [channelId],
   );

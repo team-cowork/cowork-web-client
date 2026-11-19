@@ -10,6 +10,8 @@ export type AttachmentUploadStatus =
 
 export interface AttachmentUpload {
   id: string;
+  /** 파일을 올릴 채널 */
+  channelId: number;
   file: File;
   progress: number;
   status: AttachmentUploadStatus;
@@ -23,13 +25,28 @@ export interface AttachmentUpload {
 // 진행률이 이 시간 동안 오르지 않으면 연결이 끊긴 것으로 보고 중단한다
 const STALL_TIMEOUT_MS = 60_000;
 
+/**
+ * 첨부 초안을 묶는 키. 같은 채널이라도 채널 입력창과 스레드 입력창의 첨부는 따로 둔다.
+ * @see toDraftKey
+ */
+export type AttachmentDraftKey = string;
+
+/** 채널 입력창이면 `scope` 없이, 스레드처럼 따로 두려면 `scope`를 넘긴다 */
+export function toDraftKey(channelId: number, scope?: string) {
+  return scope ? `${channelId}:${scope}` : String(channelId);
+}
+
 interface AttachmentUploadState {
-  uploadsByChannel: Record<number, AttachmentUpload[]>;
-  add: (channelId: number, files: Iterable<File>) => void;
-  retry: (channelId: number, id: string) => void;
-  remove: (channelId: number, ids: string[]) => void;
-  update: (
+  uploadsByDraft: Record<AttachmentDraftKey, AttachmentUpload[]>;
+  add: (
+    key: AttachmentDraftKey,
     channelId: number,
+    files: Iterable<File>,
+  ) => void;
+  retry: (key: AttachmentDraftKey, id: string) => void;
+  remove: (key: AttachmentDraftKey, ids: string[]) => void;
+  update: (
+    key: AttachmentDraftKey,
     ids: string[],
     patch: Partial<AttachmentUpload>,
   ) => void;
@@ -39,7 +56,7 @@ interface AttachmentUploadState {
 const controllers = new Map<string, AbortController>();
 
 function hasPendingWork(state: AttachmentUploadState) {
-  return Object.values(state.uploadsByChannel).some((uploads) =>
+  return Object.values(state.uploadsByDraft).some((uploads) =>
     uploads.some(
       ({ status }) => status === 'uploading' || status === 'sending',
     ),
@@ -63,7 +80,8 @@ export const useAttachmentUploadStore = create<AttachmentUploadState>()((
   set,
   get,
 ) => {
-  const start = (channelId: number, id: string, file: File) => {
+  const start = (key: AttachmentDraftKey, upload: AttachmentUpload) => {
+    const { id, channelId, file } = upload;
     const { update } = get();
     const controller = new AbortController();
     let stalled = false;
@@ -84,12 +102,12 @@ export const useAttachmentUploadStore = create<AttachmentUploadState>()((
       file,
       (progress) => {
         resetWatchdog();
-        update(channelId, [id], { progress });
+        update(key, [id], { progress });
       },
       controller.signal,
     )
       .then((confirmed) =>
-        update(channelId, [id], {
+        update(key, [id], {
           status: 'done',
           progress: 100,
           confirmed,
@@ -99,7 +117,7 @@ export const useAttachmentUploadStore = create<AttachmentUploadState>()((
         // 사용자가 지워서 멈춘 업로드는 이미 목록에 없다
         if (controller.signal.aborted && !stalled) return;
 
-        update(channelId, [id], {
+        update(key, [id], {
           status: 'failed',
           failedStep: 'upload',
           error: stalled
@@ -114,37 +132,36 @@ export const useAttachmentUploadStore = create<AttachmentUploadState>()((
   };
 
   return {
-    uploadsByChannel: {},
+    uploadsByDraft: {},
 
-    add: (channelId, files) => {
+    add: (key, channelId, files) => {
       installLeaveGuard();
 
       const added = Array.from(files, (file) => ({
         id: createUuid(),
+        channelId,
         file,
         progress: 0,
         status: 'uploading' as const,
       }));
 
       set((state) => ({
-        uploadsByChannel: {
-          ...state.uploadsByChannel,
-          [channelId]: [...(state.uploadsByChannel[channelId] ?? []), ...added],
+        uploadsByDraft: {
+          ...state.uploadsByDraft,
+          [key]: [...(state.uploadsByDraft[key] ?? []), ...added],
         },
       }));
 
-      for (const { id, file } of added) start(channelId, id, file);
+      for (const upload of added) start(key, upload);
     },
 
-    retry: (channelId, id) => {
-      const upload = get().uploadsByChannel[channelId]?.find(
-        (item) => item.id === id,
-      );
+    retry: (key, id) => {
+      const upload = get().uploadsByDraft[key]?.find((item) => item.id === id);
       if (upload?.status !== 'failed') return;
 
       // 전송만 실패했다면 이미 확인된 파일을 다시 보내면 된다
       if (upload.failedStep === 'send' && upload.confirmed) {
-        get().update(channelId, [id], {
+        get().update(key, [id], {
           status: 'done',
           error: undefined,
           failedStep: undefined,
@@ -152,38 +169,37 @@ export const useAttachmentUploadStore = create<AttachmentUploadState>()((
         return;
       }
 
-      get().update(channelId, [id], {
+      get().update(key, [id], {
         status: 'uploading',
         progress: 0,
         error: undefined,
         failedStep: undefined,
       });
-      start(channelId, id, upload.file);
+      start(key, upload);
     },
 
-    remove: (channelId, ids) => {
+    remove: (key, ids) => {
       for (const id of ids) {
         controllers.get(id)?.abort();
         controllers.delete(id);
       }
 
       set((state) => ({
-        uploadsByChannel: {
-          ...state.uploadsByChannel,
-          [channelId]: (state.uploadsByChannel[channelId] ?? []).filter(
+        uploadsByDraft: {
+          ...state.uploadsByDraft,
+          [key]: (state.uploadsByDraft[key] ?? []).filter(
             (upload) => !ids.includes(upload.id),
           ),
         },
       }));
     },
 
-    update: (channelId, ids, patch) =>
+    update: (key, ids, patch) =>
       set((state) => ({
-        uploadsByChannel: {
-          ...state.uploadsByChannel,
-          [channelId]: (state.uploadsByChannel[channelId] ?? []).map(
-            (upload) =>
-              ids.includes(upload.id) ? { ...upload, ...patch } : upload,
+        uploadsByDraft: {
+          ...state.uploadsByDraft,
+          [key]: (state.uploadsByDraft[key] ?? []).map((upload) =>
+            ids.includes(upload.id) ? { ...upload, ...patch } : upload,
           ),
         },
       })),
