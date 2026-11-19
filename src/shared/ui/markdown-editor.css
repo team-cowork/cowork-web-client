@@ -1,0 +1,9 @@
+/* 비어 있는 첫 줄에 안내 문구를 띄운다. Tiptap Placeholder가 data-placeholder를 달아 준다. */
+.markdown-editor .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--color-on-surface-variant);
+  opacity: 0.6;
+}
