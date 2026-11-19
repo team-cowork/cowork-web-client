@@ -15,7 +15,8 @@ export interface MessageEditFormProps {
 export function MessageEditForm({ message, onDone }: MessageEditFormProps) {
   const [value, setValue] = useState(message.content);
   const { mutate, isPending, isError } = useEditMessage(message);
-  useEscapeToClose(true, onDone);
+  // 저장하는 중에 닫으면 저장이 실패해도 안내를 보여 줄 곳이 없다.
+  useEscapeToClose(!isPending, onDone);
 
   const save = () => {
     const content = value.trim();
