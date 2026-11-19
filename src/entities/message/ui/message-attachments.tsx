@@ -22,15 +22,44 @@ export interface MessageAttachmentsProps {
   source?: AttachmentSource;
   /** 첨부 순번으로 파일을 연다. 없으면 카드를 누를 수 없다. */
   onOpen?: (attachmentIndex: number) => void;
+  /**
+   * 드러낸 스포일러 첨부 순번. 뷰어와 함께 쓰도록 메시지 행이 들고 있다.
+   * 행이 새로 그려지면 다시 가려지는데, 스포일러는 다시 가려지는 쪽이 안전해서 그대로 둔다.
+   */
+  revealed?: ReadonlySet<number>;
+  onReveal?: (attachmentIndex: number) => void;
   className?: string;
+}
+
+/** 아직 드러내지 않은 스포일러 이미지인지. 이미지가 아닌 첨부는 가리지 않는다. */
+export function isCoveredSpoiler(
+  attachment: Pick<MessageAttachment, 'name' | 'spoiler'>,
+  revealed: boolean,
+): boolean {
+  return (
+    Boolean(attachment.spoiler) &&
+    Boolean(getPreviewImageType(attachment.name)) &&
+    !revealed
+  );
 }
 
 export function MessageAttachments({
   attachments,
   source,
   onOpen,
+  revealed: revealedProp,
+  onReveal,
   className,
 }: MessageAttachmentsProps) {
+  // 위에서 상태를 넘기지 않으면 이 목록 안에서만 기억한다.
+  const [localRevealed, setLocalRevealed] = useState<ReadonlySet<number>>(
+    () => new Set(),
+  );
+  const revealed = revealedProp ?? localRevealed;
+  const reveal =
+    onReveal ??
+    ((index: number) => setLocalRevealed((prev) => new Set(prev).add(index)));
+
   if (attachments.length === 0) return null;
 
   return (
@@ -41,6 +70,8 @@ export function MessageAttachments({
             attachment={attachment}
             attachmentIndex={index}
             source={source}
+            covered={isCoveredSpoiler(attachment, revealed.has(index))}
+            onReveal={() => reveal(index)}
             onOpen={onOpen && (() => onOpen(index))}
           />
         </li>
@@ -57,19 +88,17 @@ function AttachmentItem({
   attachment,
   attachmentIndex,
   source,
+  covered,
+  onReveal,
   onOpen,
 }: {
   attachment: MessageAttachment;
   attachmentIndex: number;
   source?: AttachmentSource;
+  covered: boolean;
+  onReveal: () => void;
   onOpen?: () => void;
 }) {
-  const hidesImage =
-    Boolean(attachment.spoiler) &&
-    Boolean(getPreviewImageType(attachment.name));
-  const [revealed, setRevealed] = useState(false);
-  const covered = hidesImage && !revealed;
-
   return (
     <button
       type="button"
@@ -82,7 +111,7 @@ function AttachmentItem({
       onClick={(event) => {
         event.stopPropagation();
         if (covered) {
-          setRevealed(true);
+          onReveal();
           return;
         }
         onOpen?.();
