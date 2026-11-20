@@ -16,12 +16,14 @@ import { VoiceCallTimer } from '@/widgets/channel-sidebar/ui/voice-call-timer';
 import { VoiceChannelMembers } from '@/widgets/channel-sidebar/ui/voice-channel-members';
 import { cn } from '@/shared/lib/cn';
 import {
+  channelActivityPath,
   channelPath,
   channelSettingsOverviewPath,
   projectPath,
 } from '@/shared/model/paths';
 import { ChevronDownIcon } from '@/shared/ui/icons/chevron-down-icon';
 import { ChevronRightIcon } from '@/shared/ui/icons/chevron-right-icon';
+import { HistoryIcon } from '@/shared/ui/icons/history-icon';
 import { PlusIcon } from '@/shared/ui/icons/plus-icon';
 import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 
@@ -138,16 +140,28 @@ export function ChannelGroup({
                             'bg-surface-container-high text-on-surface shadow-lg',
                         )}
                         action={
-                          <Link
-                            href={channelSettingsOverviewPath(
-                              teamId,
-                              channel.id,
+                          <span className="flex items-center gap-0.5">
+                            {(channel.type === 'VOICE' ||
+                              channel.viewType === 'FILE_SHARE') && (
+                              <Link
+                                href={channelActivityPath(teamId, channel.id)}
+                                aria-label={`${channel.name} 활동 기록`}
+                                className="flex size-6 cursor-pointer items-center justify-center rounded hover:bg-surface-container-high hover:text-on-surface"
+                              >
+                                <HistoryIcon size={14} />
+                              </Link>
                             )}
-                            aria-label={`${channel.name} 채널 설정`}
-                            className="flex size-6 cursor-pointer items-center justify-center rounded hover:bg-surface-container-high hover:text-on-surface"
-                          >
-                            <SettingsIcon size={14} />
-                          </Link>
+                            <Link
+                              href={channelSettingsOverviewPath(
+                                teamId,
+                                channel.id,
+                              )}
+                              aria-label={`${channel.name} 채널 설정`}
+                              className="flex size-6 cursor-pointer items-center justify-center rounded hover:bg-surface-container-high hover:text-on-surface"
+                            >
+                              <SettingsIcon size={14} />
+                            </Link>
+                          </span>
                         }
                       />
                       {channel.type === 'VOICE' && (

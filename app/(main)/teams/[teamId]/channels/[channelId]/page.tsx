@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { notFound } from 'next/navigation';
+import { notFound, useRouter, useSearchParams } from 'next/navigation';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
@@ -26,6 +26,7 @@ import { ChannelActivityPanel } from '@/widgets/channel-activity/ui/channel-acti
 import { VoiceLogReader } from '@/widgets/channel-activity/ui/voice-log-reader';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
+import { channelPath } from '@/shared/model/paths';
 import { Button } from '@/shared/ui/button';
 import { ErrorState } from '@/shared/ui/error-state';
 import { LoadingPane } from '@/shared/ui/loading-pane';
@@ -93,6 +94,21 @@ function ChannelView({
     isMeetingNote ? null : hasActivity ? 'activity' : 'members',
   );
   const [threadRoot, setThreadRoot] = useState<Message | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activityRequested =
+    hasActivity && searchParams.get('panel') === 'activity';
+
+  if (activityRequested && (sidePanel !== 'activity' || threadRoot)) {
+    setSidePanel('activity');
+    setThreadRoot(null);
+  }
+
+  useEffect(() => {
+    if (activityRequested) {
+      router.replace(channelPath(teamId, channelId), { scroll: false });
+    }
+  }, [activityRequested, router, teamId, channelId]);
 
   const setLastChannelId = useLastChannelStore(
     (state) => state.setLastChannelId,
