@@ -22,8 +22,8 @@ import { MessageSearchPanel } from '@/widgets/message-search/ui/message-search-p
 import { MessageList } from '@/widgets/message-list/ui/message-list';
 import { PinnedMessagesPanel } from '@/widgets/message-list/ui/pinned-messages-panel';
 import { ChannelThreadPanel } from '@/widgets/message-list/ui/channel-thread-panel';
-import { VoiceActivityPanel } from '@/widgets/voice-activity/ui/voice-activity-panel';
-import { VoiceLogReader } from '@/widgets/voice-activity/ui/voice-log-reader';
+import { ChannelActivityPanel } from '@/widgets/channel-activity/ui/channel-activity-panel';
+import { VoiceLogReader } from '@/widgets/channel-activity/ui/voice-log-reader';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
 import { Button } from '@/shared/ui/button';
@@ -86,10 +86,11 @@ function ChannelView({
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
   const isMeetingNote = channel.viewType === 'MEETING_NOTE';
   const isVoice = channel.type === 'VOICE';
+  const hasActivity = isVoice || channel.viewType === 'FILE_SHARE';
   // 회의록은 본문 폭이 넓어야 읽고 쓰기 편해서 멤버 패널을 닫은 채 시작한다.
-  // 음성 채널은 입장·퇴장 기록을 바로 보여 주어 쌓인 미읽음을 읽음 처리한다.
+  // 음성·파일 채널은 활동 기록을 바로 보여 주어 쌓인 미읽음을 읽음 처리한다.
   const [sidePanel, setSidePanel] = useState<SidePanel | null>(
-    isMeetingNote ? null : isVoice ? 'activity' : 'members',
+    isMeetingNote ? null : hasActivity ? 'activity' : 'members',
   );
   const [threadRoot, setThreadRoot] = useState<Message | null>(null);
 
@@ -134,7 +135,7 @@ function ChannelView({
             hasMessages ? () => toggleSidePanel('search') : undefined
           }
           onToggleActivity={
-            isVoice ? () => toggleSidePanel('activity') : undefined
+            hasActivity ? () => toggleSidePanel('activity') : undefined
           }
         />
 
@@ -177,10 +178,15 @@ function ChannelView({
           subtitle={`# ${channel.name}`}
           onClose={() => setSidePanel(null)}
         />
-      ) : sidePanel === 'activity' && isVoice ? (
-        <VoiceActivityPanel
+      ) : sidePanel === 'activity' && hasActivity ? (
+        <ChannelActivityPanel
           channelId={channelId}
           subtitle={channel.name}
+          emptyMessage={
+            isVoice
+              ? '보여 줄 활동 기록이 아직 없어요. 입장과 퇴장, 라이브 기록이 여기에 쌓이고, 기록을 볼 권한이 없으면 기록이 있어도 보이지 않아요.'
+              : '보여 줄 활동 기록이 아직 없어요. 파일을 올리면 누가 어떤 파일을 올렸는지 여기에 쌓여요.'
+          }
           onClose={() => setSidePanel(null)}
         />
       ) : (
