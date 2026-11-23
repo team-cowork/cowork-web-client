@@ -69,6 +69,11 @@ export interface TeamRolePermissionGroup {
   permissions: TeamRolePermission[];
 }
 
+export interface TeamRolePermissionsParams {
+  query?: string;
+  channelType?: string;
+}
+
 export interface TeamMember {
   id: number;
   userId: number;
