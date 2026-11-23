@@ -122,9 +122,7 @@ function TeamRoleDetailContent({
           {tab === 'display' && (
             <TeamRoleDisplayTab teamId={teamId} role={role} />
           )}
-          {tab === 'permissions' && (
-            <TeamRolePermissionsTab teamId={teamId} role={role} />
-          )}
+          {tab === 'permissions' && <TeamRolePermissionsTab />}
           {tab === 'members' && (
             <TeamRoleMembersTab teamId={teamId} role={role} />
           )}
