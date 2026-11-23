@@ -33,6 +33,7 @@ export interface MessageRowProps {
   showQuote?: boolean;
   onRetry?: (message: Message) => void;
   onReply?: (message: Message) => void;
+  compact?: boolean;
 }
 
 // 행을 누르면 스레드가 열리므로, 행 안의 조작 영역에서 일어난 클릭은 위로 올리지 않는다.
@@ -57,6 +58,7 @@ export function MessageRow({
   showQuote,
   onRetry,
   onReply,
+  compact,
 }: MessageRowProps) {
   const { data: me } = useQuery(userQueries.me());
   const toggleReaction = useToggleReaction(message);
@@ -124,6 +126,7 @@ export function MessageRow({
         message={message}
         timestampFormat={timestampFormat}
         showQuote={showQuote}
+        compact={compact}
         onRetry={onRetry}
         onToggleReaction={interactive ? toggleReaction : undefined}
         onOpenAttachment={interactive ? openAttachmentAt : undefined}
