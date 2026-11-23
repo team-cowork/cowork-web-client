@@ -13,5 +13,8 @@ export function continuesPrevious(
   if (message.parentMessageId !== null) return false;
 
   const gap = Date.parse(message.createdAt) - Date.parse(previous.createdAt);
-  return gap >= 0 && gap < GROUP_WINDOW_MS;
+  const sameDay =
+    new Date(message.createdAt).toDateString() ===
+    new Date(previous.createdAt).toDateString();
+  return sameDay && gap >= 0 && gap < GROUP_WINDOW_MS;
 }
