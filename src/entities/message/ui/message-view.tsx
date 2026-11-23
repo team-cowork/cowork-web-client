@@ -40,6 +40,7 @@ export interface MessageViewProps {
   actionsVisible?: boolean;
   /** 수정 중이면 본문 대신 보여줄 입력 폼 */
   editor?: ReactNode;
+  compact?: boolean;
   className?: string;
 }
 
@@ -89,13 +90,14 @@ function UserMessageView({
   actions,
   actionsVisible,
   editor,
+  compact = false,
   className,
 }: MessageViewProps) {
   const author = useMessageAuthor(message.authorId);
   const showContent =
     message.content.length > 0 && !isAttachmentOnlyContent(message);
   const timestamp =
-    timestampFormat === 'clock'
+    compact || timestampFormat === 'clock'
       ? formatMessageClock(message.createdAt)
       : formatMessageTime(message.createdAt);
 
@@ -185,6 +187,7 @@ function UserMessageView({
         )
       }
       dimmed={message.sendStatus === 'pending'}
+      compact={compact}
       className={className}
     />
   );

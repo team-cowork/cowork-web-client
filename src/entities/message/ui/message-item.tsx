@@ -25,6 +25,7 @@ export interface MessageItemProps {
   dimmed?: boolean;
   /** 있으면 작성자 아바타·이름을 눌러 프로필을 연다. 누른 요소 옆에 띄울 수 있게 넘긴다. */
   onAuthorClick?: (anchor: HTMLElement) => void;
+  compact?: boolean;
   className?: string;
 }
 
@@ -50,6 +51,7 @@ export function MessageItem({
   actionsVisible = false,
   dimmed = false,
   onAuthorClick,
+  compact = false,
   className,
 }: MessageItemProps) {
   const avatar = (
@@ -64,8 +66,19 @@ export function MessageItem({
   );
 
   return (
-    <div className={cn('group relative flex items-start px-4 py-1', className)}>
-      {onAuthorClick ? (
+    <div
+      className={cn(
+        'group relative flex items-start px-4',
+        compact ? 'py-0.5' : 'py-1',
+        className,
+      )}
+    >
+      {compact ? (
+        <span className="w-11 shrink-0 pt-0.5 text-center typography-subtext-small text-on-surface-variant opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 in-focus-visible:opacity-100">
+          <span className="sr-only">{author} </span>
+          {timestamp}
+        </span>
+      ) : onAuthorClick ? (
         <button
           type="button"
           aria-label={`${author} 프로필 보기`}
@@ -79,25 +92,27 @@ export function MessageItem({
       )}
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 px-5">
         {quote}
-        <p className="typography-label-x-small text-on-surface-variant">
-          {author &&
-            (onAuthorClick ? (
-              <>
-                <button
-                  type="button"
-                  onClick={authorClickHandler(onAuthorClick)}
-                  className="cursor-pointer hover:text-on-surface hover:underline"
-                >
-                  {author}
-                </button>
-                {' · '}
-              </>
-            ) : (
-              <>{author} · </>
-            ))}
-          {timestamp}
-          {meta && <> {meta}</>}
-        </p>
+        {!compact && (
+          <p className="typography-label-x-small text-on-surface-variant">
+            {author &&
+              (onAuthorClick ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={authorClickHandler(onAuthorClick)}
+                    className="cursor-pointer hover:text-on-surface hover:underline"
+                  >
+                    {author}
+                  </button>
+                  {' · '}
+                </>
+              ) : (
+                <>{author} · </>
+              ))}
+            {timestamp}
+            {meta && <> {meta}</>}
+          </p>
+        )}
         <div
           className={cn(
             'typography-subtext-large break-words text-on-surface',
@@ -106,13 +121,19 @@ export function MessageItem({
         >
           {content}
         </div>
+        {compact && meta && (
+          <p className="typography-label-x-small text-on-surface-variant">
+            {meta}
+          </p>
+        )}
         {reactions}
         {footer}
       </div>
       {actions && (
         <div
           className={cn(
-            'absolute -top-3 right-4 z-10 flex items-center gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-0.5 shadow-sm transition-opacity',
+            'absolute right-4 z-10 flex items-center gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-0.5 shadow-sm transition-opacity',
+            compact ? '-top-1' : '-top-3',
             actionsVisible
               ? 'opacity-100'
               : 'pointer-events-none opacity-0 group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100',
