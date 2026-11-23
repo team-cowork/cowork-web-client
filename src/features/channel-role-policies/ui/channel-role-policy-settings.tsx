@@ -7,12 +7,12 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { useSetChannelRolePolicy } from '@/features/channel-role-policies/model/use-set-channel-role-policy';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { teamQueries } from '@/entities/team/api/team-queries';
+import { RolePermissionList } from '@/entities/team/ui/role-permission-list';
 import { cn } from '@/shared/lib/cn';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
-import { Switch } from '@/shared/ui/switch';
 
 const EDITOR_SKELETON = (
   <div className="flex items-start gap-8">
@@ -66,9 +66,6 @@ function ChannelRolePolicyEditor({
     channelQueries.rolePolicies(channelId),
   );
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
-  const { data: permissionGroups } = useSuspenseQuery(
-    teamQueries.rolePermissions(),
-  );
   const setRolePolicy = useSetChannelRolePolicy(channelId);
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
 
@@ -94,14 +91,6 @@ function ChannelRolePolicyEditor({
       ? setRolePolicy.variables.permissions
       : savedPermissions),
   };
-  const groups = permissionGroups
-    .map((group) => ({
-      ...group,
-      permissions: group.permissions.filter((permission) =>
-        permission.channelTypes.includes(channel.type),
-      ),
-    }))
-    .filter((group) => group.permissions.length > 0);
 
   return (
     <div className="flex items-start gap-8">
@@ -142,44 +131,17 @@ function ChannelRolePolicyEditor({
       </nav>
 
       <div className="flex min-w-0 flex-1 flex-col gap-8">
-        {groups.map((group) => (
-          <section key={group.key} className="flex flex-col">
-            <h2 className="pb-2 typography-title-small text-on-surface">
-              {group.title}
-            </h2>
-            <ul className="flex flex-col">
-              {group.permissions.map((permission) => (
-                <li
-                  key={permission.key}
-                  className="flex items-center justify-between gap-6 border-b border-outline-variant py-4 last:border-b-0"
-                >
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <span className="typography-body-medium-strong text-on-surface">
-                      {permission.title}
-                    </span>
-                    <span className="typography-subtext-medium text-on-surface-variant">
-                      {permission.description}
-                    </span>
-                  </div>
-                  <Switch
-                    aria-label={permission.title}
-                    checked={permissions[permission.key] === true}
-                    disabled={setRolePolicy.isPending}
-                    onCheckedChange={(allowed) =>
-                      setRolePolicy.mutate({
-                        roleId: selectedRole.id,
-                        permissions: {
-                          ...savedPermissions,
-                          [permission.key]: allowed,
-                        },
-                      })
-                    }
-                  />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+        <RolePermissionList
+          channelType={channel.type}
+          permissions={permissions}
+          disabled={setRolePolicy.isPending}
+          onCheckedChange={(key, allowed) =>
+            setRolePolicy.mutate({
+              roleId: selectedRole.id,
+              permissions: { ...savedPermissions, [key]: allowed },
+            })
+          }
+        />
 
         {setRolePolicy.isError && (
           <p className="typography-subtext-medium text-error">
