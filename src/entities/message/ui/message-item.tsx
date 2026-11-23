@@ -74,7 +74,8 @@ export function MessageItem({
       )}
     >
       {compact ? (
-        <span className="w-11 shrink-0 pt-0.5 text-center typography-subtext-small text-on-surface-variant opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
+        <span className="w-11 shrink-0 pt-0.5 text-center typography-subtext-small text-on-surface-variant opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 in-focus-visible:opacity-100">
+          <span className="sr-only">{author} </span>
           {timestamp}
         </span>
       ) : onAuthorClick ? (
@@ -131,7 +132,8 @@ export function MessageItem({
       {actions && (
         <div
           className={cn(
-            'absolute -top-3 right-4 z-10 flex items-center gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-0.5 shadow-sm transition-opacity',
+            'absolute right-4 z-10 flex items-center gap-0.5 rounded-[10px] border border-outline-variant bg-surface-container-low p-0.5 shadow-sm transition-opacity',
+            compact ? '-top-1' : '-top-3',
             actionsVisible
               ? 'opacity-100'
               : 'pointer-events-none opacity-0 group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100',
