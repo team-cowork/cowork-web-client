@@ -27,6 +27,9 @@ export interface ImageViewerProps {
   };
   /** 있으면 다운로드 버튼을 보여준다 */
   onDownload?: () => void;
+  /** 스포일러라 아직 가려 둔 이미지인지. 가린 채 보여 주고 누르면 `onReveal`을 부른다. */
+  covered?: boolean;
+  onReveal?: () => void;
 }
 
 const TOOL_BUTTON_CLASS =
@@ -46,6 +49,8 @@ export function ImageViewer({
   error = false,
   position,
   onDownload,
+  covered = false,
+  onReveal,
 }: ImageViewerProps) {
   const ref = useRef<HTMLDialogElement>(null);
 
@@ -132,7 +137,13 @@ export function ImageViewer({
           <ViewerMessage>이미지를 불러오지 못했어요</ViewerMessage>
         ) : src ? (
           // 이미지가 바뀌면 확대 상태와 오류 상태를 처음부터 다시 잡는다.
-          <ViewerImage key={src} src={src} alt={alt} />
+          <ViewerImage
+            key={src}
+            src={src}
+            alt={alt}
+            covered={covered}
+            onReveal={onReveal}
+          />
         ) : (
           <span className="size-48 animate-pulse rounded-xl bg-white/10" />
         )}
@@ -170,11 +181,48 @@ export function ImageViewer({
   );
 }
 
-function ViewerImage({ src, alt }: { src: string; alt: string }) {
+function ViewerImage({
+  src,
+  alt,
+  covered,
+  onReveal,
+}: {
+  src: string;
+  alt: string;
+  covered: boolean;
+  onReveal?: () => void;
+}) {
   const [zoomed, setZoomed] = useState(false);
   const [failed, setFailed] = useState(false);
 
   if (failed) return <ViewerMessage>이미지를 불러오지 못했어요</ViewerMessage>;
+
+  // 넘겨 보다가 아직 드러내지 않은 스포일러를 만나도 바로 보이지 않게 덮어 둔다.
+  if (covered) {
+    return (
+      <div data-backdrop className="flex size-full items-center justify-center">
+        <button
+          type="button"
+          aria-label={`스포일러 이미지 ${alt} 보기`}
+          onClick={onReveal}
+          className="relative flex max-h-full max-w-full cursor-pointer overflow-hidden rounded-xl focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- 서명된 일회성 주소라 이미지 최적화 서버를 거치지 않는다. */}
+          <img
+            src={src}
+            alt=""
+            onError={() => setFailed(true)}
+            className="max-h-[70dvh] max-w-full scale-105 object-contain blur-3xl brightness-75"
+          />
+          <span className="absolute inset-0 flex items-center justify-center">
+            <span className="rounded-full bg-black/70 px-4 py-1.5 typography-label-small text-white">
+              스포일러 · 눌러서 보기
+            </span>
+          </span>
+        </button>
+      </div>
+    );
+  }
 
   /* eslint-disable @next/next/no-img-element -- 서명된 일회성 주소라 이미지 최적화 서버를 거치지 않는다. */
   const image = (

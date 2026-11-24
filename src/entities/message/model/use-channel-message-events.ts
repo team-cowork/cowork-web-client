@@ -11,16 +11,23 @@ import {
   type MessagePinEvent,
   type MessageReaction,
   type MessageReactionEvent,
+  type Thread,
+  type ThreadRejectedEvent,
 } from '@/entities/message/model/message';
 import {
   applyReaction,
   editMessageContent,
   refetchChannelMessages,
   removeMessage,
+  removeThread,
   setMessagePinned,
   upsertMessage,
+  upsertThread,
 } from '@/entities/message/model/message-cache';
-import { notifyMessageStored } from '@/entities/message/model/message-delivery';
+import {
+  notifyMessageStored,
+  notifyThreadSettled,
+} from '@/entities/message/model/message-delivery';
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { getChatSocket, joinChannelRoom } from '@/shared/api/chat-socket';
@@ -62,8 +69,13 @@ export function useChannelMessageEvents(channelId: number) {
     // 연결되기 전에 받은 목록이나 끊겨 있던 동안의 메시지는 이벤트로 오지 않는다.
     // 처음 연결될 때와, 연결 복구로 놓친 이벤트를 받지 못한 재연결 때 목록을 다시 받는다.
     const handleConnect = () => {
-      if (!socket.recovered)
-        void refetchChannelMessages(queryClient, channelId);
+      if (socket.recovered) return;
+
+      void refetchChannelMessages(queryClient, channelId);
+      // 끊겨 있던 동안의 스레드 생성·변경도 이벤트로 오지 않는다.
+      void queryClient.invalidateQueries({
+        queryKey: messageQueries.threads(channelId).queryKey,
+      });
     };
 
     const myId = () => queryClient.getQueryData(userQueries.me().queryKey)?.id;
@@ -118,6 +130,28 @@ export function useChannelMessageEvents(channelId: number) {
     const handleReactionAdded = handleReaction(true);
     const handleReactionRemoved = handleReaction(false);
 
+    const handleThreadCreated = (thread: Thread) => {
+      if (thread.channelId !== channelId) return;
+
+      upsertThread(queryClient, thread);
+      notifyThreadSettled(thread.parentMessageId, thread);
+    };
+
+    const handleThreadUpdated = (thread: Thread) => {
+      if (thread.channelId === channelId) upsertThread(queryClient, thread);
+    };
+
+    const handleThreadRejected = ({
+      id,
+      parentMessageId,
+      ...event
+    }: ThreadRejectedEvent) => {
+      if (event.channelId !== channelId) return;
+
+      removeThread(queryClient, channelId, id);
+      notifyThreadSettled(parentMessageId, null);
+    };
+
     socket.on('connect', handleConnect);
     socket.on('message', handleMessage);
     socket.on('message:edited', handleEdited);
@@ -126,6 +160,9 @@ export function useChannelMessageEvents(channelId: number) {
     socket.on('message:unpinned', handleMessageUnpinned);
     socket.on('message:reaction:added', handleReactionAdded);
     socket.on('message:reaction:removed', handleReactionRemoved);
+    socket.on('thread:created', handleThreadCreated);
+    socket.on('thread:updated', handleThreadUpdated);
+    socket.on('thread:rejected', handleThreadRejected);
 
     return () => {
       socket.off('connect', handleConnect);
@@ -136,6 +173,9 @@ export function useChannelMessageEvents(channelId: number) {
       socket.off('message:unpinned', handleMessageUnpinned);
       socket.off('message:reaction:added', handleReactionAdded);
       socket.off('message:reaction:removed', handleReactionRemoved);
+      socket.off('thread:created', handleThreadCreated);
+      socket.off('thread:updated', handleThreadUpdated);
+      socket.off('thread:rejected', handleThreadRejected);
 
       leave();
     };

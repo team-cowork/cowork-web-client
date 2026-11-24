@@ -2,8 +2,9 @@
 
 import { useLayoutEffect, useRef } from 'react';
 
+import { continuesPrevious } from '@/entities/message/lib/message-group';
 import { type Message } from '@/entities/message/model/message';
-import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
+import { type useMessageDraft } from '@/features/message-composer/model/use-message-draft';
 import { AttachButton } from '@/features/message-composer/ui/attach-button';
 import { MessageComposer } from '@/features/message-composer/ui/message-composer';
 import { MessageRow } from '@/widgets/message-list/ui/message-row';
@@ -17,7 +18,10 @@ export interface ThreadPanelProps {
   replies: Message[] | undefined;
   isRepliesError?: boolean;
   onReloadReplies?: () => void;
-  onSendReply: (content: string) => void;
+  draft: ReturnType<typeof useMessageDraft>;
+  sendDisabled?: boolean;
+  sendDisabledReason?: string;
+  composerNotice?: string;
   onRetryReply?: (message: Message) => void;
   onClose: () => void;
   onAttach?: () => void;
@@ -37,13 +41,15 @@ export function ThreadPanel({
   replies,
   isRepliesError = false,
   onReloadReplies,
-  onSendReply,
+  draft,
+  sendDisabled,
+  sendDisabledReason,
+  composerNotice,
   onRetryReply,
   onClose,
   onAttach,
   className,
 }: ThreadPanelProps) {
-  const draft = useMessageDraft({ onSubmit: onSendReply });
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastReplyId = replies?.at(-1)?._id;
 
@@ -113,26 +119,41 @@ export function ThreadPanel({
         ) : replies === undefined ? (
           <p className={STATUS_TEXT_CLASS}>답글을 불러오는 중…</p>
         ) : (
-          <ol className="flex flex-col gap-2.5">
-            {replies.map((reply) => (
-              <li key={reply.clientMessageId ?? reply._id}>
-                <MessageRow
-                  message={reply}
-                  timestampFormat="clock"
-                  showQuote={false}
-                  onRetry={onRetryReply}
-                />
-              </li>
-            ))}
+          <ol className="flex flex-col">
+            {replies.map((reply, index) => {
+              const compact = continuesPrevious(replies[index - 1], reply);
+
+              return (
+                <li
+                  key={reply.clientMessageId ?? reply._id}
+                  className={cn(index > 0 && !compact && 'mt-2.5')}
+                >
+                  <MessageRow
+                    message={reply}
+                    timestampFormat="clock"
+                    showQuote={false}
+                    onRetry={onRetryReply}
+                    compact={compact}
+                  />
+                </li>
+              );
+            })}
           </ol>
         )}
       </div>
 
       <div className="shrink-0 px-3 pt-1 pb-4">
+        {composerNotice && (
+          <p className="px-1 pb-1 typography-subtext-small text-on-surface-variant">
+            {composerNotice}
+          </p>
+        )}
         <MessageComposer
           value={draft.value}
           onChange={draft.onChange}
           onSend={draft.onSend}
+          sendDisabled={sendDisabled}
+          sendDisabledReason={sendDisabledReason}
           placeholder="스레드에 답장…"
           leading={<AttachButton onClick={onAttach} />}
         />

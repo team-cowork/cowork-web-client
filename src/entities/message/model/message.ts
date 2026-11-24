@@ -5,6 +5,8 @@ export interface MessageAttachment {
   objectKey?: string;
   size: number;
   mimeType: string;
+  /** 받는 쪽에서 가려진 채 보이는 스포일러 첨부인지. 값이 없던 기존 메시지는 false로 온다. */
+  spoiler?: boolean;
   /** 내가 방금 보낸 첨부의 원본 파일. 서버 응답에는 없고 로컬 미리보기에만 쓴다. */
   localFile?: File;
 }
@@ -37,6 +39,7 @@ export interface Message {
   type: MessageType;
   attachments: MessageAttachment[];
   parentMessageId: string | null;
+  threadId?: number | null;
   isEdited: boolean;
   isPinned: boolean;
   clientMessageId: string | null;
@@ -50,15 +53,37 @@ export interface Message {
 
 export interface GetMessagesParams {
   before?: string;
-  parentMessageId?: string;
+  threadId?: number;
 }
 
 export interface SendMessageRequest {
   content: string;
   type: 'TEXT' | 'FILE';
-  attachments?: { objectKey: string }[];
+  /** `spoiler`를 켜면 받는 쪽에서 가려진 채 보인다(기본 false) */
+  attachments?: { objectKey: string; spoiler?: boolean }[];
   parentMessageId?: string;
+  threadId?: number;
   clientMessageId: string;
+}
+
+export interface Thread {
+  id: number;
+  channelId: number;
+  name: string;
+  parentMessageId: string;
+  isArchived: boolean;
+  createdBy: number;
+}
+
+export interface CreateThreadRequest {
+  name: string;
+  parentMessageId: string;
+}
+
+export interface ThreadRejectedEvent {
+  id: number;
+  channelId: number;
+  parentMessageId: string;
 }
 
 export interface CreateFileUploadUrlRequest {
@@ -81,6 +106,8 @@ export interface ConfirmedFile {
   name: string;
   size: number;
   mimeType: string;
+  /** 스포일러로 가려서 보낼지 */
+  spoiler?: boolean;
   /** 올린 원본 파일. 전송 중 로컬 미리보기에 쓴다. */
   localFile?: File;
 }
@@ -99,6 +126,7 @@ export interface ChannelFile {
   attachmentIndex: number;
   objectKey?: string;
   mimeType: string;
+  spoiler?: boolean;
   uploaderId: number;
   uploaderName: string;
   uploadedAt: string;

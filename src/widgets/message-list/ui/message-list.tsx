@@ -9,6 +9,7 @@ import {
   useRef,
 } from 'react';
 
+import { continuesPrevious } from '@/entities/message/lib/message-group';
 import { type Message } from '@/entities/message/model/message';
 import { MessageRow } from '@/widgets/message-list/ui/message-row';
 import { cn } from '@/shared/lib/cn';
@@ -154,8 +155,9 @@ export function MessageList({
             이전 메시지를 불러오는 중…
           </p>
         )}
-        <ol className="flex flex-col gap-[18px]">
-          {messages.map((message) => {
+        <ol className="flex flex-col">
+          {messages.map((message, index) => {
+            const compact = continuesPrevious(messages[index - 1], message);
             const selectable =
               onSelectMessage !== undefined &&
               message.type !== 'SYSTEM' &&
@@ -173,6 +175,7 @@ export function MessageList({
                 })}
                 className={cn(
                   'rounded-[12px]',
+                  index > 0 && !compact && 'mt-[18px]',
                   selectable &&
                     'cursor-pointer hover:bg-surface focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none',
                 )}
@@ -181,6 +184,7 @@ export function MessageList({
                   message={message}
                   onRetry={onRetryMessage}
                   onReply={onReplyMessage}
+                  compact={compact}
                 />
               </li>
             );

@@ -15,91 +15,56 @@ const DISALLOWED_ELEMENTS: Record<MarkdownVariant, string[]> = {
   document: ['input'],
 };
 
-type HeadingClasses = [h1: string, h2: string, h3: string, minor: string];
+/**
+ * 마크다운 요소의 모양. 읽기 화면(`Markdown`)과 편집기(`MarkdownEditor`)가 함께 써서
+ * 편집하는 동안과 게시한 뒤의 모습이 어긋나지 않게 한다.
+ * Tailwind가 클래스를 찾을 수 있도록 선택자를 문자열 그대로 적는다.
+ */
+export const MARKDOWN_CLASS = cn(
+  'break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
+  '[&_p]:my-0.5',
+  '[&_a]:text-primary [&_a]:hover:underline',
+  '[&_strong]:font-semibold [&_em]:italic [&_del]:line-through [&_s]:line-through',
+  '[&_code]:rounded-[4px] [&_code]:bg-surface-variant [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.9em]',
+  '[&_pre]:my-1 [&_pre]:overflow-x-auto [&_pre]:rounded-[8px] [&_pre]:bg-surface-variant [&_pre]:p-3 [&_pre]:typography-subtext-medium [&_pre]:font-mono',
+  '[&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-[1em]',
+  '[&_blockquote]:my-1 [&_blockquote]:border-l-4 [&_blockquote]:border-outline-variant [&_blockquote]:pl-3 [&_blockquote]:text-on-surface-variant',
+  '[&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5',
+  '[&_hr]:my-2 [&_hr]:border-outline-variant',
+  '[&_table]:my-2 [&_table]:border-collapse [&_th]:border [&_th]:border-outline-variant [&_th]:bg-surface-variant [&_th]:px-2 [&_th]:py-1 [&_th]:text-left [&_td]:border [&_td]:border-outline-variant [&_td]:px-2 [&_td]:py-1',
+  '[&_img]:my-1 [&_img]:max-w-full [&_img]:rounded-[8px]',
+);
 
 /**
- * 제목은 본문(채팅 15px)보다 한 단계 이상 커야 제목으로 읽힌다.
+ * 제목은 본문보다 한 단계 이상 커야 제목으로 읽힌다.
  * h1~h3과 그 이하(h4~h6) 네 단계로 나눈다.
  */
-const HEADING_CLASS: Record<MarkdownVariant, HeadingClasses> = {
-  chat: [
-    'typography-title-medium',
-    'typography-title-small',
-    'typography-label-large',
-    'typography-label-medium',
-  ],
-  document: [
-    'typography-display-small',
-    'typography-title-medium',
-    'typography-title-small',
-    'typography-label-large',
-  ],
+export const MARKDOWN_HEADING_CLASS: Record<MarkdownVariant, string> = {
+  chat: cn(
+    '[&_h1]:mt-2 [&_h1]:mb-1 [&_h1]:typography-title-medium',
+    '[&_h2]:mt-2 [&_h2]:mb-1 [&_h2]:typography-title-small',
+    '[&_h3]:mt-2 [&_h3]:mb-1 [&_h3]:typography-label-large',
+    '[&_h4]:mt-2 [&_h4]:mb-1 [&_h4]:typography-label-medium',
+    '[&_h5]:mt-2 [&_h5]:mb-1 [&_h5]:typography-label-medium',
+    '[&_h6]:mt-2 [&_h6]:mb-1 [&_h6]:typography-label-medium',
+  ),
+  document: cn(
+    '[&_h1]:mt-2 [&_h1]:mb-1 [&_h1]:typography-display-small',
+    '[&_h2]:mt-2 [&_h2]:mb-1 [&_h2]:typography-title-medium',
+    '[&_h3]:mt-2 [&_h3]:mb-1 [&_h3]:typography-title-small',
+    '[&_h4]:mt-2 [&_h4]:mb-1 [&_h4]:typography-label-large',
+    '[&_h5]:mt-2 [&_h5]:mb-1 [&_h5]:typography-label-large',
+    '[&_h6]:mt-2 [&_h6]:mb-1 [&_h6]:typography-label-large',
+  ),
 };
 
-function createComponents(variant: MarkdownVariant): Components {
-  const [h1Class, h2Class, h3Class, minorHeadingClass] = HEADING_CLASS[variant];
-
-  return {
-    p: ({ children }) => <p className="my-0.5">{children}</p>,
-    a: ({ children, href }) => (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-primary hover:underline"
-      >
-        {children}
-      </a>
-    ),
-    strong: ({ children }) => (
-      <strong className="font-semibold">{children}</strong>
-    ),
-    em: ({ children }) => <em className="italic">{children}</em>,
-    del: ({ children }) => <del className="line-through">{children}</del>,
-    code: ({ children }) => (
-      <code className="rounded-[4px] bg-surface-variant px-1.5 py-0.5 font-mono text-[0.9em]">
-        {children}
-      </code>
-    ),
-    pre: ({ children }) => (
-      <pre className="my-1 overflow-x-auto rounded-[8px] bg-surface-variant p-3 typography-subtext-medium font-mono [&>code]:bg-transparent [&>code]:p-0 [&>code]:text-[1em]">
-        {children}
-      </pre>
-    ),
-    blockquote: ({ children }) => (
-      <blockquote className="my-1 border-l-4 border-outline-variant pl-3 text-on-surface-variant">
-        {children}
-      </blockquote>
-    ),
-    ul: ({ children }) => <ul className="my-1 list-disc pl-5">{children}</ul>,
-    ol: ({ children }) => (
-      <ol className="my-1 list-decimal pl-5">{children}</ol>
-    ),
-    li: ({ children }) => <li className="my-0.5">{children}</li>,
-    hr: () => <hr className="my-2 border-outline-variant" />,
-    h1: ({ children }) => (
-      <h1 className={cn('mt-2 mb-1', h1Class)}>{children}</h1>
-    ),
-    h2: ({ children }) => (
-      <h2 className={cn('mt-2 mb-1', h2Class)}>{children}</h2>
-    ),
-    h3: ({ children }) => (
-      <h3 className={cn('mt-2 mb-1', h3Class)}>{children}</h3>
-    ),
-    h4: ({ children }) => (
-      <h4 className={cn('mt-2 mb-1', minorHeadingClass)}>{children}</h4>
-    ),
-    h5: ({ children }) => (
-      <h5 className={cn('mt-2 mb-1', minorHeadingClass)}>{children}</h5>
-    ),
-    h6: ({ children }) => (
-      <h6 className={cn('mt-2 mb-1', minorHeadingClass)}>{children}</h6>
-    ),
-  };
-}
-
-const CHAT_COMPONENTS = createComponents('chat');
-const DOCUMENT_COMPONENTS = createComponents('document');
+const COMPONENTS: Components = {
+  a: ({ children, href }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer">
+      {children}
+    </a>
+  ),
+};
 
 export interface MarkdownProps {
   children: string;
@@ -118,16 +83,13 @@ export function Markdown({
 }: MarkdownProps) {
   return (
     <div
-      className={cn(
-        'break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
-        className,
-      )}
+      className={cn(MARKDOWN_CLASS, MARKDOWN_HEADING_CLASS[variant], className)}
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkBreaks]}
         disallowedElements={DISALLOWED_ELEMENTS[variant]}
         unwrapDisallowed
-        components={variant === 'chat' ? CHAT_COMPONENTS : DOCUMENT_COMPONENTS}
+        components={COMPONENTS}
       >
         {children}
       </ReactMarkdown>

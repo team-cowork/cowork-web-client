@@ -5,18 +5,16 @@ import { type FallbackProps } from 'react-error-boundary';
 
 import { messageQueries } from '@/entities/message/api/message-queries';
 import { MessageRow } from '@/widgets/message-list/ui/message-row';
-import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/button';
 import { ErrorState } from '@/shared/ui/error-state';
 import { LoadingPane } from '@/shared/ui/loading-pane';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
-import { CloseIcon } from '@/shared/ui/icons/close-icon';
+import { SidePanel } from '@/shared/ui/side-panel';
 
 export interface PinnedMessagesPanelProps {
   channelId: number;
   subtitle: string;
   onClose: () => void;
-  className?: string;
 }
 
 const STATUS_TEXT_CLASS =
@@ -27,45 +25,23 @@ export function PinnedMessagesPanel({
   channelId,
   subtitle,
   onClose,
-  className,
 }: PinnedMessagesPanelProps) {
   return (
-    <aside
-      aria-label="고정된 메시지"
-      className={cn(
-        'flex w-100 shrink-0 flex-col border-l border-outline-variant bg-surface max-md:fixed max-md:inset-0 max-md:z-30 max-md:w-full max-md:border-l-0',
-        className,
-      )}
+    <SidePanel
+      title="고정된 메시지"
+      subtitle={subtitle}
+      closeLabel="고정된 메시지 닫기"
+      onClose={onClose}
+      bodyClassName="pt-3 pr-3 pl-2"
     >
-      <header className="flex h-12 shrink-0 items-center justify-between border-b border-outline-variant pr-3.5 pl-4">
-        <div className="flex min-w-0 flex-col gap-px">
-          <h2 className="typography-label-small text-on-surface">
-            고정된 메시지
-          </h2>
-          <p className="truncate typography-subtext-small text-on-surface-variant">
-            {subtitle}
-          </p>
-        </div>
-        <button
-          type="button"
-          aria-label="고정된 메시지 닫기"
-          onClick={onClose}
-          className="cursor-pointer text-on-surface-variant hover:text-on-surface"
-        >
-          <CloseIcon size={18} />
-        </button>
-      </header>
-
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-3 pr-3 pl-2">
-        <QueryBoundary
-          loadingFallback={<LoadingPane label="고정된 메시지를 불러오는 중…" />}
-          errorFallback={PinnedMessagesError}
-          resetKeys={[channelId]}
-        >
-          <PinnedMessagesContent channelId={channelId} />
-        </QueryBoundary>
-      </div>
-    </aside>
+      <QueryBoundary
+        loadingFallback={<LoadingPane label="고정된 메시지를 불러오는 중…" />}
+        errorFallback={PinnedMessagesError}
+        resetKeys={[channelId]}
+      >
+        <PinnedMessagesContent channelId={channelId} />
+      </QueryBoundary>
+    </SidePanel>
   );
 }
 

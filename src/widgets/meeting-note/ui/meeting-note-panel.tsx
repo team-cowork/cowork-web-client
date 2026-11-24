@@ -8,10 +8,7 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
 
 import { meetingNoteQueries } from '@/entities/meeting-note/api/meeting-note-queries';
-import {
-  type MeetingNote,
-  pickActiveTemplate,
-} from '@/entities/meeting-note/model/meeting-note';
+import { type MeetingNote } from '@/entities/meeting-note/model/meeting-note';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { userDisplayName } from '@/entities/user/lib/user-display';
 import { MeetingNoteViewer } from '@/widgets/meeting-note/ui/meeting-note-viewer';
@@ -86,7 +83,6 @@ function MeetingNoteContent({
   const [keyword, setKeyword] = useState('');
   const debouncedKeyword = useDebouncedValue(keyword.trim().toLowerCase(), 200);
 
-  const activeTemplate = pickActiveTemplate(templates);
   const templateOf = (note: MeetingNote) =>
     templates.find((template) => template.id === note.templateId) ?? null;
 
@@ -134,7 +130,7 @@ function MeetingNoteContent({
             >
               <SettingsIcon />
             </IconButton>
-            <Button size="S" disabled={!activeTemplate} onClick={startCreate}>
+            <Button size="S" onClick={startCreate}>
               <PlusIcon size={16} className="mr-1" />새 회의록
             </Button>
           </div>
@@ -191,22 +187,11 @@ function MeetingNoteContent({
           <div className="flex flex-1 items-center justify-center p-6">
             <EmptyState
               icon={<EditIcon />}
-              title={
-                activeTemplate
-                  ? '첫 회의록을 남겨 보세요'
-                  : '사용할 회의록 템플릿이 없어요'
-              }
-              description={
-                activeTemplate
-                  ? `"${activeTemplate.name}" 양식으로 회의 내용을 정리할 수 있어요`
-                  : '템플릿을 먼저 만들면 회의록을 쓸 수 있어요'
-              }
+              title="첫 회의록을 남겨 보세요"
+              description="마크다운으로 바로 회의 내용을 정리할 수 있어요"
               action={
-                <Button
-                  size="S"
-                  onClick={activeTemplate ? startCreate : openTemplates}
-                >
-                  {activeTemplate ? '새 회의록 쓰기' : '템플릿 만들기'}
+                <Button size="S" onClick={startCreate}>
+                  새 회의록 쓰기
                 </Button>
               }
               className="max-w-md"

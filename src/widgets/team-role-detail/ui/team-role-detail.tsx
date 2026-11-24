@@ -74,9 +74,10 @@ function TeamRoleDetailContent({
 
   if (!role) notFound();
 
-  const memberCount = members.filter((member) =>
-    member.roles.some((r) => r.id === role.id),
-  ).length;
+  const memberCount = role.isDefault
+    ? members.length
+    : members.filter((member) => member.roles.some((r) => r.id === role.id))
+        .length;
 
   return (
     <div className="flex h-dvh max-md:flex-col">
@@ -122,7 +123,9 @@ function TeamRoleDetailContent({
           {tab === 'display' && (
             <TeamRoleDisplayTab teamId={teamId} role={role} />
           )}
-          {tab === 'permissions' && <TeamRolePermissionsTab />}
+          {tab === 'permissions' && (
+            <TeamRolePermissionsTab teamId={teamId} role={role} />
+          )}
           {tab === 'members' && (
             <TeamRoleMembersTab teamId={teamId} role={role} />
           )}

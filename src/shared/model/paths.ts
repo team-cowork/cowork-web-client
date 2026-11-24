@@ -16,6 +16,10 @@ export function channelPath(teamId: number, channelId: number): string {
   return `/teams/${teamId}/channels/${channelId}`;
 }
 
+export function channelActivityPath(teamId: number, channelId: number): string {
+  return `${channelPath(teamId, channelId)}?panel=activity`;
+}
+
 export function projectPath(teamId: number, projectId: number): string {
   return `/teams/${teamId}/projects/${projectId}`;
 }

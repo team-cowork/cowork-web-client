@@ -16,6 +16,7 @@ import {
   type ViewerAttachment,
 } from '@/features/attachment-download/ui/attachment-image-viewer';
 import { useDeleteChannelFile } from '@/features/channel-file/model/use-delete-channel-file';
+import { useMarkLatestRead } from '@/features/channel-read/model/use-mark-latest-read';
 import { useAttachmentUploads } from '@/features/message-attachment/model/use-attachment-uploads';
 import { AttachmentDrafts } from '@/features/message-attachment/ui/attachment-drafts';
 import { useSendMessage } from '@/features/message-send/model/use-send-message';
@@ -42,6 +43,8 @@ export interface FileSharePanelProps {
  */
 export function FileSharePanel({ channelId, className }: FileSharePanelProps) {
   useChannelMessageEvents(channelId);
+  // 파일 말고 다른 메시지가 뒤에 있어도 채널의 가장 최근 메시지까지 읽음 처리한다.
+  useMarkLatestRead(channelId);
 
   const { sendAsync } = useSendMessage(channelId);
   const uploads = useAttachmentUploads(channelId);
@@ -129,9 +132,15 @@ function ChannelFilesContent({
   const openAttachment = useOpenAttachment();
   // 열 때의 이미지 목록을 고정해, 보는 동안 새 파일이 올라와도 순번이 밀리지 않게 한다.
   const [viewer, setViewer] = useState<{
-    images: ViewerAttachment[];
+    images: (ViewerAttachment & { spoiler: boolean })[];
     index: number;
   } | null>(null);
+  // 뷰어에서 드러낸 스포일러 파일. 카드에는 썸네일이 없어 뷰어에서만 가린다.
+  const [revealed, setRevealed] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const revealKey = ({ messageId, attachmentIndex }: ViewerAttachment) =>
+    `${messageId}:${attachmentIndex}`;
 
   const list = files.data.pages.flatMap((page) => page.files);
 
@@ -143,11 +152,14 @@ function ChannelFilesContent({
     const index = imageFiles.findIndex(({ fileId }) => fileId === file.fileId);
     if (index >= 0) {
       setViewer({
-        images: imageFiles.map(({ messageId, attachmentIndex, fileName }) => ({
-          messageId,
-          attachmentIndex,
-          name: fileName,
-        })),
+        images: imageFiles.map(
+          ({ messageId, attachmentIndex, fileName, spoiler }) => ({
+            messageId,
+            attachmentIndex,
+            name: fileName,
+            spoiler: Boolean(spoiler),
+          }),
+        ),
         index,
       });
       return;
@@ -182,7 +194,7 @@ function ChannelFilesContent({
             >
               <AttachmentCard
                 name={file.fileName}
-                meta={`${file.uploaderName} · ${formatDate(file.uploadedAt)} · ${formatFileSize(file.fileSize)}`}
+                meta={`${file.spoiler ? '스포일러 · ' : ''}${file.uploaderName} · ${formatDate(file.uploadedAt)} · ${formatFileSize(file.fileSize)}`}
                 className="pr-12 hover:border-outline"
               />
             </button>
@@ -215,9 +227,15 @@ function ChannelFilesContent({
       {viewer && (
         <AttachmentImageViewer
           channelId={channelId}
-          images={viewer.images}
+          images={viewer.images.map((image) => ({
+            ...image,
+            covered: image.spoiler && !revealed.has(revealKey(image)),
+          }))}
           initialIndex={viewer.index}
           onClose={() => setViewer(null)}
+          onReveal={(image) =>
+            setRevealed((prev) => new Set(prev).add(revealKey(image)))
+          }
         />
       )}
     </>
