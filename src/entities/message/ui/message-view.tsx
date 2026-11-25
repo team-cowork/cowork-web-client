@@ -30,6 +30,9 @@ export interface MessageViewProps {
   onToggleReaction?: (emoji: string) => void;
   /** 첨부 순번으로 파일을 연다 */
   onOpenAttachment?: (attachmentIndex: number) => void;
+  /** 드러낸 스포일러 첨부 순번과, 드러낼 때 부르는 함수 */
+  revealedAttachments?: ReadonlySet<number>;
+  onRevealAttachment?: (attachmentIndex: number) => void;
   /** 작성자 아바타·이름을 눌렀을 때 누른 요소 옆에 프로필을 연다 */
   onOpenAuthor?: (anchor: HTMLElement) => void;
   /** 마우스를 올리면 뜨는 도구 모음 */
@@ -37,6 +40,7 @@ export interface MessageViewProps {
   actionsVisible?: boolean;
   /** 수정 중이면 본문 대신 보여줄 입력 폼 */
   editor?: ReactNode;
+  compact?: boolean;
   className?: string;
 }
 
@@ -81,16 +85,19 @@ function UserMessageView({
   onToggleReaction,
   onOpenAttachment,
   onOpenAuthor,
+  revealedAttachments,
+  onRevealAttachment,
   actions,
   actionsVisible,
   editor,
+  compact = false,
   className,
 }: MessageViewProps) {
   const author = useMessageAuthor(message.authorId);
   const showContent =
     message.content.length > 0 && !isAttachmentOnlyContent(message);
   const timestamp =
-    timestampFormat === 'clock'
+    compact || timestampFormat === 'clock'
       ? formatMessageClock(message.createdAt)
       : formatMessageTime(message.createdAt);
 
@@ -110,6 +117,8 @@ function UserMessageView({
                   : undefined
               }
               onOpen={onOpenAttachment}
+              revealed={revealedAttachments}
+              onReveal={onRevealAttachment}
               className={showContent ? 'mt-2' : undefined}
             />
           </>
@@ -178,6 +187,7 @@ function UserMessageView({
         )
       }
       dimmed={message.sendStatus === 'pending'}
+      compact={compact}
       className={className}
     />
   );

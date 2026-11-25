@@ -28,7 +28,7 @@ export default function ChannelSettingsLayout({
   if (channel && channel.teamId !== teamId) notFound();
 
   return (
-    <div className="flex min-h-screen bg-surface-container-low">
+    <div className="flex min-h-dvh bg-surface-container-low max-md:flex-col">
       <ChannelSettingsNav
         teamId={teamId}
         channelId={channelId}
@@ -36,13 +36,15 @@ export default function ChannelSettingsLayout({
       />
 
       <div className="relative flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-2xl px-10 py-12">{children}</div>
+        <div className="mx-auto w-full max-w-2xl px-10 py-12 max-md:px-4 max-md:py-6">
+          {children}
+        </div>
 
         <button
           type="button"
           aria-label="설정 닫기"
           onClick={() => router.push(channelPath(teamId, channelId))}
-          className="fixed top-6 right-6 flex size-9 cursor-pointer items-center justify-center rounded-full border border-outline-variant text-on-surface-variant hover:border-outline hover:text-on-surface"
+          className="fixed top-6 right-6 z-10 flex size-9 cursor-pointer items-center justify-center rounded-full border border-outline-variant text-on-surface-variant hover:border-outline hover:text-on-surface max-md:top-3 max-md:right-4"
         >
           <CloseIcon size={18} />
         </button>

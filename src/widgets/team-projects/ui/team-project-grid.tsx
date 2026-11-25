@@ -18,6 +18,7 @@ import { EmptyState } from '@/shared/ui/empty-state';
 import { ErrorState } from '@/shared/ui/error-state';
 import { FolderIcon } from '@/shared/ui/icons/folder-icon';
 import { LoadingPane } from '@/shared/ui/loading-pane';
+import { MobileNavButton } from '@/shared/ui/mobile-nav-button';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 export interface TeamProjectGridProps {
@@ -32,12 +33,13 @@ export function TeamProjectGrid({ teamId, className }: TeamProjectGridProps) {
   return (
     <div
       className={cn(
-        'mx-auto flex w-full max-w-4xl flex-col gap-5 px-8 py-10',
+        'mx-auto flex w-full max-w-4xl flex-col gap-5 px-8 py-10 max-md:px-4 max-md:py-6',
         className,
       )}
     >
       <div className="flex items-end justify-between gap-4">
-        <div className="flex flex-col gap-1">
+        <MobileNavButton className="self-center" />
+        <div className="mr-auto flex flex-col gap-1">
           <h1 className="typography-title-small text-on-surface">프로젝트</h1>
           <p className="typography-subtext-medium text-on-surface-variant">
             왼쪽 목록에서 채널을 골라 대화를 시작할 수 있어요.

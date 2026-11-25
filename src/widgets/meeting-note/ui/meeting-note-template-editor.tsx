@@ -63,7 +63,6 @@ export function MeetingNoteTemplateEditor({
       teamId={teamId}
       channelId={channelId}
       template={template}
-      isFirstTemplate={templates.length === 0}
     />
   );
 }
@@ -72,12 +71,10 @@ function TemplateForm({
   teamId,
   channelId,
   template,
-  isFirstTemplate,
 }: {
   teamId: number;
   channelId: number;
   template: MeetingNoteTemplate | null;
-  isFirstTemplate: boolean;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -95,10 +92,8 @@ function TemplateForm({
   );
   const [name, setName] = useState(template?.name ?? '');
   const [rows, setRows] = useState(initialRows);
-  // 채널의 첫 템플릿은 회의록을 쓸 수 있게 기본으로 정한다.
-  const [makeDefault, setMakeDefault] = useState(
-    template?.isActive ?? isFirstTemplate,
-  );
+  // 회의록은 템플릿 없이도 쓸 수 있으므로, 기본 템플릿은 직접 고른 경우에만 정한다.
+  const [makeDefault, setMakeDefault] = useState(template?.isActive ?? false);
   const [submitted, setSubmitted] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
   const [addedKey, setAddedKey] = useState<string | null>(null);
@@ -125,7 +120,7 @@ function TemplateForm({
 
   const isDirty =
     name !== (template?.name ?? '') ||
-    makeDefault !== (template?.isActive ?? isFirstTemplate) ||
+    makeDefault !== (template?.isActive ?? false) ||
     rows.length !== initialRows.length ||
     rows.some(
       (row, index) =>

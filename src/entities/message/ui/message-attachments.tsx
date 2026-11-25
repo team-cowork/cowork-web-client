@@ -22,41 +22,110 @@ export interface MessageAttachmentsProps {
   source?: AttachmentSource;
   /** 첨부 순번으로 파일을 연다. 없으면 카드를 누를 수 없다. */
   onOpen?: (attachmentIndex: number) => void;
+  /**
+   * 드러낸 스포일러 첨부 순번. 뷰어와 함께 쓰도록 메시지 행이 들고 있다.
+   * 행이 새로 그려지면 다시 가려지는데, 스포일러는 다시 가려지는 쪽이 안전해서 그대로 둔다.
+   */
+  revealed?: ReadonlySet<number>;
+  onReveal?: (attachmentIndex: number) => void;
   className?: string;
+}
+
+/** 아직 드러내지 않은 스포일러 이미지인지. 이미지가 아닌 첨부는 가리지 않는다. */
+export function isCoveredSpoiler(
+  attachment: Pick<MessageAttachment, 'name' | 'spoiler'>,
+  revealed: boolean,
+): boolean {
+  return (
+    Boolean(attachment.spoiler) &&
+    Boolean(getPreviewImageType(attachment.name)) &&
+    !revealed
+  );
 }
 
 export function MessageAttachments({
   attachments,
   source,
   onOpen,
+  revealed: revealedProp,
+  onReveal,
   className,
 }: MessageAttachmentsProps) {
+  // 위에서 상태를 넘기지 않으면 이 목록 안에서만 기억한다.
+  const [localRevealed, setLocalRevealed] = useState<ReadonlySet<number>>(
+    () => new Set(),
+  );
+  const revealed = revealedProp ?? localRevealed;
+  const reveal =
+    onReveal ??
+    ((index: number) => setLocalRevealed((prev) => new Set(prev).add(index)));
+
   if (attachments.length === 0) return null;
 
   return (
     <ul className={cn('flex max-w-md flex-col gap-2', className)}>
       {attachments.map((attachment, index) => (
         <li key={attachment.objectKey ?? `${attachment.name}-${index}`}>
-          <button
-            type="button"
-            aria-label={`${attachment.name} 열기`}
-            disabled={!onOpen}
-            onClick={(event) => {
-              event.stopPropagation();
-              onOpen?.(index);
-            }}
-            className="w-full cursor-pointer text-left disabled:cursor-default"
-          >
-            <AttachmentPreview
-              attachment={attachment}
-              attachmentIndex={index}
-              source={source}
-              className={cn(onOpen && 'hover:border-outline')}
-            />
-          </button>
+          <AttachmentItem
+            attachment={attachment}
+            attachmentIndex={index}
+            source={source}
+            covered={isCoveredSpoiler(attachment, revealed.has(index))}
+            onReveal={() => reveal(index)}
+            onOpen={onOpen && (() => onOpen(index))}
+          />
         </li>
       ))}
     </ul>
+  );
+}
+
+/**
+ * 첨부 하나. 스포일러 이미지는 가린 채 보여 주고, 처음 누르면 드러낸 뒤 그다음부터 연다.
+ * 아직 저장되지 않은 내 메시지처럼 열 수 없는 첨부도 눌러서 드러낼 수는 있다.
+ */
+function AttachmentItem({
+  attachment,
+  attachmentIndex,
+  source,
+  covered,
+  onReveal,
+  onOpen,
+}: {
+  attachment: MessageAttachment;
+  attachmentIndex: number;
+  source?: AttachmentSource;
+  covered: boolean;
+  onReveal: () => void;
+  onOpen?: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={
+        covered
+          ? `스포일러 이미지 ${attachment.name} 보기`
+          : `${attachment.name} 열기`
+      }
+      disabled={!covered && !onOpen}
+      onClick={(event) => {
+        event.stopPropagation();
+        if (covered) {
+          onReveal();
+          return;
+        }
+        onOpen?.();
+      }}
+      className="w-full cursor-pointer text-left disabled:cursor-default"
+    >
+      <AttachmentPreview
+        attachment={attachment}
+        attachmentIndex={attachmentIndex}
+        source={source}
+        covered={covered}
+        className={cn(onOpen && 'hover:border-outline')}
+      />
+    </button>
   );
 }
 
@@ -68,11 +137,14 @@ function AttachmentPreview({
   attachment,
   attachmentIndex,
   source,
+  covered = false,
   className,
 }: {
   attachment: MessageAttachment;
   attachmentIndex: number;
   source?: AttachmentSource;
+  /** 스포일러로 가린 상태 */
+  covered?: boolean;
   className?: string;
 }) {
   const [broken, setBroken] = useState(false);
@@ -95,6 +167,7 @@ function AttachmentPreview({
         attachment={attachment}
         fallback={card}
         onError={() => setBroken(true)}
+        covered={covered}
         className={className}
       />
     );
@@ -103,7 +176,7 @@ function AttachmentPreview({
   if (!attachment.localFile) return card;
 
   return (
-    <ImageFrame className={className}>
+    <ImageFrame covered={covered} className={className}>
       <LocalImage
         file={attachment.localFile}
         alt={attachment.name}
@@ -121,6 +194,7 @@ function ImagePreview({
   attachment,
   fallback,
   onError,
+  covered = false,
   className,
 }: {
   source: AttachmentSource;
@@ -128,6 +202,7 @@ function ImagePreview({
   attachment: MessageAttachment;
   fallback: ReactNode;
   onError: () => void;
+  covered?: boolean;
   className?: string;
 }) {
   const { data, isPending, isError } = useQuery(
@@ -141,7 +216,7 @@ function ImagePreview({
   if (isError) return fallback;
 
   return (
-    <ImageFrame className={className}>
+    <ImageFrame covered={covered} className={className}>
       {!isPending ? (
         // 서명된 일회성 URL이라 이미지 최적화 서버를 거치지 않는다.
         <Image
@@ -173,19 +248,37 @@ const IMAGE_CLASS_NAME = 'block h-auto max-h-80 w-auto max-w-full';
 
 function ImageFrame({
   children,
+  covered = false,
   className,
 }: {
   children: ReactNode;
+  /** 스포일러로 가린 상태. 흐리게 덮고 "스포일러" 표시를 얹는다. */
+  covered?: boolean;
   className?: string;
 }) {
   return (
     <span
       className={cn(
-        'block w-fit overflow-hidden rounded-xl border border-outline-variant bg-surface-container',
+        'relative block w-fit overflow-hidden rounded-xl border border-outline-variant bg-surface-container',
         className,
       )}
     >
-      {children}
+      <span
+        aria-hidden={covered}
+        className={cn(
+          'block transition-[filter]',
+          covered && 'scale-105 blur-2xl brightness-75',
+        )}
+      >
+        {children}
+      </span>
+      {covered && (
+        <span className="absolute inset-0 flex items-center justify-center">
+          <span className="rounded-full bg-black/70 px-3 py-1 typography-label-small text-white">
+            스포일러
+          </span>
+        </span>
+      )}
     </span>
   );
 }

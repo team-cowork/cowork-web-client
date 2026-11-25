@@ -8,6 +8,8 @@ import { type Channel } from '@/entities/channel/model/channel';
 import { ChannelIcon } from '@/entities/channel/ui/channel-icon';
 import { cn } from '@/shared/lib/cn';
 import { channelSettingsOverviewPath } from '@/shared/model/paths';
+import { HistoryIcon } from '@/shared/ui/icons/history-icon';
+import { MobileNavButton } from '@/shared/ui/mobile-nav-button';
 import { LockIcon } from '@/shared/ui/icons/lock-icon';
 import { PinIcon } from '@/shared/ui/icons/pin-icon';
 import { SearchIcon } from '@/shared/ui/icons/search-icon';
@@ -23,6 +25,8 @@ export interface ChannelHeaderProps {
   onTogglePins?: () => void;
   /** 없으면 검색 버튼을 비활성화한다 */
   onToggleSearch?: () => void;
+  /** 없으면 활동 기록 버튼을 숨긴다(음성 채널에서만 쓴다) */
+  onToggleActivity?: () => void;
   className?: string;
 }
 
@@ -33,18 +37,20 @@ export function ChannelHeader({
   onToggleMembers,
   onTogglePins,
   onToggleSearch,
+  onToggleActivity,
   className,
 }: ChannelHeaderProps) {
   return (
     <header
       className={cn('flex h-12 shrink-0 items-center gap-2 px-4', className)}
     >
+      <MobileNavButton />
       <ChannelIcon
         viewType={channel.viewType}
         size={22}
         className="shrink-0 text-on-surface-variant"
       />
-      <h1 className="shrink-0 typography-label-small text-on-surface">
+      <h1 className="min-w-0 truncate typography-label-small text-on-surface">
         {channel.name}
       </h1>
       {channel.isPrivate && (
@@ -57,8 +63,11 @@ export function ChannelHeader({
 
       {channel.description && (
         <>
-          <span aria-hidden className="h-5 w-px shrink-0 bg-outline-variant" />
-          <p className="min-w-0 truncate typography-subtext-medium text-on-surface-variant">
+          <span
+            aria-hidden
+            className="h-5 w-px shrink-0 bg-outline-variant max-md:hidden"
+          />
+          <p className="min-w-0 truncate typography-subtext-medium text-on-surface-variant max-md:hidden">
             {channel.description}
           </p>
         </>
@@ -86,11 +95,21 @@ export function ChannelHeader({
             <PinIcon size={20} />
           </button>
         )}
+        {onToggleActivity && (
+          <button
+            type="button"
+            aria-label="활동 기록"
+            onClick={onToggleActivity}
+            className="cursor-pointer text-on-surface-variant hover:text-on-surface"
+          >
+            <HistoryIcon size={20} />
+          </button>
+        )}
         <button
           type="button"
           aria-label="멤버 목록"
           onClick={onToggleMembers}
-          className="cursor-pointer text-on-surface-variant hover:text-on-surface"
+          className="cursor-pointer text-on-surface-variant hover:text-on-surface max-md:hidden"
         >
           <UsersIcon size={20} />
         </button>

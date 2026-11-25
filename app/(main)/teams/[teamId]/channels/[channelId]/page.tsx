@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { notFound } from 'next/navigation';
+import { notFound, useRouter, useSearchParams } from 'next/navigation';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { type FallbackProps } from 'react-error-boundary';
@@ -11,7 +11,6 @@ import { isHttpStatus } from '@/shared/api/http-error';
 import { channelQueries } from '@/entities/channel/api/channel-queries';
 import { useLastChannelStore } from '@/entities/channel/model/last-channel-store';
 import { LiveStatusBadge } from '@/entities/live/ui/live-status-badge';
-import { toThreadRoot } from '@/entities/message/lib/to-thread-root';
 import { type Message } from '@/entities/message/model/message';
 import { VoiceParticipantBadge } from '@/features/voice-session/ui/voice-participant-badge';
 import { ChannelHeader } from '@/widgets/channel-header/ui/channel-header';
@@ -23,8 +22,11 @@ import { MessageSearchPanel } from '@/widgets/message-search/ui/message-search-p
 import { MessageList } from '@/widgets/message-list/ui/message-list';
 import { PinnedMessagesPanel } from '@/widgets/message-list/ui/pinned-messages-panel';
 import { ChannelThreadPanel } from '@/widgets/message-list/ui/channel-thread-panel';
+import { ChannelActivityPanel } from '@/widgets/channel-activity/ui/channel-activity-panel';
+import { VoiceLogReader } from '@/widgets/channel-activity/ui/voice-log-reader';
 import { VoiceStage } from '@/widgets/voice-stage/ui/voice-stage';
 import { useRouteIds } from '@/shared/lib/use-route-ids';
+import { channelPath } from '@/shared/model/paths';
 import { Button } from '@/shared/ui/button';
 import { ErrorState } from '@/shared/ui/error-state';
 import { LoadingPane } from '@/shared/ui/loading-pane';
@@ -73,7 +75,7 @@ export default function ChannelPage() {
   );
 }
 
-type SidePanel = 'members' | 'pins' | 'search';
+type SidePanel = 'members' | 'pins' | 'search' | 'activity';
 
 function ChannelView({
   teamId,
@@ -84,11 +86,29 @@ function ChannelView({
 }) {
   const { data: channel } = useSuspenseQuery(channelQueries.detail(channelId));
   const isMeetingNote = channel.viewType === 'MEETING_NOTE';
+  const isVoice = channel.type === 'VOICE';
+  const hasActivity = isVoice || channel.viewType === 'FILE_SHARE';
   // 회의록은 본문 폭이 넓어야 읽고 쓰기 편해서 멤버 패널을 닫은 채 시작한다.
+  // 음성·파일 채널은 활동 기록을 바로 보여 주어 쌓인 미읽음을 읽음 처리한다.
   const [sidePanel, setSidePanel] = useState<SidePanel | null>(
-    isMeetingNote ? null : 'members',
+    isMeetingNote ? null : hasActivity ? 'activity' : 'members',
   );
   const [threadRoot, setThreadRoot] = useState<Message | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activityRequested =
+    hasActivity && searchParams.get('panel') === 'activity';
+
+  if (activityRequested && (sidePanel !== 'activity' || threadRoot)) {
+    setSidePanel('activity');
+    setThreadRoot(null);
+  }
+
+  useEffect(() => {
+    if (activityRequested) {
+      router.replace(channelPath(teamId, channelId), { scroll: false });
+    }
+  }, [activityRequested, router, teamId, channelId]);
 
   const setLastChannelId = useLastChannelStore(
     (state) => state.setLastChannelId,
@@ -102,7 +122,6 @@ function ChannelView({
     notFound();
   }
 
-  const isVoice = channel.type === 'VOICE';
   // 고정 메시지와 메시지 검색은 채팅이 있는 채널에서만 연다.
   const hasMessages = !isVoice && !isMeetingNote;
 
@@ -131,8 +150,12 @@ function ChannelView({
           onToggleSearch={
             hasMessages ? () => toggleSidePanel('search') : undefined
           }
+          onToggleActivity={
+            hasActivity ? () => toggleSidePanel('activity') : undefined
+          }
         />
 
+        {isVoice && <VoiceLogReader channelId={channelId} />}
         {isVoice ? (
           <VoiceStage channelId={channelId} />
         ) : channel.viewType === 'FILE_SHARE' ? (
@@ -145,7 +168,7 @@ function ChannelView({
             channelId={channelId}
             projectId={channel.projectId}
             placeholder={`#${channel.name}에 메시지 보내기`}
-            onSelectMessage={(message) => setThreadRoot(toThreadRoot(message))}
+            onSelectMessage={setThreadRoot}
           />
         )}
       </div>
@@ -169,6 +192,17 @@ function ChannelView({
         <PinnedMessagesPanel
           channelId={channelId}
           subtitle={`# ${channel.name}`}
+          onClose={() => setSidePanel(null)}
+        />
+      ) : sidePanel === 'activity' && hasActivity ? (
+        <ChannelActivityPanel
+          channelId={channelId}
+          subtitle={channel.name}
+          emptyMessage={
+            isVoice
+              ? '보여 줄 활동 기록이 아직 없어요. 입장과 퇴장, 라이브 기록이 여기에 쌓이고, 기록을 볼 권한이 없으면 기록이 있어도 보이지 않아요.'
+              : '보여 줄 활동 기록이 아직 없어요. 파일을 올리면 누가 어떤 파일을 올렸는지 여기에 쌓여요.'
+          }
           onClose={() => setSidePanel(null)}
         />
       ) : (

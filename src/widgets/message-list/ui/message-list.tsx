@@ -13,6 +13,7 @@ import {
 
 import { defaultRangeExtractor, useVirtualizer } from '@tanstack/react-virtual';
 
+import { continuesPrevious } from '@/entities/message/lib/message-group';
 import { type Message } from '@/entities/message/model/message';
 import {
   editingKeyOf,
@@ -102,8 +103,12 @@ export function MessageList({
   const virtualizer = useVirtualizer({
     count: messages.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => ESTIMATED_ROW_PX,
-    gap: ROW_GAP_PX,
+    // 앞 메시지와 이어지는 행(compact)은 위 간격이 없다. 간격은 행 안쪽 위 여백으로 두어 높이에 포함시킨다.
+    estimateSize: (index) =>
+      ESTIMATED_ROW_PX +
+      (index > 0 && !continuesPrevious(messages[index - 1], messages[index])
+        ? ROW_GAP_PX
+        : 0),
     overscan: OVERSCAN_ROWS,
     scrollMargin: LIST_OFFSET_PX,
     // 처음 그릴 때부터 맨 아래 근처 행을 그려, 맨 위 행을 그렸다가 점프하지 않게 한다.
@@ -282,11 +287,17 @@ export function MessageList({
         <ol className="relative w-full" style={{ height: totalSize }}>
           {virtualizer.getVirtualItems().map((virtualItem) => {
             const message = messages[virtualItem.index];
+            const compact = continuesPrevious(
+              messages[virtualItem.index - 1],
+              message,
+            );
             const selectable =
               onSelectMessage !== undefined &&
               message.type !== 'SYSTEM' &&
               message.sendStatus === undefined;
 
+            // 바깥 li는 위치와 높이 측정, 위 간격만 맡고 눌림·호버 모양은 안쪽 div가 맡는다.
+            // 간격이 눌림 영역과 호버 배경에 들어가지 않게 하려는 것이다.
             return (
               <li
                 key={virtualItem.key}
@@ -294,25 +305,33 @@ export function MessageList({
                 ref={virtualizer.measureElement}
                 // transform은 행마다 쌓임 맥락을 만들어 반응 피커 같은 fixed 요소를 가두므로 top을 쓴다.
                 style={{ top: virtualItem.start - LIST_OFFSET_PX }}
-                {...(selectable && {
-                  role: 'button',
-                  tabIndex: 0,
-                  'aria-label': '메시지 스레드 열기',
-                  onClick: handleClick(message),
-                  onKeyDown: handleKeyDown(message),
-                })}
                 className={cn(
-                  'absolute left-0 w-full rounded-[12px]',
-                  selectable &&
-                    'cursor-pointer hover:bg-surface focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none',
+                  'absolute left-0 w-full',
+                  virtualItem.index > 0 && !compact && 'pt-[18px]',
                 )}
               >
-                <MessageRow
-                  message={message}
-                  onRetry={onRetryMessage}
-                  onReply={onReplyMessage}
-                  editSurfaceId={surfaceId}
-                />
+                <div
+                  {...(selectable && {
+                    role: 'button',
+                    tabIndex: 0,
+                    'aria-label': '메시지 스레드 열기',
+                    onClick: handleClick(message),
+                    onKeyDown: handleKeyDown(message),
+                  })}
+                  className={cn(
+                    'rounded-[12px]',
+                    selectable &&
+                      'cursor-pointer hover:bg-surface focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none',
+                  )}
+                >
+                  <MessageRow
+                    message={message}
+                    onRetry={onRetryMessage}
+                    onReply={onReplyMessage}
+                    editSurfaceId={surfaceId}
+                    compact={compact}
+                  />
+                </div>
               </li>
             );
           })}

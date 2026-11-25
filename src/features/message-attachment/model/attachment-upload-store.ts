@@ -18,6 +18,8 @@ export interface AttachmentUpload {
   error?: string;
   /** 다시 시도할 때 업로드부터 할지, 전송만 다시 할지 */
   failedStep?: 'upload' | 'send';
+  /** 스포일러로 가려서 보낼지 */
+  spoiler?: boolean;
 }
 
 // 진행률이 이 시간 동안 오르지 않으면 연결이 끊긴 것으로 보고 중단한다

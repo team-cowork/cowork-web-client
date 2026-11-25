@@ -151,7 +151,9 @@ function TeamRoleList({
                 {role.name}
               </span>
               <span className="flex w-20 shrink-0 items-center justify-end gap-1 typography-subtext-small text-on-surface-variant">
-                {memberCountByRoleId.get(role.id) ?? 0}
+                {role.isDefault
+                  ? members.length
+                  : (memberCountByRoleId.get(role.id) ?? 0)}
                 <UsersIcon size={14} />
               </span>
               <span className="flex w-[88px] shrink-0 justify-end gap-1.5">

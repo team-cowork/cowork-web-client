@@ -5,12 +5,14 @@ import { useQuery } from '@tanstack/react-query';
 import { userQueries } from '@/entities/user/api/user-queries';
 import { cn } from '@/shared/lib/cn';
 
+import './typing-indicator.css';
+
 export interface TypingIndicatorProps {
   userIds: number[];
   className?: string;
 }
 
-/** `도윤님이 입력 중…`, 여럿이면 `도윤님 외 2명이 입력 중…` */
+/** `••• 도윤 님이 입력하고 있어요`, 여럿이면 `••• 도윤 님 외 2명이 입력하고 있어요` */
 export function TypingIndicator({ userIds, className }: TypingIndicatorProps) {
   const [firstId] = userIds;
   const { data: first } = useQuery({
@@ -27,11 +29,19 @@ export function TypingIndicator({ userIds, className }: TypingIndicatorProps) {
     <p
       role="status"
       className={cn(
-        'px-1 typography-subtext-medium text-on-surface-variant',
+        'flex items-center gap-2 px-1 typography-subtext-medium text-on-surface-variant',
         className,
       )}
     >
-      {others > 0 ? `${name}님 외 ${others}명이` : `${name}님이`} 입력 중…
+      <span aria-hidden className="inline-flex items-center gap-1">
+        <span className="typing-dot" />
+        <span className="typing-dot" />
+        <span className="typing-dot" />
+      </span>
+      <span>
+        <strong className="font-semibold text-on-surface">{name}</strong>
+        {others > 0 ? ` 님 외 ${others}명이` : ' 님이'} 입력하고 있어요
+      </span>
     </p>
   );
 }

@@ -10,6 +10,7 @@ import { type User } from '@/entities/user/model/user';
 import { ProfileBanner } from '@/entities/user/ui/profile-banner';
 import { UserAvatar } from '@/entities/user/ui/user-avatar';
 import { Badge } from '@/shared/ui/badge';
+import { useEscapeToClose } from '@/shared/lib/use-escape-to-close';
 import { ImageViewer } from '@/shared/ui/image-viewer';
 
 const POPOVER_WIDTH = 300;
@@ -79,24 +80,20 @@ export function UserProfilePopover({
     if (placed) ref.current?.focus();
   }, [placed]);
 
-  // 뷰어가 떠 있는 동안 `Esc`는 뷰어만 닫는다.
+  // 뷰어가 떠 있는 동안 `Esc`는 뷰어만 닫는다. 다른 열린 창과도 겹치지 않게 공용 훅으로 받는다.
+  useEscapeToClose(!viewerOpen, () => {
+    onClose();
+    anchor.focus();
+  });
+
   useEffect(() => {
     if (viewerOpen) return;
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      onClose();
-      anchor.focus();
-    };
     const handleResize = () => onClose();
 
-    document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('resize', handleResize);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [anchor, onClose, viewerOpen]);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [onClose, viewerOpen]);
 
   const imageUrl = user?.profile_image_url ?? undefined;
 

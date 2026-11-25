@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { useApprovePull } from '@/features/github-pr-actions/model/use-approve-pull';
+import { useClosePull } from '@/features/github-pr-actions/model/use-close-pull';
 import { useMergePull } from '@/features/github-pr-actions/model/use-merge-pull';
 import { Button } from '@/shared/ui/button';
 import { Dialog } from '@/shared/ui/dialog';
@@ -21,10 +22,11 @@ export function GithubPrActions({
   prNumber,
   mergeBlockedReason,
 }: GithubPrActionsProps) {
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirm, setConfirm] = useState<'merge' | 'close' | null>(null);
   const approve = useApprovePull(projectId, repoId, prNumber);
   const merge = useMergePull(projectId, repoId, prNumber);
-  const pending = approve.isPending || merge.isPending;
+  const close = useClosePull(projectId, repoId, prNumber);
+  const pending = approve.isPending || merge.isPending || close.isPending;
 
   return (
     <>
@@ -36,41 +38,76 @@ export function GithubPrActions({
       <Button
         size="S"
         variant="weak"
+        color="neutral"
+        disabled={pending}
+        onClick={() => setConfirm('close')}
+      >
+        {close.isPending ? '처리하는 중이에요…' : '닫기'}
+      </Button>
+      <Button
+        size="S"
+        variant="weak"
         disabled={pending}
         onClick={() => approve.mutate()}
       >
-        {approve.isPending ? '요청을 보내는 중이에요…' : '승인하기'}
+        {approve.isPending ? '처리하는 중이에요…' : '승인하기'}
       </Button>
       <Button
         size="S"
         disabled={pending || mergeBlockedReason !== undefined}
-        onClick={() => setConfirmOpen(true)}
+        onClick={() => setConfirm('merge')}
       >
-        {merge.isPending ? '요청을 보내는 중이에요…' : '머지하기'}
+        {merge.isPending ? '처리하는 중이에요…' : '머지하기'}
       </Button>
       <Dialog
-        open={confirmOpen}
+        open={confirm === 'merge'}
         onClose={() => {
-          if (!merge.isPending) setConfirmOpen(false);
+          if (!merge.isPending) setConfirm(null);
         }}
         title="이 PR을 스쿼시 머지할까요?"
-        description="여러 커밋을 하나로 합치는 squash merge를 요청해요. 비동기로 처리되니 결과는 GitHub에서 확인해 주세요."
+        description="여러 커밋을 하나로 합치는 squash merge를 요청해요. 요청한 뒤 PR 상태를 다시 확인해 결과를 알려 드려요."
       >
         <Button
           variant="weak"
           color="neutral"
           disabled={merge.isPending}
-          onClick={() => setConfirmOpen(false)}
+          onClick={() => setConfirm(null)}
         >
           취소
         </Button>
         <Button
           disabled={pending}
           onClick={() =>
-            merge.mutate(undefined, { onSuccess: () => setConfirmOpen(false) })
+            merge.mutate(undefined, { onSuccess: () => setConfirm(null) })
           }
         >
-          {merge.isPending ? '요청을 보내는 중이에요…' : '스쿼시 머지 요청하기'}
+          {merge.isPending ? '처리하는 중이에요…' : '스쿼시 머지하기'}
+        </Button>
+      </Dialog>
+      <Dialog
+        open={confirm === 'close'}
+        onClose={() => {
+          if (!close.isPending) setConfirm(null);
+        }}
+        title="이 PR을 머지하지 않고 닫을까요?"
+        description="닫은 PR은 GitHub에서 다시 열 수 있어요. 요청한 뒤 PR 상태를 다시 확인해 결과를 알려 드려요."
+      >
+        <Button
+          variant="weak"
+          color="neutral"
+          disabled={close.isPending}
+          onClick={() => setConfirm(null)}
+        >
+          취소
+        </Button>
+        <Button
+          color="danger"
+          disabled={pending}
+          onClick={() =>
+            close.mutate(undefined, { onSuccess: () => setConfirm(null) })
+          }
+        >
+          {close.isPending ? '처리하는 중이에요…' : '닫기'}
         </Button>
       </Dialog>
     </>

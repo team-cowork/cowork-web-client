@@ -5,7 +5,8 @@ import { type MeetingNoteContent } from '@/entities/meeting-note/model/meeting-n
  * 첨부 파일은 업로드 세션이 끝나면 다시 쓸 수 없어 저장하지 않는다.
  */
 export interface MeetingNoteDraft {
-  templateId: number;
+  /** 템플릿 없이 쓰던 중이면 null */
+  templateId: number | null;
   title: string;
   content: MeetingNoteContent;
   savedAt: string;
@@ -27,7 +28,7 @@ function isDraft(value: unknown): value is MeetingNoteDraft {
   if (value === null || typeof value !== 'object') return false;
   const draft = value as Record<string, unknown>;
   return (
-    typeof draft.templateId === 'number' &&
+    (typeof draft.templateId === 'number' || draft.templateId === null) &&
     typeof draft.title === 'string' &&
     typeof draft.savedAt === 'string' &&
     draft.content !== null &&

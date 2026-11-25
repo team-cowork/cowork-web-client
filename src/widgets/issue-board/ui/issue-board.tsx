@@ -29,6 +29,7 @@ import { useMoveIssue } from '@/features/github-issue-move/model/use-move-issue'
 import { cn } from '@/shared/lib/cn';
 import { useVanishedItems } from '@/shared/lib/use-vanished-items';
 import { formatDate } from '@/shared/lib/format-date';
+import { isGithubUrl } from '@/shared/lib/is-github-url';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
@@ -36,6 +37,7 @@ import { ErrorState } from '@/shared/ui/error-state';
 import { KanbanCard } from '@/shared/ui/kanban-card';
 import { KanbanColumn } from '@/shared/ui/kanban-column';
 import { LoadingPane } from '@/shared/ui/loading-pane';
+import { MobileNavButton } from '@/shared/ui/mobile-nav-button';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 import { SegmentedControl } from '@/shared/ui/segmented-control';
 
@@ -56,15 +58,15 @@ const githubRepoName = (url: string) =>
     .replace(/\.git$/, '');
 
 /** GitHub 주소만 링크로 쓴다. */
-const isGithubUrl = (url: string) => /^https:\/\/github\.com\//.test(url);
 
 export function IssueBoard({ teamId }: { teamId: number }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-background">
-      <header className="flex h-12 shrink-0 items-center px-6">
+      <header className="flex h-12 shrink-0 items-center gap-2 px-6 max-md:px-4">
+        <MobileNavButton />
         <h1 className="typography-label-medium text-on-surface">이슈</h1>
       </header>
-      <div className="flex min-w-0 flex-1 flex-col gap-3 px-6 pb-6">
+      <div className="flex min-w-0 flex-1 flex-col gap-3 px-6 pb-6 max-md:px-4">
         <QueryBoundary
           loadingFallback={<LoadingPane label="프로젝트를 불러오는 중…" />}
           errorFallback={BoardError}

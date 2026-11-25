@@ -10,6 +10,7 @@ import {
   type MeetingNoteSectionView,
   type MeetingNoteTemplate,
   countAttendees,
+  isUnstructuredContent,
   parseMeetingNoteContent,
   splitAttendees,
   toSectionViews,
@@ -57,6 +58,7 @@ export function MeetingNoteViewer({
   const content = parseMeetingNoteContent(note.content);
   const sections = toSectionViews(content, template?.sections ?? []);
   const attendeeCount = countAttendees(content, template?.sections ?? []);
+  const isUnstructured = isUnstructuredContent(sections, template);
   // 생성 시각과 수정 시각은 저장 시점에 따로 찍혀 미세하게 다를 수 있다.
   const isEdited =
     new Date(note.updatedAt).getTime() - new Date(note.createdAt).getTime() >
@@ -142,7 +144,11 @@ export function MeetingNoteViewer({
         />
 
         {sections.map((section) => (
-          <SectionBlock key={section.title} section={section} />
+          <SectionBlock
+            key={section.title}
+            section={section}
+            bare={isUnstructured}
+          />
         ))}
 
         {note.attachments.length > 0 && (
@@ -204,14 +210,23 @@ export function MeetingNoteViewer({
   );
 }
 
-function SectionBlock({ section }: { section: MeetingNoteSectionView }) {
+function SectionBlock({
+  section,
+  bare,
+}: {
+  section: MeetingNoteSectionView;
+  /** 템플릿 없이 쓴 본문은 섹션 제목 없이 문서처럼 보여 준다. */
+  bare: boolean;
+}) {
   const value = section.value.trim();
 
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="typography-title-small text-on-surface">
-        {section.title}
-      </h2>
+      {!bare && (
+        <h2 className="typography-title-small text-on-surface">
+          {section.title}
+        </h2>
+      )}
       {!value ? (
         <p className="typography-body-medium text-on-surface-variant/60">
           작성된 내용이 없어요
