@@ -1,11 +1,13 @@
 'use client';
 
-import { useLayoutEffect, useRef } from 'react';
+import { type ReactNode, useLayoutEffect, useRef } from 'react';
 
 import { continuesPrevious } from '@/entities/message/lib/message-group';
 import { type Message } from '@/entities/message/model/message';
+import { useFileDrop } from '@/features/message-composer/model/use-file-drop';
 import { type useMessageDraft } from '@/features/message-composer/model/use-message-draft';
 import { AttachButton } from '@/features/message-composer/ui/attach-button';
+import { FileDropOverlay } from '@/features/message-composer/ui/file-drop-overlay';
 import { MessageComposer } from '@/features/message-composer/ui/message-composer';
 import { MessageRow } from '@/widgets/message-list/ui/message-row';
 import { cn } from '@/shared/lib/cn';
@@ -19,12 +21,19 @@ export interface ThreadPanelProps {
   isRepliesError?: boolean;
   onReloadReplies?: () => void;
   draft: ReturnType<typeof useMessageDraft>;
-  sendDisabled?: boolean;
-  sendDisabledReason?: string;
   composerNotice?: string;
   onRetryReply?: (message: Message) => void;
   onClose: () => void;
-  onAttach?: () => void;
+  /** 없으면 첨부 버튼을 비활성화한다 */
+  onAttachFiles?: (files: Iterable<File>) => void;
+  /** 컴포저 안, 입력란 위에 보여줄 전송 전 첨부 */
+  attachmentDrafts?: ReactNode;
+  /** 첨부만으로도 보낼 수 있는지 */
+  canSendEmpty?: boolean;
+  /** 첨부 업로드 중처럼 잠시 전송을 막아야 할 때 */
+  sendDisabled?: boolean;
+  /** 전송을 막은 이유. 전송 버튼에서 알려준다. */
+  sendDisabledReason?: string;
   className?: string;
 }
 
@@ -42,15 +51,19 @@ export function ThreadPanel({
   isRepliesError = false,
   onReloadReplies,
   draft,
-  sendDisabled,
-  sendDisabledReason,
   composerNotice,
   onRetryReply,
   onClose,
-  onAttach,
+  onAttachFiles,
+  attachmentDrafts,
+  canSendEmpty = false,
+  sendDisabled = false,
+  sendDisabledReason,
   className,
 }: ThreadPanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { dragging, dropHandlers } = useFileDrop(onAttachFiles);
   const lastReplyId = replies?.at(-1)?._id;
 
   // 새 답글이 달리면 맨 아래로 내려 방금 단 답글이 보이게 한다.
@@ -65,9 +78,10 @@ export function ThreadPanel({
     <aside
       aria-label="스레드"
       className={cn(
-        'flex w-100 shrink-0 flex-col border-l border-outline-variant bg-surface max-md:fixed max-md:inset-0 max-md:z-30 max-md:w-full max-md:border-l-0',
+        'relative flex w-100 shrink-0 flex-col border-l border-outline-variant bg-surface max-md:fixed max-md:inset-0 max-md:z-30 max-md:w-full max-md:border-l-0',
         className,
       )}
+      {...dropHandlers}
     >
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-outline-variant pr-3.5 pl-4">
         <div className="flex min-w-0 flex-col gap-px">
@@ -152,12 +166,36 @@ export function ThreadPanel({
           value={draft.value}
           onChange={draft.onChange}
           onSend={draft.onSend}
+          placeholder="스레드에 답장…"
+          attachments={attachmentDrafts}
+          onPasteFiles={onAttachFiles}
+          canSendEmpty={canSendEmpty}
           sendDisabled={sendDisabled}
           sendDisabledReason={sendDisabledReason}
-          placeholder="스레드에 답장…"
-          leading={<AttachButton onClick={onAttach} />}
+          leading={
+            <AttachButton
+              onClick={onAttachFiles && (() => fileInputRef.current?.click())}
+            />
+          }
         />
+        {onAttachFiles && (
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            hidden
+            onChange={(event) => {
+              if (event.target.files?.length) {
+                onAttachFiles(event.target.files);
+              }
+              // 같은 파일을 다시 골라도 change가 일어나도록 비운다.
+              event.target.value = '';
+            }}
+          />
+        )}
       </div>
+
+      {dragging && <FileDropOverlay />}
     </aside>
   );
 }

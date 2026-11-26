@@ -21,7 +21,7 @@ import {
 import { userQueries } from '@/entities/user/api/user-queries';
 import { userDisplayName } from '@/entities/user/lib/user-display';
 import { type User } from '@/entities/user/model/user';
-import { useAttachmentUploadStore } from '@/features/message-attachment/model/attachment-upload-store';
+import { clearAttachmentDraft } from '@/features/message-attachment/model/attachment-upload-store';
 import { useAttachmentUploads } from '@/features/message-attachment/model/use-attachment-uploads';
 import { AttachmentDrafts } from '@/features/message-attachment/ui/attachment-drafts';
 import { useCreateMeetingNote } from '@/features/meeting-note-write/model/use-create-meeting-note';
@@ -138,14 +138,7 @@ function MeetingNoteDocument({
 
   // 업로드는 채널별 스토어에 남는다. 편집기를 떠나면(게시·저장 안 함·다른 화면 이동)
   // 이 회의록에 붙이던 파일을 정리해, 다음 회의록에 다시 붙어 나오지 않게 한다.
-  useEffect(
-    () => () => {
-      const store = useAttachmentUploadStore.getState();
-      const ids = (store.uploadsByChannel[channelId] ?? []).map(({ id }) => id);
-      if (ids.length > 0) store.remove(channelId, ids);
-    },
-    [channelId],
-  );
+  useEffect(() => () => clearAttachmentDraft(channelId), [channelId]);
 
   const isUnstructured = isUnstructuredContent(form.fields, form.template);
   const hasFailedUpload = uploads.uploads.some(
