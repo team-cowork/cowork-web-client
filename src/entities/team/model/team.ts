@@ -1,19 +1,3 @@
-export const TEAM_MEMBER_ROLES = ['OWNER', 'ADMIN', 'MEMBER'] as const;
-
-export type TeamMemberRole = (typeof TEAM_MEMBER_ROLES)[number];
-
-export type AssignableTeamMemberRole = Exclude<TeamMemberRole, 'OWNER'>;
-
-export const TEAM_MEMBER_ROLE_LABEL: Record<TeamMemberRole, string> = {
-  OWNER: '소유자',
-  ADMIN: '관리자',
-  MEMBER: '멤버',
-};
-
-export function toTeamMemberRole(role: string): TeamMemberRole | null {
-  return TEAM_MEMBER_ROLES.find((candidate) => candidate === role) ?? null;
-}
-
 export const DEFAULT_ROLE_COLOR_HEX = '#5865F2';
 
 export const INVITE_DURATIONS = ['1d', '7d', '30d', 'never'] as const;
@@ -31,7 +15,6 @@ export interface TeamSummary {
   id: number;
   name: string;
   iconUrl: string | null;
-  myRole: string;
 }
 
 export interface Team {
@@ -54,6 +37,8 @@ export interface TeamRole {
   permissions: Record<string, boolean>;
   createdAt: string | null;
   updatedAt: string | null;
+  /** 모든 멤버에게 자동 적용되는 기본 역할(@everyone). 직접 부여·회수·삭제할 수 없다 */
+  isDefault: boolean;
 }
 
 export interface TeamRolePermission {
@@ -69,10 +54,14 @@ export interface TeamRolePermissionGroup {
   permissions: TeamRolePermission[];
 }
 
+export interface TeamRolePermissionsParams {
+  query?: string;
+  channelType?: string;
+}
+
 export interface TeamMember {
   id: number;
   userId: number;
-  role: string;
   roles: TeamRole[];
   joinedAt: string;
 }
@@ -97,7 +86,6 @@ export interface JoinTeamResult {
 export interface CreateTeamRequest {
   name: string;
   description?: string | null;
-  iconUrl?: string | null;
 }
 
 export interface UpdateTeamRequest {
@@ -110,8 +98,8 @@ export interface InviteMembersRequest {
   userIds: number[];
 }
 
-export interface ChangeMemberRoleRequest {
-  role: AssignableTeamMemberRole;
+export interface TransferTeamOwnershipRequest {
+  targetUserId: number;
 }
 
 export interface CreateTeamRoleRequest {

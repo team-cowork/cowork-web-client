@@ -52,7 +52,10 @@ export function MemberPanel({ channelId, className }: MemberPanelProps) {
   return (
     <aside
       aria-label="채널 멤버"
-      className={cn('w-60 shrink-0 overflow-y-auto bg-surface p-2', className)}
+      className={cn(
+        'w-60 shrink-0 overflow-y-auto bg-surface p-2 max-md:hidden',
+        className,
+      )}
     >
       <QueryBoundary
         loadingFallback={MEMBER_SKELETON}

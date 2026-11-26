@@ -14,7 +14,10 @@ import { userQueries } from '@/entities/user/api/user-queries';
 import { useOpenAttachment } from '@/features/attachment-download/model/use-open-attachment';
 import { AttachmentImageViewer } from '@/features/attachment-download/ui/attachment-image-viewer';
 import { DeleteMessageDialog } from '@/features/message-delete/ui/delete-message-dialog';
-import { useEditingMessageStore } from '@/features/message-edit/model/editing-message-store';
+import {
+  editingKeyOf,
+  useEditingMessageStore,
+} from '@/features/message-edit/model/editing-message-store';
 import { MessageEditForm } from '@/features/message-edit/ui/message-edit-form';
 import { useTogglePin } from '@/features/message-pin/model/use-toggle-pin';
 import { useToggleReaction } from '@/features/message-reaction/model/use-toggle-reaction';
@@ -33,6 +36,12 @@ export interface MessageRowProps {
   showQuote?: boolean;
   onRetry?: (message: Message) => void;
   onReply?: (message: Message) => void;
+  /**
+   * 수정 상태를 구분하는 화면 id. 목록처럼 행이 사라졌다 다시 그려져도 수정이 이어져야 하는
+   * 화면이 준다. 없으면 행마다 따로 구분한다.
+   */
+  editSurfaceId?: string;
+  compact?: boolean;
 }
 
 // 행을 누르면 스레드가 열리므로, 행 안의 조작 영역에서 일어난 클릭은 위로 올리지 않는다.
@@ -57,14 +66,17 @@ export function MessageRow({
   showQuote,
   onRetry,
   onReply,
+  editSurfaceId,
+  compact,
 }: MessageRowProps) {
   const { data: me } = useQuery(userQueries.me());
   const toggleReaction = useToggleReaction(message);
   const togglePin = useTogglePin(message);
   const openAttachment = useOpenAttachment();
   const rowId = useId();
+  const editKey = editingKeyOf(editSurfaceId ?? rowId, message._id);
   const editing = useEditingMessageStore(
-    (state) => state.editingRowId === rowId,
+    (state) => state.editingKey === editKey,
   );
   const startEditing = useEditingMessageStore((state) => state.startEditing);
   const stopEditing = useEditingMessageStore((state) => state.stopEditing);
@@ -124,6 +136,7 @@ export function MessageRow({
         message={message}
         timestampFormat={timestampFormat}
         showQuote={showQuote}
+        compact={compact}
         onRetry={onRetry}
         onToggleReaction={interactive ? toggleReaction : undefined}
         onOpenAttachment={interactive ? openAttachmentAt : undefined}
@@ -167,7 +180,7 @@ export function MessageRow({
                     aria-label="메시지 수정"
                     size="S"
                     variant="clear"
-                    onClick={() => startEditing(rowId)}
+                    onClick={() => startEditing(editKey)}
                   >
                     <EditIcon />
                   </IconButton>
@@ -190,7 +203,7 @@ export function MessageRow({
             <StopClick>
               <MessageEditForm
                 message={message}
-                onDone={() => stopEditing(rowId)}
+                onDone={() => stopEditing(editKey)}
               />
             </StopClick>
           ) : undefined

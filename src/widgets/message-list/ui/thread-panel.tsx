@@ -2,6 +2,7 @@
 
 import { type ReactNode, useLayoutEffect, useRef } from 'react';
 
+import { continuesPrevious } from '@/entities/message/lib/message-group';
 import { type Message } from '@/entities/message/model/message';
 import { useFileDrop } from '@/features/message-composer/model/use-file-drop';
 import { type useMessageDraft } from '@/features/message-composer/model/use-message-draft';
@@ -77,7 +78,7 @@ export function ThreadPanel({
     <aside
       aria-label="스레드"
       className={cn(
-        'relative flex w-100 shrink-0 flex-col border-l border-outline-variant bg-surface',
+        'relative flex w-100 shrink-0 flex-col border-l border-outline-variant bg-surface max-md:fixed max-md:inset-0 max-md:z-30 max-md:w-full max-md:border-l-0',
         className,
       )}
       {...dropHandlers}
@@ -132,17 +133,25 @@ export function ThreadPanel({
         ) : replies === undefined ? (
           <p className={STATUS_TEXT_CLASS}>답글을 불러오는 중…</p>
         ) : (
-          <ol className="flex flex-col gap-2.5">
-            {replies.map((reply) => (
-              <li key={reply.clientMessageId ?? reply._id}>
-                <MessageRow
-                  message={reply}
-                  timestampFormat="clock"
-                  showQuote={false}
-                  onRetry={onRetryReply}
-                />
-              </li>
-            ))}
+          <ol className="flex flex-col">
+            {replies.map((reply, index) => {
+              const compact = continuesPrevious(replies[index - 1], reply);
+
+              return (
+                <li
+                  key={reply.clientMessageId ?? reply._id}
+                  className={cn(index > 0 && !compact && 'mt-2.5')}
+                >
+                  <MessageRow
+                    message={reply}
+                    timestampFormat="clock"
+                    showQuote={false}
+                    onRetry={onRetryReply}
+                    compact={compact}
+                  />
+                </li>
+              );
+            })}
           </ol>
         )}
       </div>

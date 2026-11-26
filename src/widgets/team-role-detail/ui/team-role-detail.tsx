@@ -74,15 +74,16 @@ function TeamRoleDetailContent({
 
   if (!role) notFound();
 
-  const memberCount = members.filter((member) =>
-    member.roles.some((r) => r.id === role.id),
-  ).length;
+  const memberCount = role.isDefault
+    ? members.length
+    : members.filter((member) => member.roles.some((r) => r.id === role.id))
+        .length;
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-dvh max-md:flex-col">
       <TeamRoleDetailNav teamId={teamId} roles={roles} activeRoleId={roleId} />
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-y-auto px-10 py-8">
+      <div className="flex min-w-0 flex-1 flex-col overflow-y-auto px-10 py-8 max-md:px-4 max-md:py-5">
         <div className="flex items-center justify-between gap-4 pr-12">
           <h1 className="typography-title-medium text-on-surface">
             역할 수정 — {role.name}
@@ -122,7 +123,9 @@ function TeamRoleDetailContent({
           {tab === 'display' && (
             <TeamRoleDisplayTab teamId={teamId} role={role} />
           )}
-          {tab === 'permissions' && <TeamRolePermissionsTab />}
+          {tab === 'permissions' && (
+            <TeamRolePermissionsTab teamId={teamId} role={role} />
+          )}
           {tab === 'members' && (
             <TeamRoleMembersTab teamId={teamId} role={role} />
           )}
