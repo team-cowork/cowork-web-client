@@ -21,9 +21,12 @@ export function TeamIconField({ team }: TeamIconFieldProps) {
   const [error, setError] = useState('');
   const updateIcon = useUpdateTeamIcon(team.id);
   const deleteIcon = useDeleteTeamIcon(team.id);
-  const canManage = useTeamPermissions(team.id).can('manage_team');
+  const permissions = useTeamPermissions(team.id);
 
-  const pending = updateIcon.isPending || deleteIcon.isPending;
+  // 권한을 불러오는 동안에는 버튼 자리를 비우지 않고 잠가 둔다. 권한이 없다고 확인된 뒤에만 숨긴다.
+  const showControls = !permissions.ready || permissions.can('manage_team');
+  const locked =
+    updateIcon.isPending || deleteIcon.isPending || !permissions.ready;
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -54,14 +57,14 @@ export function TeamIconField({ team }: TeamIconFieldProps) {
           size={80}
           loading="eager"
         />
-        {canManage && (
+        {showControls && (
           <div className="flex flex-col gap-2">
             <div className="flex gap-2.5">
               <Button
                 size="S"
                 variant="weak"
                 color="neutral"
-                disabled={pending}
+                disabled={locked}
                 onClick={() => inputRef.current?.click()}
               >
                 아이콘 변경
@@ -70,7 +73,7 @@ export function TeamIconField({ team }: TeamIconFieldProps) {
                 size="S"
                 variant="weak"
                 color="neutral"
-                disabled={pending || !team.iconUrl}
+                disabled={locked || !team.iconUrl}
                 onClick={() =>
                   deleteIcon.mutate(undefined, {
                     onError: () =>
