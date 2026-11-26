@@ -70,7 +70,7 @@ export function MessageItem({
       tabIndex={actions ? -1 : undefined}
       className={cn(
         'group relative flex items-start px-4 focus:outline-none',
-        compact ? 'py-0.5' : 'py-1',
+        compact ? 'py-0.5' : 'pt-1 pb-0.5',
         className,
       )}
     >
@@ -79,17 +79,21 @@ export function MessageItem({
           <span className="sr-only">{author} </span>
           {timestamp}
         </span>
-      ) : onAuthorClick ? (
-        <button
-          type="button"
-          aria-label={`${author} 프로필 보기`}
-          onClick={authorClickHandler(onAuthorClick)}
-          className="shrink-0 cursor-pointer rounded-full focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none"
-        >
-          {avatar}
-        </button>
       ) : (
-        avatar
+        <div className="h-0 shrink-0">
+          {onAuthorClick ? (
+            <button
+              type="button"
+              aria-label={`${author} 프로필 보기`}
+              onClick={authorClickHandler(onAuthorClick)}
+              className="flex cursor-pointer rounded-full focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none"
+            >
+              {avatar}
+            </button>
+          ) : (
+            avatar
+          )}
+        </div>
       )}
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 px-5">
         {quote}
