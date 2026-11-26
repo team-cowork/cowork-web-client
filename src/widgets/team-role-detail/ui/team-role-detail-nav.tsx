@@ -51,7 +51,7 @@ export function TeamRoleDetailNav({
   return (
     <nav
       aria-label="역할 목록"
-      className="flex w-60 shrink-0 flex-col bg-surface-container-low px-3 py-6"
+      className="flex w-60 shrink-0 flex-col bg-surface-container-low px-3 py-6 max-md:w-full max-md:py-3 max-md:pr-14"
     >
       <div className="flex h-9 items-center justify-between px-2.5">
         <Link
@@ -72,7 +72,7 @@ export function TeamRoleDetailNav({
         </button>
       </div>
 
-      <ul className="mt-2 flex flex-col gap-0.5">
+      <ul className="mt-2 flex flex-col gap-0.5 max-md:flex-row max-md:overflow-x-auto">
         {roles.map((role) => {
           const active = role.id === activeRoleId;
 
@@ -82,7 +82,7 @@ export function TeamRoleDetailNav({
                 href={teamSettingsRoleDetailPath(teamId, role.id)}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex h-9 items-center gap-2.5 rounded-lg px-2.5 typography-label-small transition-colors',
+                  'flex h-9 items-center gap-2.5 rounded-lg px-2.5 typography-label-small whitespace-nowrap transition-colors',
                   active
                     ? 'bg-surface-container text-on-surface'
                     : 'text-on-surface-variant hover:bg-surface-container/60 hover:text-on-surface',

@@ -1,15 +1,11 @@
 'use client';
 
-import {
-  type DragEvent,
-  type ReactNode,
-  type Ref,
-  useRef,
-  useState,
-} from 'react';
+import { type ReactNode, type Ref, useRef } from 'react';
 
+import { useFileDrop } from '@/features/message-composer/model/use-file-drop';
 import { useMessageDraft } from '@/features/message-composer/model/use-message-draft';
 import { AttachButton } from '@/features/message-composer/ui/attach-button';
+import { FileDropOverlay } from '@/features/message-composer/ui/file-drop-overlay';
 import { MessageComposer } from '@/features/message-composer/ui/message-composer';
 import { cn } from '@/shared/lib/cn';
 
@@ -59,58 +55,12 @@ export function ChatPanel({
     allowEmpty: canSendEmpty,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
-  const dragDepth = useRef(0);
-  const internalDrag = useRef(false);
-
-  const acceptsDrop = (event: DragEvent) =>
-    onAttachFiles !== undefined &&
-    !internalDrag.current &&
-    event.dataTransfer.types.includes('Files');
+  const { dragging, dropHandlers } = useFileDrop(onAttachFiles);
 
   return (
     <div
       className={cn('relative flex min-h-0 flex-1 flex-col', className)}
-      onDragStart={() => {
-        internalDrag.current = true;
-      }}
-      onDragEnd={() => {
-        internalDrag.current = false;
-      }}
-      onDragEnter={(event) => {
-        if (!acceptsDrop(event)) return;
-        dragDepth.current += 1;
-        setDragging(true);
-      }}
-      onDragOver={(event) => {
-        if (!acceptsDrop(event)) return;
-        event.preventDefault();
-        event.dataTransfer.dropEffect = 'copy';
-      }}
-      onDragLeave={(event) => {
-        if (!acceptsDrop(event)) return;
-        dragDepth.current -= 1;
-        if (dragDepth.current <= 0) {
-          dragDepth.current = 0;
-          setDragging(false);
-        }
-      }}
-      onDrop={(event) => {
-        dragDepth.current = 0;
-        setDragging(false);
-        const accepted = acceptsDrop(event);
-        internalDrag.current = false;
-        if (!accepted) return;
-        event.preventDefault();
-        const files = Array.from(event.dataTransfer.items)
-          .filter(
-            (item) =>
-              item.kind === 'file' && !item.webkitGetAsEntry()?.isDirectory,
-          )
-          .map((item) => item.getAsFile())
-          .filter((file) => file !== null);
-        if (files.length > 0) onAttachFiles?.(files);
-      }}
+      {...dropHandlers}
     >
       {messageList}
 
@@ -153,11 +103,7 @@ export function ChatPanel({
         )}
       </div>
 
-      {dragging && (
-        <div className="pointer-events-none absolute inset-2 flex items-center justify-center rounded-[20px] border-2 border-dashed border-primary bg-surface/90 typography-subtext-large text-primary">
-          여기에 놓으면 첨부돼요
-        </div>
-      )}
+      {dragging && <FileDropOverlay />}
     </div>
   );
 }

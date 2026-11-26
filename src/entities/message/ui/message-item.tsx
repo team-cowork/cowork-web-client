@@ -67,14 +67,15 @@ export function MessageItem({
 
   return (
     <div
+      tabIndex={actions ? -1 : undefined}
       className={cn(
-        'group relative flex items-start px-4',
+        'group relative flex items-start px-4 focus:outline-none',
         compact ? 'py-0.5' : 'pt-1 pb-0.5',
         className,
       )}
     >
       {compact ? (
-        <span className="w-11 shrink-0 pt-0.5 text-center typography-subtext-small text-on-surface-variant opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 in-focus-visible:opacity-100">
+        <span className="w-11 shrink-0 pt-0.5 text-center typography-subtext-small text-on-surface-variant opacity-0 group-hover:opacity-100 group-has-[:focus]:opacity-100 in-focus-visible:opacity-100 pointer-coarse:group-focus:opacity-100">
           <span className="sr-only">{author} </span>
           {timestamp}
         </span>
@@ -140,7 +141,7 @@ export function MessageItem({
             compact ? '-top-1' : '-top-3',
             actionsVisible
               ? 'opacity-100'
-              : 'pointer-events-none opacity-0 group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100',
+              : 'pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 group-has-[:focus]:pointer-events-auto group-has-[:focus]:opacity-100 pointer-coarse:group-focus:pointer-events-auto pointer-coarse:group-focus:opacity-100',
           )}
         >
           {actions}

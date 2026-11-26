@@ -90,7 +90,7 @@ export function MessageComposer({
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
           placeholder={placeholder}
-          className="max-h-32 flex-1 resize-none bg-transparent py-2.5 typography-subtext-large text-on-surface placeholder:text-on-surface-variant focus:outline-none"
+          className="max-h-32 min-w-0 flex-1 resize-none bg-transparent py-2.5 typography-subtext-large text-on-surface placeholder:text-on-surface-variant focus:outline-none"
         />
         <IconButton
           size="M"
@@ -99,7 +99,7 @@ export function MessageComposer({
           title={reason}
           disabled={!canSend}
           onClick={onSend}
-          className="rounded-[14px]"
+          className="shrink-0 rounded-[14px]"
         >
           <SendIcon />
         </IconButton>

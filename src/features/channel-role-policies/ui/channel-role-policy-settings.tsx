@@ -15,8 +15,8 @@ import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 import { QueryBoundary } from '@/shared/ui/query-boundary';
 
 const EDITOR_SKELETON = (
-  <div className="flex items-start gap-8">
-    <div className="flex w-60 shrink-0 flex-col gap-1">
+  <div className="flex items-start gap-8 max-md:flex-col max-md:items-stretch max-md:gap-4">
+    <div className="flex w-60 shrink-0 flex-col gap-1 max-md:w-full">
       {Array.from({ length: 3 }, (_, index) => (
         <span
           key={index}
@@ -93,8 +93,11 @@ function ChannelRolePolicyEditor({
   };
 
   return (
-    <div className="flex items-start gap-8">
-      <nav aria-label="역할" className="flex w-60 shrink-0 flex-col gap-1">
+    <div className="flex items-start gap-8 max-md:flex-col max-md:items-stretch max-md:gap-4">
+      <nav
+        aria-label="역할"
+        className="flex w-60 shrink-0 flex-col gap-1 max-md:w-full"
+      >
         <span className="px-2.5 pb-1 typography-subtext-medium text-on-surface-variant">
           역할
         </span>

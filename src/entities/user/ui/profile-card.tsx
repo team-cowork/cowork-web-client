@@ -33,7 +33,7 @@ export function ProfileCard({ user, onEdit, className }: ProfileCardProps) {
     <div className={cn('flex flex-col gap-5', className)}>
       <section className="flex flex-col overflow-hidden rounded-2xl bg-surface">
         <ProfileBanner color={user.banner_color} className="h-[120px]" />
-        <div className="flex items-end justify-between gap-4 px-6 pt-4 pb-5">
+        <div className="flex items-end justify-between gap-4 px-6 pt-4 pb-5 max-md:flex-col max-md:items-start max-md:px-4">
           <div className="flex min-w-0 items-end gap-4">
             <span className="shrink-0 rounded-full bg-surface p-1">
               <UserAvatar

@@ -11,7 +11,7 @@ export function useUpdateTeamIcon(teamId: number) {
 
   return useMutation({
     mutationFn: async (file: File) => {
-      const iconUrl = await uploadTeamIcon(file);
+      const iconUrl = await uploadTeamIcon(teamId, file);
 
       return patchTeamIcon(teamId, { iconUrl });
     },
