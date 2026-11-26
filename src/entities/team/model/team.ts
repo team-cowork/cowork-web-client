@@ -86,7 +86,6 @@ export interface JoinTeamResult {
 export interface CreateTeamRequest {
   name: string;
   description?: string | null;
-  iconUrl?: string | null;
 }
 
 export interface UpdateTeamRequest {
